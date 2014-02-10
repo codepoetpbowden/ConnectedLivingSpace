@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace ConnectedLivingSpace
 {
@@ -69,19 +70,27 @@ namespace ConnectedLivingSpace
                 return true;
             }
 
-            // Next test - read the parts own config and look for a field defined by this mod that means to us that it is navigable
+            // Check to see if there is a CLSModule for this part. If there is then we cna read the config for it.
             {
-                Object CLSPassable = p.Fields.GetValue("CLSPassable");
-                if (null != CLSPassable)
+                foreach(PartModule pm in this.part.Modules)
                 {
-                    if (1 == (int)CLSPassable) { return true; }
-                    else if ("1" == (string)CLSPassable) { return true; }
-                    else if ("yes" == (string)CLSPassable) { return true; }
-                    else if ("true" == (string)CLSPassable) { return true; }
-                    else if ("passable" == (string)CLSPassable) { return true; }
-                    else if ("navigable" == (string)CLSPassable) { return true; }
+                    Debug.Log("Part:" + this.part.name + " has module " + pm.moduleName + " " + pm.name);
+                    if(pm.moduleName =="ModuleConnectedLivingSpace")
+                    {
+                        // This part does have a CLSmodule
+                        ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)pm;
+
+                        Debug.Log("ModuleConnectedLivingSpace.navigable: " + CLSMod.passable);
+
+                        return(CLSMod.passable);
+                    }
                 }
             }
+
+
+
+
+
 
             // TODO
             // Next try looking up the part in a list of predefines that ship with this mod.

@@ -11,7 +11,6 @@ namespace ConnectedLivingSpace
     {
         private static Rect windowPosition = new Rect(0,0,320,240);
         private static GUIStyle windowStyle = null;
-        private static bool buttonState = false;
 
         private CLSVessel vessel = null;
 
@@ -48,15 +47,8 @@ namespace ConnectedLivingSpace
         {
             try
             {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("ABC-");
-                GUILayout.Label("123");
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                buttonState = GUILayout.Toggle(buttonState, "Button State: " + buttonState);
-                GUILayout.EndHorizontal();
-
+          
+             
                 if (GUILayout.Button("Process"))
                 {
                     // Do something as they pressed the button!
@@ -106,5 +98,26 @@ namespace ConnectedLivingSpace
             // Walk the part tree, and build up a list of living spaces.
         }
 
+
+        public static string DumpConfigNode(ConfigNode cn)
+        {
+            string output = "Confignode name:" + cn.name + " id:" + cn.id + "\n{";
+
+            foreach (ConfigNode child in cn.nodes)
+            {
+                output += DumpConfigNode(child);
+            }
+
+            foreach (String name in cn.values.DistinctNames())
+            {
+                foreach (String value in cn.values.GetValues(name))
+                {
+                    output += name + ":"+value+"\n";
+                }
+            }
+            output += "}\n";
+
+            return output;
+        }
     }
 }

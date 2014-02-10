@@ -99,7 +99,42 @@ namespace ConnectedLivingSpace
         // Decides is an attachment node on a part could allow a kerbal to pass through it.
         public bool IsNodeNavigable(AttachNode node, Part p)
         {
-            // TODO
+            String passablenodes ="";
+            String impassablenodes="";
+
+            // Get the config for this part
+            foreach (PartModule pm in p.Modules)
+            {
+                Debug.Log("Part:" + p.name + " has module " + pm.moduleName + " " + pm.name);
+                if (pm.moduleName == "ModuleConnectedLivingSpace")
+                {
+                    // This part does have a CLSmodule
+                    ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)pm;
+
+                    Debug.Log("ModuleConnectedLivingSpace.navigable: " + CLSMod.passablenodes);
+
+                    passablenodes = CLSMod.passablenodes;
+                    impassablenodes = CLSMod.impassablenodes;
+
+                    break;
+                }
+            }
+
+            // TODO remove
+            Debug.Log("passablenodes:" + passablenodes + " impassablenodes:"+impassablenodes +" node.id:"+ node.id);
+
+            if (passablenodes.Contains(node.id))
+            {
+                return true;
+            }
+
+            if (impassablenodes.Contains(node.id))
+            {
+                return false;
+            }
+
+            // TODO Look up an answer in the set of config provided by this mod rather than the part.
+
             return true;
         }
 

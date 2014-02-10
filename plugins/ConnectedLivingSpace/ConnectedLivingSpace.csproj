@@ -46,6 +46,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ModuleConnectedLivingSpace.cs" />
     <Compile Include="CLSPart.cs" />
     <Compile Include="CLSSpace.cs" />
     <Compile Include="CLSVessel.cs" />
