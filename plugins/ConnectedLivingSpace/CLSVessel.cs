@@ -31,14 +31,46 @@ namespace ConnectedLivingSpace
         public void Populate(Vessel vessel)
         {
             Debug.Log("Populate{");
+            Populate(vessel.rootPart);
+            Debug.Log("Populate}");
+        }
+
+        public void Populate(Part rootPart)
+        {
+            Debug.Log("Populate{");
             // Discard any currently held data.
             this.listParts.Clear();
             this.listSpaces.Clear();
 
-            ProcessPart(vessel.rootPart, null);
+            ProcessPart(rootPart, null);
+
+            TidySpaces();
+            
             Debug.Log("Populate}");
         }
 
+        // Method to go through each space once all the sapces are complete, and remove any that do not make sense, such as not having capacity for any crew.
+        private void TidySpaces()
+        {
+            List<CLSSpace> listSpacesToRemove = new List<CLSSpace>();
+
+            foreach(CLSSpace space in this.listSpaces)
+            {
+                if(space.MaxCrew == 0)
+                {
+                    listSpacesToRemove.Add(space);
+                }
+            }
+
+            foreach(CLSSpace spaceToRemove in listSpacesToRemove)
+            {
+                spaceToRemove.Clear();
+                listSpaces.Remove(spaceToRemove);
+            }
+
+        }
+
+        
         // A method that is called recursively to walk the part tree, and allocate parts to habitable spaces
         private void ProcessPart(Part p, CLSSpace currentSpace)
         {

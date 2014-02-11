@@ -9,10 +9,11 @@ namespace ConnectedLivingSpace
 [KSPAddonFixed(KSPAddon.Startup.EveryScene, false, typeof(CLSAddon))]
     public class CLSAddon : MonoBehaviour
     {
-        private static Rect windowPosition = new Rect(0,0,320,240);
+        private static Rect windowPosition = new Rect(0,0,320,360);
         private static GUIStyle windowStyle = null;
 
         private CLSVessel vessel = null;
+        private int selectedSpace = -1;
 
         public void Awake() 
         {
@@ -43,39 +44,88 @@ namespace ConnectedLivingSpace
             windowPosition = GUI.Window(1234, windowPosition, OnWindow, "Connected Living Space", windowStyle);
         }
 
+
+        
+
         private void OnWindow(int windowID)
         {
             try
             {
-          
-             
                 if (GUILayout.Button("Process"))
                 {
                     // Do something as they pressed the button!
-                    this.vessel = new CLSVessel();
-                    this.vessel.Populate(FlightGlobals.ActiveVessel);
+                    if (HighLogic.LoadedSceneIsFlight)
+                    {
+                        this.vessel = new CLSVessel();
+                        this.vessel.Populate(FlightGlobals.ActiveVessel);
+                    }
+                    else if (HighLogic.LoadedSceneIsEditor)
+                    {
+                        this.vessel = new CLSVessel();
+                        this.vessel.Populate(EditorLogic.startPod);
+                    }
                 }
 
                 // Build a string descibing the contents of each of the spaces.
                 if (null != this.vessel)
                 {
-                    String output = "";
+                    String[] spaceNames = new String[vessel.Spaces.Count];
+                    int counter = 0;
+
+                    String partsList = "";
                     foreach (CLSSpace space in vessel.Spaces)
                     {
-                        output += "Space\n{\n";
-                        foreach (CLSPart p in space.Parts)
+                        if (space.Name == "")
                         {
-                            output += " " + ((Part)p).name + "\n";
+                            spaceNames[counter] = "Living Space " + (counter + 1).ToString();
                         }
-                        output += "}\n";
+                        else
+                        {
+                            spaceNames[counter] = space.Name;
+                        }
+                        counter++;
                     }
 
-                    Debug.Log(output);
+                    this.selectedSpace = GUILayout.SelectionGrid(this.selectedSpace, spaceNames, counter,GUILayout.ExpandHeight(true));
 
-                    GUILayout.Label(output);
+                    // If one of the spaces has been selected then display a list of parts that make it up
+                    if (-1 != this.selectedSpace)
+                    {
+                        List<Part> parts;
+                        if (HighLogic.LoadedSceneIsEditor) { parts = EditorLogic.SortedShipList; }
+                        else { parts = FlightGlobals.ActiveVessel.Parts;}
+                        
+                        // First unhightlight all the parts in the vessel
+                        foreach (Part p in parts)
+                        {
+                            p.SetHighlightDefault();
+                            p.SetHighlight(false);
+                        }
+
+                        foreach (CLSPart p in vessel.Spaces[this.selectedSpace].Parts)
+                        {
+                            Part part = (Part)p;
+                            part.SetHighlightDefault();
+                            part.SetHighlightColor(Color.magenta);
+                            part.SetHighlight(true);
+                            
+                            partsList += part.partInfo.title + "\n";
+                        }
+
+                        // Display the text box that allows the space name to be changed
+                        vessel.Spaces[this.selectedSpace].Name = GUILayout.TextField(vessel.Spaces[this.selectedSpace].Name);
+
+                        // Display the crew capacity of the space.
+                        GUILayout.Label("Crew Capacity: " + vessel.Spaces[this.selectedSpace].MaxCrew);
+
+                        // Display the list of component parts.
+                        GUILayout.Label(partsList);
+                    }
+
+
+                    
                 }
-
-
+                
                 GUI.DragWindow();
             }
             catch (Exception ex)
@@ -83,9 +133,7 @@ namespace ConnectedLivingSpace
                 Debug.LogException(ex);
             }
         }
-
-
-
+        
         public void Update()
         {
             // Debug.Log("CLSAddon:Update");

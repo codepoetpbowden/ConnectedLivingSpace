@@ -15,20 +15,19 @@ namespace ConnectedLivingSpace
         public string passablenodes = "";
         [KSPField]
         public string impassablenodes = "";
+        [KSPField(isPersistant = true)]
+        public string spaceName;
         
         public override void OnAwake()
         {
             try
-            {
+            {               
 
             }
             catch (Exception ex)
             {
                 Debug.LogException(ex);
             }
-
-        
-
         }
 
         /// <summary>
@@ -41,7 +40,15 @@ namespace ConnectedLivingSpace
 
             try
             {
-
+                // If the CLS Space name for this part is not set or empty, then set it to the title of this part.
+                if (null == this.spaceName)
+                {
+                    this.spaceName = this.part.partInfo.title;
+                }
+                else if ("" == this.spaceName)
+                {
+                    this.spaceName = this.part.partInfo.title;
+                }
             }
             catch (Exception ex)
             {
