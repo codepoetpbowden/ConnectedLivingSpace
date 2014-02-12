@@ -75,7 +75,7 @@ namespace ConnectedLivingSpace
             this.maxCrew += ((Part)p).CrewCapacity;
         }
 
-        // A function to throw aware all the parts references, and so break the circular reference. This should be called before throwing a CLSSpace away.
+        // A function to throw away all the parts references, and so break the circular reference. This should be called before throwing a CLSSpace away.
         public void Clear()
         {
             this.parts.Clear();

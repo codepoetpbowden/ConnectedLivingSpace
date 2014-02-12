@@ -8,6 +8,11 @@ namespace ConnectedLivingSpace
 {
     class CLSPart
     {
+        bool habitable;
+        bool navigable;
+        Part part;
+        CLSSpace space;
+
         public CLSPart(Part p)
         {
             this.part = p;
@@ -16,11 +21,6 @@ namespace ConnectedLivingSpace
             navigable = IsNavigable(this.part);
             space = null;
         }
-
-        bool habitable;
-        bool navigable;
-        Part part;
-        CLSSpace space;
 
         public CLSSpace Space
         {
@@ -70,7 +70,7 @@ namespace ConnectedLivingSpace
         {
             get
             {
-                return IsNavigable(this.part);
+                return navigable;
             }
         }
 
@@ -87,27 +87,19 @@ namespace ConnectedLivingSpace
                 return true;
             }
 
-            // Check to see if there is a CLSModule for this part. If there is then we cna read the config for it.
+            // Check to see if there is a CLSModule for this part. If there is then we can read the config for it.
+            foreach(PartModule pm in this.part.Modules)
             {
-                foreach(PartModule pm in this.part.Modules)
+                //Debug.Log("Part:" + this.part.name + " has module " + pm.moduleName + " " + pm.name);
+                if(pm.moduleName =="ModuleConnectedLivingSpace")
                 {
-                    Debug.Log("Part:" + this.part.name + " has module " + pm.moduleName + " " + pm.name);
-                    if(pm.moduleName =="ModuleConnectedLivingSpace")
-                    {
-                        // This part does have a CLSmodule
-                        ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)pm;
+                    // This part does have a CLSmodule
+                    ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)pm;
 
-                        Debug.Log("ModuleConnectedLivingSpace.navigable: " + CLSMod.passable);
+                    //Debug.Log("ModuleConnectedLivingSpace.navigable: " + CLSMod.passable);
 
-                        return(CLSMod.passable);
-                    }
+                    return(CLSMod.passable);
                 }
-            }
-
-            // TODO
-            // Next try looking up the part in a list of predefines that ship with this mod.
-            {
-
             }
 
             return false;

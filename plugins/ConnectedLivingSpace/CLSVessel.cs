@@ -30,23 +30,21 @@ namespace ConnectedLivingSpace
 
         public void Populate(Vessel vessel)
         {
-            Debug.Log("Populate{");
             Populate(vessel.rootPart);
-            Debug.Log("Populate}");
         }
 
         public void Populate(Part rootPart)
         {
-            Debug.Log("Populate{");
             // Discard any currently held data.
             this.listParts.Clear();
             this.listSpaces.Clear();
 
-            ProcessPart(rootPart, null);
-
-            TidySpaces();
-            
-            Debug.Log("Populate}");
+            // Check that there is a root part, as if this was called in the EditorContext, the Editor.startPod will have been passed in, and that can be null.
+            if (null != rootPart)
+            {
+                ProcessPart(rootPart, null);
+                TidySpaces();
+            }
         }
 
         // Method to go through each space once all the sapces are complete, and remove any that do not make sense, such as not having capacity for any crew.
@@ -70,15 +68,16 @@ namespace ConnectedLivingSpace
 
         }
 
-        
         // A method that is called recursively to walk the part tree, and allocate parts to habitable spaces
         private void ProcessPart(Part p, CLSSpace currentSpace)
         {
             CLSSpace thisSpace = null;
-
             CLSPart newPart = new CLSPart(p);
 
-            Debug.Log("Processing part: " + p.name + " Navigable:"+newPart.Navigable + " Habitable:" + newPart.Habitable);
+            //Debug.Log("Processing part: " + p.name + " Navigable:"+newPart.Navigable + " Habitable:" + newPart.Habitable);
+
+            // First add this part to the list of all parts for the vessel.
+            this.listParts.Add(newPart);
 
             // Is the part capable of containing kerbals? If not then just att the part to the null space, but if it is then add it to the current space, or a new space if there is no current space.
             if (newPart.Navigable)
@@ -126,10 +125,8 @@ namespace ConnectedLivingSpace
             }
         }
 
-  
-
         // Decides is an attachment node on a part could allow a kerbal to pass through it.
-        public bool IsNodeNavigable(AttachNode node, Part p)
+        private bool IsNodeNavigable(AttachNode node, Part p)
         {
             String passablenodes ="";
             String impassablenodes="";
@@ -137,13 +134,10 @@ namespace ConnectedLivingSpace
             // Get the config for this part
             foreach (PartModule pm in p.Modules)
             {
-                Debug.Log("Part:" + p.name + " has module " + pm.moduleName + " " + pm.name);
                 if (pm.moduleName == "ModuleConnectedLivingSpace")
                 {
                     // This part does have a CLSmodule
                     ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)pm;
-
-                    Debug.Log("ModuleConnectedLivingSpace.navigable: " + CLSMod.passablenodes);
 
                     passablenodes = CLSMod.passablenodes;
                     impassablenodes = CLSMod.impassablenodes;
@@ -153,7 +147,7 @@ namespace ConnectedLivingSpace
             }
 
             // TODO remove
-            Debug.Log("passablenodes:" + passablenodes + " impassablenodes:"+impassablenodes +" node.id:"+ node.id);
+            // Debug.Log("passablenodes:" + passablenodes + " impassablenodes:"+impassablenodes +" node.id:"+ node.id);
 
             if (passablenodes.Contains(node.id))
             {
@@ -165,28 +159,20 @@ namespace ConnectedLivingSpace
                 return false;
             }
 
-            // TODO Look up an answer in the set of config provided by this mod rather than the part.
-
             return true;
         }
 
         CLSSpace AddPartToNewSpace(CLSPart p)
         {
-            Debug.Log("AddPartToNewSpace " + ((Part)p).name);
-            Debug.Log("Number of spaces:" + this.listSpaces.Count);
             CLSSpace newSpace = new CLSSpace();
 
             this.listSpaces.Add(newSpace);
 
             newSpace.AddPart(p);
 
-            Debug.Log("New Number of spaces:" + this.listSpaces.Count);
-            
-
-            // TODO we need to set the space for the part. NOTE this will create a circular reference that needs to be handled.
+            p.Space = newSpace;
 
             return newSpace;
-
         }
 
         CLSSpace AddPartToSpace(CLSPart p, CLSSpace space)
@@ -197,7 +183,11 @@ namespace ConnectedLivingSpace
             {
                 space.AddPart(p);
             }
-            // TODO we need to set the space for the part. NOTE this will create a circular reference that needs to be handled.
+
+            if(null != space)
+            {
+                p.Space = space;
+            }
 
             return space;
         }

@@ -54,6 +54,9 @@
     <Compile Include="CLSAddon.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="configs\CLSStock.cfg" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "C:\Program Files\KSP_win.0.23 - development\GameData\pwb\Plugins\"</PostBuildEvent>
