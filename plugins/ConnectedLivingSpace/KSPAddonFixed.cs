@@ -6,11 +6,11 @@ using System.Text;
 /// <summary>
 /// KSPAddon with equality checking using an additional type parameter. Fixes the issue where AddonLoader prevents multiple start-once addons with the same start scene.
 /// </summary>
-public class KSPAddonFixed : KSPAddon, IEquatable<KSPAddonFixed>
+public class KSPAddonFixedCLS : KSPAddon, IEquatable<KSPAddonFixedCLS>
 {
     private readonly Type type;
 
-    public KSPAddonFixed(KSPAddon.Startup startup, bool once, Type type)
+    public KSPAddonFixedCLS(KSPAddon.Startup startup, bool once, Type type)
         : base(startup, once)
     {
         this.type = type;
@@ -19,10 +19,10 @@ public class KSPAddonFixed : KSPAddon, IEquatable<KSPAddonFixed>
     public override bool Equals(object obj)
     {
         if (obj.GetType() != this.GetType()) { return false; }
-        return Equals((KSPAddonFixed)obj);
+        return Equals((KSPAddonFixedCLS)obj);
     }
 
-    public bool Equals(KSPAddonFixed other)
+    public bool Equals(KSPAddonFixedCLS other)
     {
         if (this.once != other.once) { return false; }
         if (this.startup != other.startup) { return false; }

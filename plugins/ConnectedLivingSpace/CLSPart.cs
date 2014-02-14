@@ -57,6 +57,32 @@ namespace ConnectedLivingSpace
             return null;
         }
 
+        public void Highlight(bool val)
+        {
+            part.SetHighlightDefault();
+            
+            if(val)
+            {
+                // Choose the colour based in the type of part!
+                if(this.Habitable)
+                {
+                    this.part.SetHighlightColor(Color.green);
+                }
+                else if (this.Navigable)
+                {
+                    this.part.SetHighlightColor(Color.yellow);
+                }
+                else
+                {
+                    this.part.SetHighlightColor(Color.red);
+                }
+                this.part.SetHighlight(true);
+            }
+            else
+            {
+                this.part.SetHighlight(false);
+            }
+        }
 
         public bool Habitable
         {

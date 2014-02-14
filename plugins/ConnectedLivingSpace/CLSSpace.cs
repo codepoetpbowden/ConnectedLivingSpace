@@ -54,9 +54,18 @@ namespace ConnectedLivingSpace
             name = "";
         }
 
-        public void AddPart(CLSPart p)
+        internal void Highlight(bool val)
         {
-            // Add the part to the space,a nd the space to the part.
+            // Iterate through each CLSPart in this space and turn highlighting on or off.
+            foreach (CLSPart p in this.parts)
+            {
+                p.Highlight(val);
+            }
+        }
+
+        internal void AddPart(CLSPart p)
+        {
+            // Add the part to the space, and the space to the part.
             p.Space = this;
             
             // If this space does not have a name, take the name from the part we just added.

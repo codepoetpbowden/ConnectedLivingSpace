@@ -28,12 +28,20 @@ namespace ConnectedLivingSpace
             }
         }
 
-        public void Populate(Vessel vessel)
+        public List<CLSPart> Parts
+        {
+            get
+            {
+                return listParts;
+            }
+        }
+
+        internal void Populate(Vessel vessel)
         {
             Populate(vessel.rootPart);
         }
 
-        public void Populate(Part rootPart)
+        internal void Populate(Part rootPart)
         {
             // Discard any currently held data.
             this.listParts.Clear();
@@ -42,8 +50,8 @@ namespace ConnectedLivingSpace
             // Check that there is a root part, as if this was called in the EditorContext, the Editor.startPod will have been passed in, and that can be null.
             if (null != rootPart)
             {
-                ProcessPart(rootPart, null);
-                TidySpaces();
+                ProcessPart(rootPart, null); // This is called recursively going through the entire part tree.
+                TidySpaces(); // This method might remove some of the spaces that have just been created if there are no habitable parts in them.
             }
         }
 

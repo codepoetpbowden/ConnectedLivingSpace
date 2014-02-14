@@ -41,6 +41,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Toolbar">
+      <HintPath>..\..\..\..\..\..\..\Program Files\KSP_win.0.23 - development\GameData\000_Toolbar\Toolbar.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\..\..\Program Files\KSP_win.0.23\KSP_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
@@ -54,12 +57,9 @@
     <Compile Include="CLSAddon.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="configs\CLSStock.cfg" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "C:\Program Files\KSP_win.0.23 - development\GameData\pwb\Plugins\"</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetPath)" "C:\Program Files\KSP_win.0.23 - development\GameData\ConnectedLivingSpace\Plugins\"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

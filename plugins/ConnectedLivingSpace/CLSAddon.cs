@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using Toolbar;
+
 
 namespace ConnectedLivingSpace
 {
-    [KSPAddonFixed(KSPAddon.Startup.EveryScene, false, typeof(CLSAddon))]
+    [KSPAddonFixedCLS(KSPAddon.Startup.EveryScene, false, typeof(CLSAddon))]
     public class CLSAddon : MonoBehaviour
     {
         private static Rect windowPosition = new Rect(0,0,320,360);
@@ -15,11 +17,22 @@ namespace ConnectedLivingSpace
         private CLSVessel vessel = null;
         private int selectedSpace = -1;
 
+        private IButton toolbarButton = null; // Toolbar button
+        private bool visable = false;
+
         private int editorPartCount = 0; // This is horrible. Because there does not seem to be an obvious callback to sink when parts are added and removed in the editor, on each fixed update we will could the parts and if it has changed then rebuild the CLSVessel. Yuk!
 
         public void Awake() 
         {
-            // Debug.Log("CLSAddon:Awake");
+            Debug.Log("CLSAddon:Awake");
+
+            this.toolbarButton = ToolbarManager.Instance.add("ConnectedLivingSpace", "buttonCLS");
+            this.toolbarButton.TexturePath = "ConnectedLivingSpace/Textures/iconToolbar";
+            this.toolbarButton.ToolTip = "Connected Living Space";
+            this.toolbarButton.OnClick += (e) => { OnToolbarButton_Click(); };
+            this.toolbarButton.Visibility = new GameScenesVisibility(GameScenes.EDITOR, GameScenes.SPH, GameScenes.FLIGHT);
+
+            this.selectedSpace = -1;
         }
 
         public void Start() 
@@ -56,6 +69,18 @@ namespace ConnectedLivingSpace
                 GameEvents.onVesselLoaded.Add(OnVesselLoaded);
                 GameEvents.onVesselTerminated.Add(OnVesselTerminated);
             }
+        }
+
+        private void OnToolbarButton_Click()
+        {
+            Debug.Log("OnToolbarButton_Click");
+
+            if (this.visable)
+            {
+
+            }
+
+            this.visable = !this.visable;
         }
 
 
@@ -126,7 +151,10 @@ namespace ConnectedLivingSpace
 
         private void OnDraw()
         {
-            windowPosition = GUI.Window(1234, windowPosition, OnWindow, "Connected Living Space", windowStyle);
+            if (this.visable)
+            {
+                windowPosition = GUI.Window(1234, windowPosition, OnWindow, "Connected Living Space", windowStyle);
+            }
         }
 
         private void RebuildCLSVessel()
@@ -154,14 +182,12 @@ namespace ConnectedLivingSpace
         {
             try
             {
-
-                 
-                
                 // Build a string descibing the contents of each of the spaces.
                 if (null != this.vessel)
                 {
                     String[] spaceNames = new String[vessel.Spaces.Count];
                     int counter = 0;
+                    int newSelectedSpace = -1;
 
                     String partsList = "";
                     foreach (CLSSpace space in vessel.Spaces)
@@ -177,29 +203,30 @@ namespace ConnectedLivingSpace
                         counter++;
                     }
 
-                    this.selectedSpace = GUILayout.SelectionGrid(this.selectedSpace, spaceNames, counter);
+                    if (vessel.Spaces.Count > 0)
+                    {
+                        newSelectedSpace = GUILayout.SelectionGrid(this.selectedSpace, spaceNames, counter);
+                    }
 
                     // If one of the spaces has been selected then display a list of parts that make it up
-                    if (-1 != this.selectedSpace)
+                    if (-1 != newSelectedSpace)
                     {
-                        List<Part> parts;
-                        if (HighLogic.LoadedSceneIsEditor) { parts = EditorLogic.SortedShipList; }
-                        else { parts = FlightGlobals.ActiveVessel.Parts;}
-                        
-                        // First unhightlight all the parts in the vessel
-                        foreach (Part p in parts)
+                        // First unhighlight the space that was selected.
+                        if (-1 != this.selectedSpace && this.selectedSpace < this.vessel.Spaces.Count)
                         {
-                            p.SetHighlightDefault();
-                            p.SetHighlight(false);
+                            vessel.Spaces[this.selectedSpace].Highlight(false);
                         }
 
+                        // Update the space that has been selected.
+                        this.selectedSpace = newSelectedSpace;
+
+                        // Highlight the new space
+                        vessel.Spaces[this.selectedSpace].Highlight(true);
+
+                        // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
                         foreach (CLSPart p in vessel.Spaces[this.selectedSpace].Parts)
                         {
                             Part part = (Part)p;
-                            part.SetHighlightDefault();
-                            part.SetHighlightColor(Color.magenta);
-                            part.SetHighlight(true);
-                            
                             partsList += part.partInfo.title + "\n";
                         }
 
@@ -212,6 +239,10 @@ namespace ConnectedLivingSpace
                         // Display the list of component parts.
                         GUILayout.Label(partsList);
                     }
+                }
+                else
+                {
+                    Debug.LogError("this.vessel was null");
                 }
                 
                 GUI.DragWindow();
@@ -230,6 +261,8 @@ namespace ConnectedLivingSpace
         public void FixedUpdate()
         {
             // Debug.Log("CLSAddon:FixedUpdate");
+
+            // TODO perhaps we should move this to fixed rather than fixed update to prevent the rendering code from trying to access a part that no longer exists.I am not sure if this is a problem or not.
 
             // If we are in the editor, and there is a ship in the editor, then compare the number of parts to last time we did this. If it has changed then rebuild the CLSVessel
             if (HighLogic.LoadedSceneIsEditor)
@@ -272,6 +305,10 @@ namespace ConnectedLivingSpace
             GameEvents.onVesselChange.Remove(OnVesselChange);
             GameEvents.onVesselTerminated.Remove(OnVesselTerminated);
             GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
+
+            // Remove the toolbar button
+
+            this.toolbarButton.Destroy();
         }
 
 
