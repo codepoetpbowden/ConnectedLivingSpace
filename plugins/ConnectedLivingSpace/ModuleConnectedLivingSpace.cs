@@ -75,9 +75,6 @@ namespace ConnectedLivingSpace
         public override void OnLoad(ConfigNode node)
         {
 
-            // TODO read the config here, including the attachment nodes, som we have got all the infomation that is needed to decide on questions of navigability
-
-
         }
     }
 }

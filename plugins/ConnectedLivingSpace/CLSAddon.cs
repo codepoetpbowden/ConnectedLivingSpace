@@ -68,6 +68,8 @@ namespace ConnectedLivingSpace
                 GameEvents.onVesselChange.Add(OnVesselChange);
                 GameEvents.onVesselLoaded.Add(OnVesselLoaded);
                 GameEvents.onVesselTerminated.Add(OnVesselTerminated);
+                GameEvents.onFlightReady.Add(OnFlightReady);
+
             }
         }
 
@@ -75,14 +77,26 @@ namespace ConnectedLivingSpace
         {
             Debug.Log("OnToolbarButton_Click");
 
+            // If the window is currently visible, set the selected space back to -1 so the highlighting is cleared.
             if (this.visable)
             {
-
+                if(null != this.vessel)
+                {
+                    vessel.Highlight(false);
+                }
+                this.selectedSpace = -1;
             }
 
             this.visable = !this.visable;
         }
 
+        private void OnFlightReady()
+        {
+            Debug.Log("CLSAddon::OnFlightReady");          
+
+            // Now scan the vessel
+            this.RebuildCLSVessel();
+        }
 
         private void OnVesselLoaded(Vessel data)
         {
@@ -142,12 +156,27 @@ namespace ConnectedLivingSpace
             Debug.Log("CLSAddon::OnVesselWasModified");
             RebuildCLSVessel();
         }
+
+        // This event is fired when the vessel is changed. If this happens we need to throw away all of our thoiughts about the previous vessel, and analyse the new one.
         private void OnVesselChange(Vessel data)
         {
             Debug.Log("CLSAddon::OnVesselChange");
+
+            // First unhighlight the current vessel (if there is one)
+            if (this.vessel != null)
+            {
+                this.vessel.Highlight(false);
+
+                // Now destroy the current CLSVessel
+                this.vessel.Clear();
+                this.vessel = null;
+                this.selectedSpace = -1;
+            }
+
+            // Next rebuild the CLSVessel using the new data that we have been given.
+            this.vessel = new CLSVessel();
+            this.vessel.Populate(data);
         }
-
-
 
         private void OnDraw()
         {
@@ -305,6 +334,7 @@ namespace ConnectedLivingSpace
             GameEvents.onVesselChange.Remove(OnVesselChange);
             GameEvents.onVesselTerminated.Remove(OnVesselTerminated);
             GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
+            GameEvents.onFlightReady.Remove(OnFlightReady);
 
             // Remove the toolbar button
 

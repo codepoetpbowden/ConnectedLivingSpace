@@ -8,10 +8,11 @@ namespace ConnectedLivingSpace
 {
     class CLSPart
     {
-        bool habitable;
-        bool navigable;
+        bool habitable = false;
+        bool navigable = false;
         Part part;
         CLSSpace space;
+        bool docked = false;
 
         public CLSPart(Part p)
         {
@@ -32,6 +33,14 @@ namespace ConnectedLivingSpace
             set
             {
                 this.space = Space;
+            }
+        }
+
+        public bool Docked
+        {
+            get
+            {
+                return this.docked;
             }
         }
 
@@ -67,6 +76,10 @@ namespace ConnectedLivingSpace
                 if(this.Habitable)
                 {
                     this.part.SetHighlightColor(Color.green);
+                }
+                else if (this.docked)
+                {
+                    this.part.SetHighlightColor(Color.cyan);
                 }
                 else if (this.Navigable)
                 {
@@ -131,6 +144,15 @@ namespace ConnectedLivingSpace
             return false;
         }
 
+        internal void SetDocked(bool val)
+        {
+            this.docked = val;
+        }
 
+        // Throw away all potentially circular references in preparation this object to be thrown away
+        internal void Clear()
+        {
+            this.Space = null;
+        }
     }
 }

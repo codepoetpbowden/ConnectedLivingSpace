@@ -77,7 +77,7 @@ namespace ConnectedLivingSpace
         }
 
         // A method that is called recursively to walk the part tree, and allocate parts to habitable spaces
-        private void ProcessPart(Part p, CLSSpace currentSpace)
+        private void ProcessPart(Part p, CLSSpace currentSpace , bool dockedToParent=false)
         {
             CLSSpace thisSpace = null;
             CLSPart newPart = new CLSPart(p);
@@ -103,9 +103,9 @@ namespace ConnectedLivingSpace
             }
             else
             {
-                thisSpace = AddPartToSpace(newPart, null);                
+                thisSpace = AddPartToSpace(newPart, null);
             }
-            
+
 
             // Now loop through each of the part's children, consider if there is a navigable connection between them, and then make a recursive call.
             foreach (Part child in p.children)
@@ -113,13 +113,30 @@ namespace ConnectedLivingSpace
                 // Get the attchment nodes
                 AttachNode node = p.findAttachNodeByPart(child);
                 AttachNode childNode = child.findAttachNodeByPart(p);
+                bool dockingConnection = false;
+
+                if (null == node && null == childNode) 
+                {
+                    // If there are no attachment nodes between the two parts, but they have a child parent relationship, then there is a chance that they are docked together. Consider that possibility.
+                    {
+                        Debug.Log("Considering if parts are docked together");
+                        node = FindDockedNodeByPart(p, child);
+                        childNode = FindDockedNodeByPart(child, p);
+                        
+                        // If we found both oif the nodes then we know that this connection is a docked connection. Let's just remember that, it might be useful to know later on.
+                        if (null != node && null != childNode)
+                        {
+                            dockingConnection = true;
+                        }
+                    }
+                }
 
                 if (null != node && null != childNode) // TODO in the case of a surface attached part I believe that we will not have two attachemnt nodes, only one (or is it even posible to have none?) Test for this and work out what to do.
                 {
                     // So do these two nodes together create a navigable passage?
                     if (IsNodeNavigable(node, p) && IsNodeNavigable(childNode, child))
                     {
-                        ProcessPart(child, thisSpace); // It looks like the connection is navigable. Process the child part and pass in the current space of this part.
+                        ProcessPart(child, thisSpace, dockingConnection); // It looks like the connection is navigable. Process the child part and pass in the current space of this part.
                     }
                     else
                     {
@@ -130,7 +147,45 @@ namespace ConnectedLivingSpace
                 {
                     ProcessPart(child, null); // There does not seem to be a way of Jeb accessing the child part. Sorry buddy - you will have to go EVA from here. Process the child part, bu pass in null. // TODO is this true?
                 }
+
+                // Was the connection a docking connection - if so we ought to mark the relevant CLSParts
+                if (dockingConnection || dockedToParent)
+                {
+                    newPart.SetDocked(true);
+                }
             }
+
+        }
+
+        // When parts are docked together it seems that their attachment nodes are not connected up. However since they are docked, they but must be docking ports, and each attachment node that is a docking port has a ModuleDockingNode associated with it, and each of those references an attachment node. This funciton finds the AttchNode referenced by the ModuleDockingNode that refers to another particular part
+        private AttachNode FindDockedNodeByPart(Part thisPart, Part otherPart)
+        {
+            AttachNode thisNode = null;
+            
+            foreach (ModuleDockingNode docNode in thisPart.Modules.OfType<ModuleDockingNode>())
+            {
+                // TODO removed debugging
+                Debug.Log("Part: " + thisPart.partInfo.title + " does have a ModuleDockingNode. Is it docked to " + otherPart.partInfo.title);
+                Debug.Log("docNode.dockedPartUId = " + docNode.dockedPartUId);
+                Debug.Log("otherPart.ConstructID = " + otherPart.ConstructID);
+
+                if (otherPart == docNode.part.vessel[docNode.dockedPartUId])
+                {
+                    Debug.Log("Hopefully we have found the ModuleDockingNode that is docked to the art we are interested in.");
+                    // This is the dockingNode that is docked to otherPart. Find the attachnode that it is associated with.
+                    thisNode = thisPart.attachNodes.Find(n => n.id == docNode.referenceAttachNode);
+                    if (null != thisNode)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Failed to find an attachNode associated with a docked part.");
+                    }
+                }
+            }
+
+            return thisNode;
         }
 
         // Decides is an attachment node on a part could allow a kerbal to pass through it.
@@ -154,9 +209,6 @@ namespace ConnectedLivingSpace
                 }
             }
 
-            // TODO remove
-            // Debug.Log("passablenodes:" + passablenodes + " impassablenodes:"+impassablenodes +" node.id:"+ node.id);
-
             if (passablenodes.Contains(node.id))
             {
                 return true;
@@ -172,7 +224,7 @@ namespace ConnectedLivingSpace
 
         CLSSpace AddPartToNewSpace(CLSPart p)
         {
-            CLSSpace newSpace = new CLSSpace();
+            CLSSpace newSpace = new CLSSpace(this);
 
             this.listSpaces.Add(newSpace);
 
@@ -200,6 +252,23 @@ namespace ConnectedLivingSpace
             return space;
         }
 
+        // Method to throw away potential circular references before the object is disposed of
+        public void Clear()
+        {
+            foreach (CLSSpace s in this.listSpaces)
+            {
+                s.Clear();
+            }
+            listSpaces.Clear();
+        }
 
+        // Method to highlight on unhighlight all the habitable spaces in this vessel
+        public void Highlight(bool arg)
+        {
+            foreach (CLSSpace space in this.listSpaces)
+            {
+                space.Highlight(arg);
+            }
+        }
     }
 }

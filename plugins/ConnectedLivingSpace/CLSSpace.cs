@@ -10,6 +10,7 @@ namespace ConnectedLivingSpace
         List<CLSPart> parts;
         String name;
         int maxCrew=0;
+        CLSVessel vessel = null;
 
         public List<CLSPart> Parts
         {
@@ -48,10 +49,19 @@ namespace ConnectedLivingSpace
             }
         }
 
-        public CLSSpace()
+        public CLSVessel Vessel
         {
-            parts = new List<CLSPart>();
-            name = "";
+            get
+            {
+                return this.vessel;
+            }
+        }
+
+        public CLSSpace(CLSVessel v)
+        {
+            this.parts = new List<CLSPart>();
+            this.name = "";
+            this.vessel = v;
         }
 
         internal void Highlight(bool val)
@@ -85,9 +95,14 @@ namespace ConnectedLivingSpace
         }
 
         // A function to throw away all the parts references, and so break the circular reference. This should be called before throwing a CLSSpace away.
-        public void Clear()
+        internal void Clear()
         {
+            foreach (CLSPart p in this.parts)
+            {
+                p.Clear();
+            }
             this.parts.Clear();
+            this.vessel = null;
         }
 
     }
