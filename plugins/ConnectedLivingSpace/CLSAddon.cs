@@ -27,7 +27,7 @@ namespace ConnectedLivingSpace
             Debug.Log("CLSAddon:Awake");
 
             this.toolbarButton = ToolbarManager.Instance.add("ConnectedLivingSpace", "buttonCLS");
-			this.toolbarButton.TexturePath = "ConnectedLivingSpace/Textures/cls_icon_off";
+			this.toolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_icon_off";
             this.toolbarButton.ToolTip = "Connected Living Space";
             this.toolbarButton.OnClick += (e) => { OnToolbarButton_Click(); };
             this.toolbarButton.Visibility = new GameScenesVisibility(GameScenes.EDITOR, GameScenes.SPH, GameScenes.FLIGHT);
@@ -78,14 +78,18 @@ namespace ConnectedLivingSpace
             Debug.Log("OnToolbarButton_Click");
 
             // If the window is currently visible, set the selected space back to -1 so the highlighting is cleared.
-            if (this.visable) {
-				if (null != this.vessel) {
+            if (this.visable) 
+            {
+				if (null != this.vessel) 
+                {
 					vessel.Highlight (false);
 				}
 				this.selectedSpace = -1;
-				this.toolbarButton.TexturePath = "ConnectedLivingSpace/Textures/cls_icon_off";
-			} else {
-				this.toolbarButton.TexturePath = "ConnectedLivingSpace/Textures/cls_icon_on";
+				this.toolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_icon_off";
+			} 
+            else 
+            {
+                this.toolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_icon_on";
 			}
 
             this.visable = !this.visable;
@@ -270,7 +274,7 @@ namespace ConnectedLivingSpace
                          GUILayout.Label("Crew Info:");
                         foreach(CLSKerbal crewMember in vessel.Spaces[this.selectedSpace].Crew)
                         {
-                            GUILayout.Label(crewMember.Kerbal.name);
+                            GUILayout.Label(((ProtoCrewMember)crewMember).name);
                         }
 
                         // Display the list of component parts.

@@ -66,7 +66,7 @@ namespace ConnectedLivingSpace
             return _p.part;
         }
 
-        // Allow a CLSPart to be cast into a ModueConnectedLivingSpace. Note that this might fail, if the part in question does not have the CLS module configured.
+        // Allow a CLSPart to be cast into a ModuleConnectedLivingSpace. Note that this might fail, if the part in question does not have the CLS module configured.
         public static implicit operator ModuleConnectedLivingSpace(CLSPart _p)
         {
             foreach (PartModule pm in _p.part.Modules)

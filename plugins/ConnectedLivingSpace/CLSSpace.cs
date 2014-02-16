@@ -74,7 +74,7 @@ namespace ConnectedLivingSpace
             this.vessel = v;
         }
 
-        internal void Highlight(bool val)
+        public void Highlight(bool val)
         {
             // Iterate through each CLSPart in this space and turn highlighting on or off.
             foreach (CLSPart p in this.parts)

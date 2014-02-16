@@ -13,12 +13,11 @@ namespace ConnectedLivingSpace
     		this.kerbal = kerbal;
     	}
 
-    	public ProtoCrewMember Kerbal
+        // Allow a CLSKerbal to be cast into a ProtoCrewMember
+        public static implicit operator ProtoCrewMember(CLSKerbal _k)
         {
-            get
-            {
-                return this.kerbal;
-            }
+            return _k.kerbal;
         }
+
     }
 }
