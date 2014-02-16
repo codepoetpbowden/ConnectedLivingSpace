@@ -13,6 +13,7 @@ namespace ConnectedLivingSpace
         Part part;
         CLSSpace space;
         bool docked = false;
+        List<CLSKerbal> crew;
 
         public CLSPart(Part p)
         {
@@ -21,6 +22,13 @@ namespace ConnectedLivingSpace
             habitable = IsHabitable(this.part);
             navigable = IsNavigable(this.part);
             space = null;
+
+            this.crew = new List<CLSKerbal>();
+            foreach (ProtoCrewMember crewMember in p.protoModuleCrew) 
+            {
+                CLSKerbal kerbal = new CLSKerbal(crewMember);
+                this.crew.Add(kerbal);
+            }
         }
 
         public CLSSpace Space
@@ -41,6 +49,14 @@ namespace ConnectedLivingSpace
             get
             {
                 return this.docked;
+            }
+        }
+
+        public List<CLSKerbal> Crew 
+        {
+            get
+            {
+                return this.crew;
             }
         }
 

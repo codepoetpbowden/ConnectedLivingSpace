@@ -8,6 +8,7 @@ namespace ConnectedLivingSpace
     class CLSSpace
     {
         List<CLSPart> parts;
+        List<CLSKerbal> crew;
         String name;
         int maxCrew=0;
         CLSVessel vessel = null;
@@ -57,9 +58,18 @@ namespace ConnectedLivingSpace
             }
         }
 
+        public List<CLSKerbal> Crew
+        {
+            get
+            {
+                return crew;
+            }
+        }
+
         public CLSSpace(CLSVessel v)
         {
             this.parts = new List<CLSPart>();
+            this.crew = new List<CLSKerbal>();
             this.name = "";
             this.vessel = v;
         }
@@ -92,6 +102,10 @@ namespace ConnectedLivingSpace
             this.parts.Add(p);
 
             this.maxCrew += ((Part)p).CrewCapacity;
+
+            foreach(CLSKerbal crewMember in p.Crew) {
+                this.crew.Add(crewMember);
+            }
         }
 
         // A function to throw away all the parts references, and so break the circular reference. This should be called before throwing a CLSSpace away.
