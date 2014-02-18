@@ -22,6 +22,28 @@ namespace ConnectedLivingSpace
 
         private int editorPartCount = 0; // This is horrible. Because there does not seem to be an obvious callback to sink when parts are added and removed in the editor, on each fixed update we will could the parts and if it has changed then rebuild the CLSVessel. Yuk!
 
+        public CLSVessel Vessel
+        {
+            get 
+            {
+                return this.vessel;
+            }
+        }
+
+        public static CLSAddon Instance
+        {
+            get;
+            private set;
+        }
+
+        public CLSAddon()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+        }
+
         public void Awake() 
         {
             Debug.Log("CLSAddon:Awake");
@@ -193,6 +215,13 @@ namespace ConnectedLivingSpace
 
         private void RebuildCLSVessel()
         {
+            // Tidy up the old vessel information
+            if (null != this.vessel)
+            {
+                vessel.Clear();
+            }
+            this.vessel = null;
+
             if (HighLogic.LoadedSceneIsFlight)
             {
                 this.vessel = new CLSVessel();
@@ -302,8 +331,6 @@ namespace ConnectedLivingSpace
         public void FixedUpdate()
         {
             // Debug.Log("CLSAddon:FixedUpdate");
-
-            // TODO perhaps we should move this to fixed rather than fixed update to prevent the rendering code from trying to access a part that no longer exists.I am not sure if this is a problem or not.
 
             // If we are in the editor, and there is a ship in the editor, then compare the number of parts to last time we did this. If it has changed then rebuild the CLSVessel
             if (HighLogic.LoadedSceneIsEditor)

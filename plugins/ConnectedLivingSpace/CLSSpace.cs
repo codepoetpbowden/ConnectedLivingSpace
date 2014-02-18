@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ConnectedLivingSpace
 {
-    class CLSSpace
+    public class CLSSpace
     {
         List<CLSPart> parts;
         List<CLSKerbal> crew;
@@ -103,7 +103,8 @@ namespace ConnectedLivingSpace
 
             this.maxCrew += ((Part)p).CrewCapacity;
 
-            foreach(CLSKerbal crewMember in p.Crew) {
+            foreach(CLSKerbal crewMember in p.Crew) 
+            {
                 this.crew.Add(crewMember);
             }
         }

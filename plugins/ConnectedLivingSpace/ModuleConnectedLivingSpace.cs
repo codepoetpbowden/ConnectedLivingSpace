@@ -7,7 +7,7 @@ using UnityEngine;
 namespace ConnectedLivingSpace
 {
     // A module that can be added to a part in order to be able to set and read in part specific config that relates to ConnectedLivingSpace
-    class ModuleConnectedLivingSpace : PartModule
+    public class ModuleConnectedLivingSpace : PartModule
     {
         [KSPField]
         public bool passable = false;

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ConnectedLivingSpace
 {
-    class CLSPart
+    public class CLSPart
     {
         bool habitable = false;
         bool navigable = false;
@@ -26,7 +26,7 @@ namespace ConnectedLivingSpace
             this.crew = new List<CLSKerbal>();
             foreach (ProtoCrewMember crewMember in p.protoModuleCrew) 
             {
-                CLSKerbal kerbal = new CLSKerbal(crewMember);
+                CLSKerbal kerbal = new CLSKerbal(crewMember,this);
                 this.crew.Add(kerbal);
             }
         }
@@ -40,7 +40,7 @@ namespace ConnectedLivingSpace
 
             set
             {
-                this.space = Space;
+                this.space = value;
             }
         }
 
@@ -168,7 +168,12 @@ namespace ConnectedLivingSpace
         // Throw away all potentially circular references in preparation this object to be thrown away
         internal void Clear()
         {
-            this.Space = null;
+            this.space = null;
+            foreach (CLSKerbal k in crew)
+            {
+                k.Clear();
+            }
+            this.crew.Clear();
         }
     }
 }

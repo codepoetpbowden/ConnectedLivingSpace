@@ -5,12 +5,15 @@ using System.Text;
 
 namespace ConnectedLivingSpace
 {
-    class CLSKerbal
+    public class CLSKerbal
     {
     	ProtoCrewMember kerbal;
+        CLSPart part;
 
-    	public CLSKerbal(ProtoCrewMember kerbal) {
-    		this.kerbal = kerbal;
+    	public CLSKerbal(ProtoCrewMember k,CLSPart p) 
+        {
+    		this.kerbal = k;
+            this.part = p;
     	}
 
         // Allow a CLSKerbal to be cast into a ProtoCrewMember
@@ -19,5 +22,18 @@ namespace ConnectedLivingSpace
             return _k.kerbal;
         }
 
+        public CLSPart Part
+        {
+            get
+            {
+                return this.part;
+            }
+        }
+
+        internal void Clear()
+        {
+            this.kerbal = null;
+            this.part = null;
+        }
     }
 }

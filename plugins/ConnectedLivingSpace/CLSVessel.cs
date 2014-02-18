@@ -9,7 +9,7 @@ namespace ConnectedLivingSpace
     // A class that contains all the living space data for a particular vessel
 
     
-    class CLSVessel
+    public class CLSVessel
     {
         List<CLSPart> listParts;  // A list of parts in this vessel
         List<CLSSpace> listSpaces; // A list of seperate habitable spaces in this vessel.
@@ -87,7 +87,7 @@ namespace ConnectedLivingSpace
             // First add this part to the list of all parts for the vessel.
             this.listParts.Add(newPart);
 
-            // Is the part capable of containing kerbals? If not then just att the part to the null space, but if it is then add it to the current space, or a new space if there is no current space.
+            // Is the part capable of allowing kerbals to pass? If it is add it to the current space, or it there is not current space, to a new space.
             if (newPart.Navigable)
             {
                 thisSpace = currentSpace;
@@ -101,16 +101,11 @@ namespace ConnectedLivingSpace
                     thisSpace = AddPartToSpace(newPart, thisSpace);
                 }
             }
-            else
-            {
-                thisSpace = AddPartToSpace(newPart, null);
-            }
-
 
             // Now loop through each of the part's children, consider if there is a navigable connection between them, and then make a recursive call.
             foreach (Part child in p.children)
             {
-                // Get the attchment nodes
+                // Get the attachment nodes
                 AttachNode node = p.findAttachNodeByPart(child);
                 AttachNode childNode = child.findAttachNodeByPart(p);
                 bool dockingConnection = false;
@@ -145,7 +140,7 @@ namespace ConnectedLivingSpace
                 }
                 else
                 {
-                    ProcessPart(child, null); // There does not seem to be a way of Jeb accessing the child part. Sorry buddy - you will have to go EVA from here. Process the child part, bu pass in null. // TODO is this true?
+                    ProcessPart(child, null); // There does not seem to be a way of Jeb accessing the child part. Sorry buddy - you will have to go EVA from here. Process the child part, but pass in null.
                 }
 
                 // Was the connection a docking connection - if so we ought to mark the relevant CLSParts
@@ -164,14 +159,13 @@ namespace ConnectedLivingSpace
             
             foreach (ModuleDockingNode docNode in thisPart.Modules.OfType<ModuleDockingNode>())
             {
-                // TODO removed debugging
-                Debug.Log("Part: " + thisPart.partInfo.title + " does have a ModuleDockingNode. Is it docked to " + otherPart.partInfo.title);
-                Debug.Log("docNode.dockedPartUId = " + docNode.dockedPartUId);
-                Debug.Log("otherPart.ConstructID = " + otherPart.ConstructID);
+                //Debug.Log("Part: " + thisPart.partInfo.title + " does have a ModuleDockingNode. Is it docked to " + otherPart.partInfo.title);
+                //Debug.Log("docNode.dockedPartUId = " + docNode.dockedPartUId);
+                //Debug.Log("otherPart.ConstructID = " + otherPart.ConstructID);
 
                 if (otherPart == docNode.part.vessel[docNode.dockedPartUId])
                 {
-                    Debug.Log("Hopefully we have found the ModuleDockingNode that is docked to the art we are interested in.");
+                    //Debug.Log("Hopefully we have found the ModuleDockingNode that is docked to the art we are interested in.");
                     // This is the dockingNode that is docked to otherPart. Find the attachnode that it is associated with.
                     thisNode = thisPart.attachNodes.Find(n => n.id == docNode.referenceAttachNode);
                     if (null != thisNode)
@@ -230,8 +224,6 @@ namespace ConnectedLivingSpace
 
             newSpace.AddPart(p);
 
-            p.Space = newSpace;
-
             return newSpace;
         }
 
@@ -239,14 +231,13 @@ namespace ConnectedLivingSpace
         {
             Debug.Log("AddPartToSpace " + ((Part)p).name);
 
-            if(null !=space)
+            if (null != space)
             {
                 space.AddPart(p);
             }
-
-            if(null != space)
+            else
             {
-                p.Space = space;
+                Debug.LogError("Can't add part " + ((Part)p).partInfo.title +" to null space");
             }
 
             return space;
@@ -255,6 +246,8 @@ namespace ConnectedLivingSpace
         // Method to throw away potential circular references before the object is disposed of
         public void Clear()
         {
+            Debug.Log("CLSVessel::Clear");
+
             foreach (CLSSpace s in this.listSpaces)
             {
                 s.Clear();
