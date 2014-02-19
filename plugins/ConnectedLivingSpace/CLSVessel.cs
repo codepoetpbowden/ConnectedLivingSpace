@@ -114,7 +114,7 @@ namespace ConnectedLivingSpace
                 {
                     // If there are no attachment nodes between the two parts, but they have a child parent relationship, then there is a chance that they are docked together. Consider that possibility.
                     {
-                        Debug.Log("Considering if parts are docked together");
+                        //Debug.Log("Considering if parts are docked together");
                         node = FindDockedNodeByPart(p, child);
                         childNode = FindDockedNodeByPart(child, p);
                         
@@ -229,7 +229,7 @@ namespace ConnectedLivingSpace
 
         CLSSpace AddPartToSpace(CLSPart p, CLSSpace space)
         {
-            Debug.Log("AddPartToSpace " + ((Part)p).name);
+            //Debug.Log("AddPartToSpace " + ((Part)p).name);
 
             if (null != space)
             {
