@@ -131,7 +131,40 @@ namespace ConnectedLivingSpace
                     // So do these two nodes together create a navigable passage?
                     if (IsNodeNavigable(node, p) && IsNodeNavigable(childNode, child))
                     {
-                        ProcessPart(child, thisSpace, dockingConnection); // It looks like the connection is navigable. Process the child part and pass in the current space of this part.
+                        // The nodes might be navigable, but it is possible that if one of the two parts are docking nodes that have a closed hatch then passage will not be possible.
+                        
+                        if(dockingConnection)
+                        {
+                            ModuleConnectedLivingSpace CLSModp = (ModuleConnectedLivingSpace)p;
+                            ModuleConnectedLivingSpace CLSModchild = (ModuleConnectedLivingSpace)child;
+                            bool hatchPassable = true;
+                            CLSSpace spaceToUse = thisSpace;
+
+                            if (null != CLSModp)
+                            {
+                                if (CLSModp.hatchStatus == DockingPortHatchStatus.DOCKING_PORT_HATCH_CLOSED)
+                                {
+                                    hatchPassable = false;
+                                }
+                            }
+                            if (null != CLSModchild)
+                            {
+                                if (CLSModchild.hatchStatus == DockingPortHatchStatus.DOCKING_PORT_HATCH_CLOSED)
+                                {
+                                    hatchPassable = false;
+                                }
+                            }
+
+                            if (false == hatchPassable)
+                            {
+                                spaceToUse = null;
+                            }
+                            ProcessPart(child, spaceToUse, dockingConnection); // It looks like the connection is navigable. Process the child part and pass in the current space of this part.
+                        }
+                        else
+                        {
+                            ProcessPart(child, thisSpace, dockingConnection); // It looks like the connection is navigable. Process the child part and pass in the current space of this part.
+                        }
                     }
                     else
                     {
@@ -147,9 +180,27 @@ namespace ConnectedLivingSpace
                 if (dockingConnection || dockedToParent)
                 {
                     newPart.SetDocked(true);
+
+                    // If the part is docked, is the hatch open? We can find out by querrying the CLSModule attached to the part where the hatch state is persisted.
+                    ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)newPart;
+                    if (null != CLSMod)
+                    {
+                        newPart.HatchStatus = CLSMod.hatchStatus;
+                    }
+                }
+                else
+                {
+                    // The connection was not a docking connection. If this part is a docking port, but it is not docked then we need to ensure that the hatch is closed.
+                    ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)newPart;
+                    if (null != CLSMod)
+                    {
+                        if (CLSMod.isDockingPort)
+                        {
+                            CLSMod.SetHatchStatus(DockingPortHatchStatus.DOCKING_PORT_HATCH_CLOSED);
+                        }
+                    }
                 }
             }
-
         }
 
         // When parts are docked together it seems that their attachment nodes are not connected up. However since they are docked, they but must be docking ports, and each attachment node that is a docking port has a ModuleDockingNode associated with it, and each of those references an attachment node. This funciton finds the AttchNode referenced by the ModuleDockingNode that refers to another particular part

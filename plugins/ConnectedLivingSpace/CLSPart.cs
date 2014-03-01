@@ -6,6 +6,13 @@ using UnityEngine;
 
 namespace ConnectedLivingSpace
 {
+    public enum DockingPortHatchStatus
+    {
+        NOT_DOCKING_PORT = 0,
+        DOCKING_PORT_HATCH_CLOSED = 1,
+        DOCKING_PORT_HATCH_OPEN = 2
+    }
+
     public class CLSPart
     {
         bool habitable = false;
@@ -14,6 +21,7 @@ namespace ConnectedLivingSpace
         CLSSpace space;
         bool docked = false;
         List<CLSKerbal> crew;
+        DockingPortHatchStatus hatchStatus = DockingPortHatchStatus.NOT_DOCKING_PORT; // For parts that are docking ports, indicates if the hatch is open or closed.   
 
         public CLSPart(Part p)
         {
@@ -24,10 +32,20 @@ namespace ConnectedLivingSpace
             space = null;
 
             this.crew = new List<CLSKerbal>();
-            foreach (ProtoCrewMember crewMember in p.protoModuleCrew) 
+            foreach (ProtoCrewMember crewMember in p.protoModuleCrew)
             {
-                CLSKerbal kerbal = new CLSKerbal(crewMember,this);
+                CLSKerbal kerbal = new CLSKerbal(crewMember, this);
                 this.crew.Add(kerbal);
+            }
+
+            // Does the part have a CLSModule on it? If so then give the module a reference to ourselves to make its life a bit easier.
+            {
+                ModuleConnectedLivingSpace m = (ModuleConnectedLivingSpace)this;
+                if (null != m)
+                {
+                    m.clsPart = this;
+                    this.hatchStatus = m.hatchStatus;
+                }
             }
         }
 
@@ -41,6 +59,19 @@ namespace ConnectedLivingSpace
             set
             {
                 this.space = value;
+            }
+        }
+
+        public DockingPortHatchStatus HatchStatus
+        {
+            get
+            {
+                return this.hatchStatus;
+            }
+
+            internal set
+            {
+                this.hatchStatus = value;
             }
         }
 
@@ -95,7 +126,14 @@ namespace ConnectedLivingSpace
                 }
                 else if (this.docked)
                 {
-                    this.part.SetHighlightColor(Color.cyan);
+                    if (this.HatchStatus == DockingPortHatchStatus.DOCKING_PORT_HATCH_OPEN)
+                    {
+                        this.part.SetHighlightColor(Color.cyan);
+                    }
+                    else
+                    {
+                        this.part.SetHighlightColor(Color.magenta);
+                    }
                 }
                 else if (this.Navigable)
                 {
@@ -142,19 +180,10 @@ namespace ConnectedLivingSpace
                 return true;
             }
 
-            // Check to see if there is a CLSModule for this part. If there is then we can read the config for it.
-            foreach(PartModule pm in this.part.Modules)
+            ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)this;
+            if(null != CLSMod)
             {
-                //Debug.Log("Part:" + this.part.name + " has module " + pm.moduleName + " " + pm.name);
-                if(pm.moduleName =="ModuleConnectedLivingSpace")
-                {
-                    // This part does have a CLSmodule
-                    ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)pm;
-
-                    //Debug.Log("ModuleConnectedLivingSpace.navigable: " + CLSMod.passable);
-
-                    return(CLSMod.passable);
-                }
+                return (CLSMod.passable);
             }
 
             return false;
