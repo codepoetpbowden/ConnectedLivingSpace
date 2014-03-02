@@ -14,6 +14,8 @@ namespace ConnectedLivingSpace
         private static Rect windowPosition = new Rect(0,0,320,360);
         private static GUIStyle windowStyle = null;
 
+        private Vector2 scrollViewer = Vector2.zero;
+
         private CLSVessel vessel = null;
         private int selectedSpace = -1;
 
@@ -209,7 +211,7 @@ namespace ConnectedLivingSpace
         {
             if (this.visable)
             {
-                windowPosition = GUI.Window(1234, windowPosition, OnWindow, "Connected Living Space", windowStyle);
+                windowPosition = GUILayout.Window(1234, windowPosition, OnWindow, "Connected Living Space", windowStyle,GUILayout.MinHeight(20));
             }
         }
 
@@ -248,6 +250,8 @@ namespace ConnectedLivingSpace
                 // Build a string descibing the contents of each of the spaces.
                 if (null != this.vessel)
                 {
+                    GUILayout.BeginVertical();
+                    
                     String[] spaceNames = new String[vessel.Spaces.Count];
                     int counter = 0;
                     int newSelectedSpace = -1;
@@ -294,26 +298,40 @@ namespace ConnectedLivingSpace
                         }
 
                         // Display the text box that allows the space name to be changed
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label("Space Name:");
                         vessel.Spaces[this.selectedSpace].Name = GUILayout.TextField(vessel.Spaces[this.selectedSpace].Name);
+                        GUILayout.EndHorizontal();
+
+                        this.scrollViewer = GUILayout.BeginScrollView(this.scrollViewer,GUILayout.ExpandHeight(true),GUILayout.ExpandWidth(true));
+                        GUILayout.BeginVertical();
 
                         // Display the crew capacity of the space.
                         GUILayout.Label("Crew Capacity: " + vessel.Spaces[this.selectedSpace].MaxCrew);
 
                         // And list the crew names
-                         GUILayout.Label("Crew Info:");
+                        String crewList = "Crew Info:\n";
+
                         foreach(CLSKerbal crewMember in vessel.Spaces[this.selectedSpace].Crew)
                         {
-                            GUILayout.Label(((ProtoCrewMember)crewMember).name);
+                            crewList += ((ProtoCrewMember)crewMember).name +"\n";
                         }
+                        GUILayout.Label(crewList);
 
                         // Display the list of component parts.
                         GUILayout.Label(partsList);
+
+                        GUILayout.EndVertical();
+                        GUILayout.EndScrollView();
+
                     }
+                    GUILayout.EndVertical();
                 }
                 else
                 {
                     Debug.LogError("this.vessel was null");
                 }
+
                 
                 GUI.DragWindow();
             }
