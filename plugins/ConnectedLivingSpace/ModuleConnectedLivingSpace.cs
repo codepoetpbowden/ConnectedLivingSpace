@@ -176,8 +176,8 @@ namespace ConnectedLivingSpace
                     }
                     else
                     {
-                        // We can;t tell if the docking port is docked or not. This is not ideal so log a warning, so we can find a way of avoiding this scenerio.
-                        Debug.LogWarning("Unable to tell if docking port is docked or not.");
+                        // We can't tell if the docking port is docked or not. This is not ideal so log a warning, so we can find a way of avoiding this scenerio.
+                        //Debug.LogWarning("Unable to tell if docking port is docked or not.");
                         if (this.hatchStatus == DockingPortHatchStatus.DOCKING_PORT_HATCH_OPEN)
                         {
                             Events["OpenHatch"].active = false;
@@ -256,5 +256,53 @@ namespace ConnectedLivingSpace
             return null;
         }
 
+        // Method to provide extra infomation about the part on response to the RMB
+        public override string GetInfo()
+        {
+            String returnValue = String.Empty;
+
+            if (this.part.CrewCapacity > 0)
+            {
+                returnValue = "Kerbals are able to stay in this part ";
+
+                if (this.passable)
+                {
+                    returnValue += "and can pass into it from any attachment node.";
+                }
+                else
+                {
+                    if (this.impassablenodes != "")
+                    {
+                        returnValue += "but can not get access to it through the nodes " + this.impassablenodes;
+                    }
+                    else
+                    {
+                        returnValue += "and can pass into it from any attachment node."; 
+                    }
+                }
+            }
+            else
+            {
+                returnValue = "Kerbals are not able to stay in this part ";
+
+                if (this.passable)
+                {
+                    returnValue += "but can pass through it from any attachment node.";
+                }
+                else
+                {
+                    if (this.impassablenodes != "")
+                    {
+                        returnValue += " but can pass through it through on all nodes except for " + this.impassablenodes;
+                    }
+                    else
+                    {
+                        returnValue += "but can pass through it from any attachment node.";
+                    }
+                }
+            }
+
+            return returnValue;
+        }
     }
 }
