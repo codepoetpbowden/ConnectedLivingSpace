@@ -211,7 +211,7 @@ namespace ConnectedLivingSpace
         {
             if (this.visable)
             {
-                windowPosition = GUILayout.Window(1234, windowPosition, OnWindow, "Connected Living Space", windowStyle,GUILayout.MinHeight(20));
+                windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle,GUILayout.MinHeight(20));
             }
         }
 
@@ -275,20 +275,24 @@ namespace ConnectedLivingSpace
                         newSelectedSpace = GUILayout.SelectionGrid(this.selectedSpace, spaceNames, counter);
                     }
 
-                    // If one of the spaces has been selected then display a list of parts that make it up
+                    // If one of the spaces has been selected then display a list of parts that make it up and sort out the highlighting
                     if (-1 != newSelectedSpace)
                     {
-                        // First unhighlight the space that was selected.
-                        if (-1 != this.selectedSpace && this.selectedSpace < this.vessel.Spaces.Count)
+                        // Only fiddle witht he highlighting is the selected space has actually changed
+                        if (newSelectedSpace != this.selectedSpace)
                         {
-                            vessel.Spaces[this.selectedSpace].Highlight(false);
+                            // First unhighlight the space that was selected.
+                            if (-1 != this.selectedSpace && this.selectedSpace < this.vessel.Spaces.Count)
+                            {
+                                vessel.Spaces[this.selectedSpace].Highlight(false);
+                            }
+
+                            // Update the space that has been selected.
+                            this.selectedSpace = newSelectedSpace;
+
+                            // Highlight the new space
+                            vessel.Spaces[this.selectedSpace].Highlight(true);
                         }
-
-                        // Update the space that has been selected.
-                        this.selectedSpace = newSelectedSpace;
-
-                        // Highlight the new space
-                        vessel.Spaces[this.selectedSpace].Highlight(true);
 
                         // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
                         foreach (CLSPart p in vessel.Spaces[this.selectedSpace].Parts)
