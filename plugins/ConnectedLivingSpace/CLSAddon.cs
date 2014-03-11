@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 using UnityEngine;
 using Toolbar;
 
@@ -95,6 +96,9 @@ namespace ConnectedLivingSpace
                 GameEvents.onFlightReady.Add(OnFlightReady);
 
             }
+
+            // Add the CLSModule to all parts that can house crew (and do not already have it).
+            AddModuleToParts();
         }
 
         private void OnToolbarButton_Click()
@@ -402,6 +406,69 @@ namespace ConnectedLivingSpace
             this.toolbarButton.Destroy();
         }
 
+        // Method to ensure that all parts which have a crewcapacity >0 have a CLSModule attached to it.
+        private void AddModuleToParts()
+        {
+            IEnumerable<AvailablePart> parts = PartLoader.LoadedPartsList.Where(p => p.partPrefab != null && p.partPrefab.CrewCapacity > 0);
+            foreach (AvailablePart part in parts) 
+            {
+                try
+                {
+                    if (part.name.Equals("kerbalEVA"))
+                    {
+                        // Debug.Log("No CLS required for KerbalEVA!");
+                    }
+                    else
+                    {
+                        Part prefabPart = part.partPrefab;
+
+                        Debug.Log("Adding ConnectedLivingSpace Support to " + part.name + "/" + prefabPart.partInfo.title);
+
+                        if (!prefabPart.Modules.Contains("ModuleConnectedLivingSpace"))
+                        {
+                            //Debug.Log("The ModuleConnectedLivingSpace is missing!");
+
+                            ConfigNode node = new ConfigNode("MODULE");
+                            node.AddValue("name", "ModuleConnectedLivingSpace");
+                            {
+                                // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
+                                PartModule pm = prefabPart.AddModule("ModuleConnectedLivingSpace");
+                                if (Awaken(pm))
+                                {
+                                    pm.Load(node);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Debug.Log("The ModuleConnectedLivingSpace is already there.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+            }
+        }
+
+
+        //This meothod uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
+        public static bool Awaken(PartModule module)
+        {
+            // thanks to Mu and Kine for help with this bit of Dark Magic. 
+            // KINEMORTOBESTMORTOLOLOLOL
+            if (module == null)
+                return false;
+            object[] paramList = new object[] { };
+            MethodInfo awakeMethod = typeof(PartModule).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            if (awakeMethod == null)
+                return false;
+
+            awakeMethod.Invoke(module, paramList);
+            return true;
+        }
 
     }
 }
