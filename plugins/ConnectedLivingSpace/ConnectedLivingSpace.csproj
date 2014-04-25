@@ -56,6 +56,7 @@
     <Compile Include="CLSVessel.cs" />
     <Compile Include="KSPAddonFixed.cs" />
     <Compile Include="CLSAddon.cs" />
+    <Compile Include="ModuleDockingNodeHatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

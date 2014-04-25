@@ -25,6 +25,9 @@ namespace ConnectedLivingSpace
 
         private int editorPartCount = 0; // This is horrible. Because there does not seem to be an obvious callback to sink when parts are added and removed in the editor, on each fixed update we will could the parts and if it has changed then rebuild the CLSVessel. Yuk!
 
+        private int sanityCheckCounter = 0;
+        private int sanityCheckFrequency = 100; // Change this to make the sanity checks more or less frequent.
+
         public CLSVessel Vessel
         {
             get 
@@ -99,6 +102,9 @@ namespace ConnectedLivingSpace
 
             // Add the CLSModule to all parts that can house crew (and do not already have it).
             AddModuleToParts();
+
+            // Add the ModuleDockingNodeHatch to all the Docking Nodes
+            // AddHatchesToDockingNodes();
         }
 
         private void OnToolbarButton_Click()
@@ -356,26 +362,54 @@ namespace ConnectedLivingSpace
 
         public void FixedUpdate()
         {
-            // Debug.Log("CLSAddon:FixedUpdate");
-
-            // If we are in the editor, and there is a ship in the editor, then compare the number of parts to last time we did this. If it has changed then rebuild the CLSVessel
-            if (HighLogic.LoadedSceneIsEditor)
+            try
             {
-                int currentPartCount = 0;
-                if (null == EditorLogic.startPod)
-                {
-                    currentPartCount = 0; // I know that this is already 0, but just to make the point - if there is no startPod in the editor, then there are no parts in the vessel.
-                }
-                else
-                {
-                    currentPartCount = EditorLogic.SortedShipList.Count;
-                }
+                // Debug.Log("CLSAddon:FixedUpdate");
 
-                if (currentPartCount != this.editorPartCount)
+                // If we are in the editor, and there is a ship in the editor, then compare the number of parts to last time we did this. If it has changed then rebuild the CLSVessel
+                if (HighLogic.LoadedSceneIsEditor)
                 {
-                    this.RebuildCLSVessel();
-                    this.editorPartCount = currentPartCount;
+                    int currentPartCount = 0;
+                    if (null == EditorLogic.startPod)
+                    {
+                        currentPartCount = 0; // I know that this is already 0, but just to make the point - if there is no startPod in the editor, then there are no parts in the vessel.
+                    }
+                    else
+                    {
+                        currentPartCount = EditorLogic.SortedShipList.Count;
+                    }
+
+                    if (currentPartCount != this.editorPartCount)
+                    {
+                        this.RebuildCLSVessel();
+                        this.editorPartCount = currentPartCount;
+                    }
                 }
+                else if (HighLogic.LoadedSceneIsFlight)
+                {
+                    // In flight, run the sanity checker.
+                    if (FlightGlobals.ready)
+                    {
+                        // Do not run the sanity checker if the CLSVessel (and hence all the CLS parts) has not yet been constructed.
+                        if (null != this.vessel)
+                        {
+                            // Only run the sanity check every now and again!
+                            this.sanityCheckCounter++;
+                            this.sanityCheckCounter = this.sanityCheckCounter % this.sanityCheckFrequency;
+
+                            // Debug.Log("sanityCheckCounter: " + sanityCheckCounter);
+
+                            if (1 == this.sanityCheckCounter) // but running the checker when the counter is one, we know that we can force the check on the next physics frame by setting it to 0.
+                            {
+                                this.SanityCheck();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
             }
         }
 
@@ -452,8 +486,39 @@ namespace ConnectedLivingSpace
             }
         }
 
+        private void AddHatchesToDockingNodes()
+        {
+            IEnumerable<AvailablePart> parts = PartLoader.LoadedPartsList.Where(p => p.partPrefab != null);
+            foreach (AvailablePart part in parts) 
+            {
+                try
+                {
+                    // Go through all the ModuleDockingNodes for this part
 
-        //This meothod uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
+                    foreach (ModuleDockingNode dnMod in part.partPrefab.Modules.OfType<ModuleDockingNode>())
+                    {
+                        ConfigNode node = new ConfigNode("MODULE");
+                        node.AddValue("name", "ModuleDockingNodeHatch");
+                        {
+                            // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
+                            PartModule pm = part.partPrefab.AddModule("ModuleDockingNodeHatch");
+                            if (Awaken(pm))
+                            {
+                                pm.Load(node);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+            }
+        }
+
+
+
+        //This method uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
         public static bool Awaken(PartModule module)
         {
             // thanks to Mu and Kine for help with this bit of Dark Magic. 
@@ -470,5 +535,16 @@ namespace ConnectedLivingSpace
             return true;
         }
 
+        // Utility method that is run every now an again and just checks that everything is in sync and makes sense. The actualt funtionailty in a method on the module class.
+        private void SanityCheck()
+        {
+            foreach(Part p in FlightGlobals.ActiveVessel.Parts)
+            {
+                foreach (ModuleConnectedLivingSpace clsmod in p.Modules.OfType<ModuleConnectedLivingSpace>())
+                {
+                    //clsmod.SanityCheck();
+                }
+            }
+        }
     }
 }

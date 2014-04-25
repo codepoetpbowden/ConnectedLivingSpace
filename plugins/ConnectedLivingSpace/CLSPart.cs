@@ -21,7 +21,6 @@ namespace ConnectedLivingSpace
         CLSSpace space;
         bool docked = false;
         List<CLSKerbal> crew;
-        DockingPortHatchStatus hatchStatus = DockingPortHatchStatus.NOT_DOCKING_PORT; // For parts that are docking ports, indicates if the hatch is open or closed.   
         bool highlighted = false; // This allows us to remember if a part is SUPPOSED to be highlighted by CLS. We can then use appropriate moments to ensure that it either is or is not.
 
         public CLSPart(Part p)
@@ -45,7 +44,6 @@ namespace ConnectedLivingSpace
                 if (null != m)
                 {
                     m.clsPart = this;
-                    this.hatchStatus = m.hatchStatus;
                 }
                 else
                 {
@@ -69,25 +67,11 @@ namespace ConnectedLivingSpace
                 return this.space;
             }
 
-            set
+            internal set
             {
                 this.space = value;
             }
         }
-
-        public DockingPortHatchStatus HatchStatus
-        {
-            get
-            {
-                return this.hatchStatus;
-            }
-
-            internal set
-            {
-                this.hatchStatus = value;
-            }
-        }
-
         public bool Docked
         {
             get
@@ -131,7 +115,6 @@ namespace ConnectedLivingSpace
             // Set the variable to mark if this part is SUPPOSED to be hightlighted or not.
             this.highlighted = val;
 
-
             if (this.highlighted)
             {
                 this.SetHighlighting(); 
@@ -166,14 +149,19 @@ namespace ConnectedLivingSpace
             }
             else if (this.docked)
             {
-                if (this.HatchStatus == DockingPortHatchStatus.DOCKING_PORT_HATCH_OPEN)
+                // The part has at least one docked dockingnode. If any of the docking nodes for this part support hatches, and any of the hatches are closed then we wil colour magenta rather than cyan.
+
+                Color docNodeColor = Color.cyan;
+
+                foreach (ModuleDockingNodeHatch docNodeHatch in this.part.Modules.OfType<ModuleDockingNodeHatch>())
                 {
-                    this.part.SetHighlightColor(Color.cyan);
+                    if (!docNodeHatch.HatchOpen)
+                    {
+                        docNodeColor = Color.magenta;
+                        break;
+                    }
                 }
-                else
-                {
-                    this.part.SetHighlightColor(Color.magenta);
-                }
+                this.part.SetHighlightColor(docNodeColor);
             }
             else if (this.Navigable)
             {
@@ -248,7 +236,7 @@ namespace ConnectedLivingSpace
         // this is the method used with the delagate
         void MouseExit(Part part)
         {
-            Debug.Log("MouseExit from part: " + part.partInfo.title);
+            // Debug.Log("MouseExit from part: " + part.partInfo.title);
             // When the mouse moves away from a part, if it is supposed to be highlighted by us, then highlight it!
             if (this.highlighted)
             {
