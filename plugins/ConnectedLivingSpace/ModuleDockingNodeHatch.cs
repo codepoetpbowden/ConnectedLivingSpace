@@ -19,24 +19,24 @@ namespace ConnectedLivingSpace
             {
                 return this.hatchOpen;
             }
-        }
 
-        [KSPField(isPersistant=false, guiActive = true, guiName = "Hatch status")]
-        public string HatchStatus
-        {
-            get
+            set
             {
-                if (hatchOpen)
+                this.hatchOpen = value;
+
+                if (value)
                 {
-                    return "Open";
+                    this.hatchStatus = "Open";
                 }
                 else
                 {
-                    return "Closed";
+                    this.hatchStatus = "Closed";
                 }
             }
         }
 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Hatch status")]
+        private string hatchStatus = "";
 
         [KSPEvent(active = true, guiActive = true, guiName = "Open Hatch")]
         private void OpenHatch()
@@ -45,13 +45,13 @@ namespace ConnectedLivingSpace
 
             if (docked)
             {
-                this.hatchOpen = true;
+                this.HatchOpen = true;
                 this.Events["CloseHatch"].active = true;
                 this.Events["OpenHatch"].active = false;
             }
             else
             {
-                this.hatchOpen = false;
+                this.HatchOpen = false;
                 this.Events["CloseHatch"].active = false;
                 this.Events["OpenHatch"].active = false;
             }
@@ -65,7 +65,7 @@ namespace ConnectedLivingSpace
         {
             bool docked = isInDockedState();
             
-            this.hatchOpen = false;
+            this.HatchOpen = false;
 
             this.Events["CloseHatch"].active = false;
             if (isInDockedState())
@@ -86,10 +86,13 @@ namespace ConnectedLivingSpace
             // Call the base class
             base.OnLoad(node);
 
+            // The base class with have set hatchOpen, but not via the Property HatchOpen, so we need to re-do it to ensure that hatchStatus gets properly set.
+            this.HatchOpen = this.hatchOpen;
+
             // Set the GUI state of the open/close hatch events as appropriate
             if (isInDockedState())
             {
-                if (hatchOpen)
+                if (this.HatchOpen)
                 {
                     this.Events["CloseHatch"].active = true;
                     this.Events["OpenHatch"].active = false;
@@ -115,7 +118,7 @@ namespace ConnectedLivingSpace
 
             if (isInDockedState())
             {
-                if (!hatchOpen)
+                if (!this.HatchOpen)
                 {
                     // We are docked, but the hatch is closed. Make sure that it is possible to open the hatch
                     this.Events["CloseHatch"].active = false;
@@ -125,9 +128,9 @@ namespace ConnectedLivingSpace
             else
             {
                 // We are not docked - close up the hatch if it is open!
-                if (this.hatchOpen)
+                if (this.HatchOpen)
                 {
-                    this.hatchOpen = false;
+                    this.HatchOpen = false;
                     this.Events["CloseHatch"].active = false;
                     this.Events["OpenHatch"].active = false; 
                 }

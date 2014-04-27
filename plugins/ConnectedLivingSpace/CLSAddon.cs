@@ -140,7 +140,7 @@ namespace ConnectedLivingSpace
         private void OnVesselLoaded(Vessel data)
         {
             Debug.Log("CLSAddon::OnVesselLoaded");
-            RebuildCLSVessel();
+            RebuildCLSVessel(data);
         }
         private void OnVesselTerminated(ProtoVessel data)
         {
@@ -193,7 +193,7 @@ namespace ConnectedLivingSpace
         private void OnVesselWasModified(Vessel data)
         {
             Debug.Log("CLSAddon::OnVesselWasModified");
-            RebuildCLSVessel();
+            RebuildCLSVessel(data);
         }
 
         // This event is fired when the vessel is changed. If this happens we need to throw away all of our thoiughts about the previous vessel, and analyse the new one.
@@ -201,20 +201,7 @@ namespace ConnectedLivingSpace
         {
             Debug.Log("CLSAddon::OnVesselChange");
 
-            // First unhighlight the current vessel (if there is one)
-            if (this.vessel != null)
-            {
-                this.vessel.Highlight(false);
-
-                // Now destroy the current CLSVessel
-                this.vessel.Clear();
-                this.vessel = null;
-                this.selectedSpace = -1;
-            }
-
-            // Next rebuild the CLSVessel using the new data that we have been given.
-            this.vessel = new CLSVessel();
-            this.vessel.Populate(data);
+            RebuildCLSVessel(data);
         }
 
         private void OnDraw()
@@ -225,8 +212,44 @@ namespace ConnectedLivingSpace
             }
         }
 
+
         private void RebuildCLSVessel()
         {
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                RebuildCLSVessel(FlightGlobals.ActiveVessel);
+            }
+            else if (HighLogic.LoadedSceneIsEditor)
+            {
+                RebuildCLSVessel(EditorLogic.startPod);
+            }
+        }
+
+        private void RebuildCLSVessel(Vessel newVessel)
+        {
+            RebuildCLSVessel(newVessel.rootPart);
+        }
+
+        private void RebuildCLSVessel(Part newRootPart)
+        {
+            Debug.Log("RebuildCLSVessel");
+            // Before we rebuild the vessel, we need to take some steps to tidy up the highlighting and our idea of which space is the selected space. We will make a list of all the parts that are currently in the selected space. We will also unhighlight parts that are highlighted. Once the rebuild is complete we will work out which space will be the selected space based on the first part in our list that we find in oneof the new spaces. We can then highlight that new space.
+
+            List<uint> listSelectedParts = new List<uint>();
+
+            if (-1 != selectedSpace)
+            {
+                foreach (CLSPart p in vessel.Spaces[selectedSpace].Parts)
+                {
+                    Part part = (Part)p;
+                    listSelectedParts.Add(part.flightID);
+                }
+
+                vessel.Spaces[selectedSpace].Highlight(false);
+            }
+
+            Debug.Log("Old selected space had "+listSelectedParts.Count + " parts in it.");
+
             // Tidy up the old vessel information
             if (null != this.vessel)
             {
@@ -234,15 +257,39 @@ namespace ConnectedLivingSpace
             }
             this.vessel = null;
 
-            if (HighLogic.LoadedSceneIsFlight)
+            // Build new vessel information
+            this.vessel = new CLSVessel();
+            this.vessel.Populate(newRootPart);
+
+            // Now work out which space should be highlighted.
+            this.selectedSpace = -1;
+            foreach (CLSPart clsPart in this.vessel.Parts)
             {
-                this.vessel = new CLSVessel();
-                this.vessel.Populate(FlightGlobals.ActiveVessel);
+                Part p = clsPart;
+                if (listSelectedParts.Contains(p.flightID))
+                {
+                    Debug.Log("Part " + p.partInfo.title + " was in the old selected space and is in the CLSVessel");
+                    if (clsPart.Space != null)
+                    {
+                        // We have found the new space for a part that was in the old selected space.
+                        this.selectedSpace = this.vessel.Spaces.IndexOf(clsPart.Space);
+                        Debug.Log("... it is also part of a space. We will use that space to be our new selected space. index:" + this.selectedSpace);
+                        break;
+                    }
+                    else
+                    {
+                        Debug.Log("it is no longer part of a space :(");
+                    }
+                }
             }
-            else if (HighLogic.LoadedSceneIsEditor)
+
+            if (this.selectedSpace != -1)
             {
-                this.vessel = new CLSVessel();
-                this.vessel.Populate(EditorLogic.startPod);
+                this.vessel.Spaces[this.selectedSpace].Highlight(true);
+            }
+            else
+            {
+                Debug.Log("No space is selected after the rebuild.");
             }
 
             // Sanity check the selected space. If the CLSvessel has been rebuilt and there are no Spaces, or it references an out of range space then set it to -1
