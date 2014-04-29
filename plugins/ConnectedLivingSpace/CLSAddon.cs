@@ -134,12 +134,15 @@ namespace ConnectedLivingSpace
             Debug.Log("CLSAddon::OnFlightReady");          
 
             // Now scan the vessel
+            Debug.Log("Calling RebuildCLSVessel from onFlightReady");
             this.RebuildCLSVessel();
         }
 
         private void OnVesselLoaded(Vessel data)
         {
             Debug.Log("CLSAddon::OnVesselLoaded");
+
+            Debug.Log("Calling RebuildCLSVessel from OnVesselLoaded");
             RebuildCLSVessel(data);
         }
         private void OnVesselTerminated(ProtoVessel data)
@@ -193,6 +196,9 @@ namespace ConnectedLivingSpace
         private void OnVesselWasModified(Vessel data)
         {
             Debug.Log("CLSAddon::OnVesselWasModified");
+
+            Debug.Log("Calling RebuildCLSVessel from OnVesselWasModified");
+            
             RebuildCLSVessel(data);
         }
 
@@ -201,6 +207,7 @@ namespace ConnectedLivingSpace
         {
             Debug.Log("CLSAddon::OnVesselChange");
 
+            Debug.Log("Calling RebuildCLSVessel from OnVesselChange");
             RebuildCLSVessel(data);
         }
 
@@ -243,6 +250,7 @@ namespace ConnectedLivingSpace
                 {
                     Part part = (Part)p;
                     listSelectedParts.Add(part.flightID);
+                    Debug.Log("Part : "+ part.flightID + " currently in use." ) ;
                 }
 
                 vessel.Spaces[selectedSpace].Highlight(false);
@@ -266,6 +274,9 @@ namespace ConnectedLivingSpace
             foreach (CLSPart clsPart in this.vessel.Parts)
             {
                 Part p = clsPart;
+
+                Debug.Log("New vessel contains part : " + p.flightID);
+
                 if (listSelectedParts.Contains(p.flightID))
                 {
                     Debug.Log("Part " + p.partInfo.title + " was in the old selected space and is in the CLSVessel");
@@ -428,6 +439,8 @@ namespace ConnectedLivingSpace
 
                     if (currentPartCount != this.editorPartCount)
                     {
+                        Debug.Log("Calling RebuildCLSVessel as the part count has changed in the editor");
+
                         this.RebuildCLSVessel();
                         this.editorPartCount = currentPartCount;
                     }
@@ -562,8 +575,6 @@ namespace ConnectedLivingSpace
                 }
             }
         }
-
-
 
         //This method uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
         public static bool Awaken(PartModule module)

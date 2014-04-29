@@ -12,7 +12,9 @@ namespace ConnectedLivingSpace
         internal CLSPart clsPart; // reference back to the CLS Part that refers to the part that this is a module on. Tghis value might well be null, but the CLSPart will attempt to set it when the CLS part is created.
 
         [KSPField]
-        public bool radialAttachmentsPassable = false;
+        public bool passableWhenSurfaceAttached = false;
+        [KSPField]
+        public bool surfaceAttachmentsPassable = false;
         [KSPField]
         public bool passable = false;
         [KSPField]
