@@ -28,6 +28,8 @@ namespace ConnectedLivingSpace
         private int sanityCheckCounter = 0;
         private int sanityCheckFrequency = 100; // Change this to make the sanity checks more or less frequent.
 
+        private string spaceNameEditField;
+
         public CLSVessel Vessel
         {
             get 
@@ -358,6 +360,9 @@ namespace ConnectedLivingSpace
                             // Update the space that has been selected.
                             this.selectedSpace = newSelectedSpace;
 
+                            // Update the text in the Space edit box
+                            this.spaceNameEditField = vessel.Spaces[this.selectedSpace].Name;
+
                             // Highlight the new space
                             vessel.Spaces[this.selectedSpace].Highlight(true);
                         }
@@ -372,7 +377,11 @@ namespace ConnectedLivingSpace
                         // Display the text box that allows the space name to be changed
                         GUILayout.BeginHorizontal();
                         GUILayout.Label("Space Name:");
-                        vessel.Spaces[this.selectedSpace].Name = GUILayout.TextField(vessel.Spaces[this.selectedSpace].Name);
+                        this.spaceNameEditField = GUILayout.TextField(this.spaceNameEditField);
+                        if (GUILayout.Button("Update"))
+                        {
+                            vessel.Spaces[this.selectedSpace].Name = this.spaceNameEditField;
+                        }
                         GUILayout.EndHorizontal();
 
                         this.scrollViewer = GUILayout.BeginScrollView(this.scrollViewer,GUILayout.ExpandHeight(true),GUILayout.ExpandWidth(true));
@@ -546,35 +555,6 @@ namespace ConnectedLivingSpace
             }
         }
 
-        private void AddHatchesToDockingNodes()
-        {
-            IEnumerable<AvailablePart> parts = PartLoader.LoadedPartsList.Where(p => p.partPrefab != null);
-            foreach (AvailablePart part in parts) 
-            {
-                try
-                {
-                    // Go through all the ModuleDockingNodes for this part
-
-                    foreach (ModuleDockingNode dnMod in part.partPrefab.Modules.OfType<ModuleDockingNode>())
-                    {
-                        ConfigNode node = new ConfigNode("MODULE");
-                        node.AddValue("name", "ModuleDockingNodeHatch");
-                        {
-                            // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
-                            PartModule pm = part.partPrefab.AddModule("ModuleDockingNodeHatch");
-                            if (Awaken(pm))
-                            {
-                                pm.Load(node);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogException(ex);
-                }
-            }
-        }
 
         //This method uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
         public static bool Awaken(PartModule module)
