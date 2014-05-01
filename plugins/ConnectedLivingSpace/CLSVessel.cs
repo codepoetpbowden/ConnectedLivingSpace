@@ -214,7 +214,7 @@ namespace ConnectedLivingSpace
             }
         }
 
-        // Helper method that figures out if radialAttachmentsPassable is set for a CLSModule on the specified part.
+        // Helper method that figures out if surfaceAttachmentsPassable is set for a CLSModule on the specified part.
         private bool PartHasPassableSurfaceAttachments(Part p)
         {
             ModuleConnectedLivingSpace clsMod = (ModuleConnectedLivingSpace)p;
@@ -225,7 +225,7 @@ namespace ConnectedLivingSpace
             }
             else
             {
-                return clsMod.radialAttachmentsPassable;
+                return clsMod.surfaceAttachmentsPassable;
             }
         }
 
@@ -366,30 +366,34 @@ namespace ConnectedLivingSpace
         {
             String passablenodes ="";
             String impassablenodes="";
+            bool passableWhenSurfaceAttached = false;
 
             // Get the config for this part
-            foreach (PartModule pm in p.Modules)
+            foreach (ModuleConnectedLivingSpace CLSMod in p.Modules.OfType<ModuleConnectedLivingSpace>())
             {
-                if (pm.moduleName == "ModuleConnectedLivingSpace")
+                // This part does have a CLSmodule
+                passablenodes = CLSMod.passablenodes;
+                impassablenodes = CLSMod.impassablenodes;
+                passableWhenSurfaceAttached = CLSMod.passableWhenSurfaceAttached;
+                break;
+            }
+
+            if (node.nodeType == AttachNode.NodeType.Surface)
+            {
+                Debug.Log("node is a surface attachment node. Considering if the part is configured to allow passing when it is surface attached. - " + passableWhenSurfaceAttached);
+                return passableWhenSurfaceAttached;
+            }
+            else
+            {
+                if (passablenodes.Contains(node.id))
                 {
-                    // This part does have a CLSmodule
-                    ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)pm;
-
-                    passablenodes = CLSMod.passablenodes;
-                    impassablenodes = CLSMod.impassablenodes;
-
-                    break;
+                    return true;
                 }
-            }
 
-            if (passablenodes.Contains(node.id))
-            {
-                return true;
-            }
-
-            if (impassablenodes.Contains(node.id))
-            {
-                return false;
+                if (impassablenodes.Contains(node.id))
+                {
+                    return false;
+                }
             }
 
             return true;
