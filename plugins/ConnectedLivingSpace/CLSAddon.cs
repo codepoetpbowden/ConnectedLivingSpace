@@ -54,7 +54,7 @@ namespace ConnectedLivingSpace
 
         public void Awake() 
         {
-            Debug.Log("CLSAddon:Awake");
+            //Debug.Log("CLSAddon:Awake");
 
             this.toolbarButton = ToolbarManager.Instance.add("ConnectedLivingSpace", "buttonCLS");
 			this.toolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_icon_off";
@@ -111,7 +111,7 @@ namespace ConnectedLivingSpace
 
         private void OnToolbarButton_Click()
         {
-            Debug.Log("OnToolbarButton_Click");
+            //Debug.Log("OnToolbarButton_Click");
 
             // If the window is currently visible, set the selected space back to -1 so the highlighting is cleared.
             if (this.visable) 
@@ -133,73 +133,73 @@ namespace ConnectedLivingSpace
 
         private void OnFlightReady()
         {
-            Debug.Log("CLSAddon::OnFlightReady");          
+            //Debug.Log("CLSAddon::OnFlightReady");          
 
             // Now scan the vessel
-            Debug.Log("Calling RebuildCLSVessel from onFlightReady");
+            //Debug.Log("Calling RebuildCLSVessel from onFlightReady");
             this.RebuildCLSVessel();
         }
 
         private void OnVesselLoaded(Vessel data)
         {
-            Debug.Log("CLSAddon::OnVesselLoaded");
+            //Debug.Log("CLSAddon::OnVesselLoaded");
 
-            Debug.Log("Calling RebuildCLSVessel from OnVesselLoaded");
+            //Debug.Log("Calling RebuildCLSVessel from OnVesselLoaded");
             RebuildCLSVessel(data);
         }
         private void OnVesselTerminated(ProtoVessel data)
         {
-            Debug.Log("CLSAddon::OnVesselTerminated");
+            //Debug.Log("CLSAddon::OnVesselTerminated");
         }
         private void OnJointBreak(EventReport eventReport)
         {
-            Debug.Log("CLSAddon::OnJointBreak");
+            //Debug.Log("CLSAddon::OnJointBreak");
         }
         private void OnPartAttach(GameEvents.HostTargetAction<Part, Part> data)
         {
-            Debug.Log("CLSAddon::OnPartAttach"); 
+            //Debug.Log("CLSAddon::OnPartAttach"); 
         }
         private void OnPartCouple(GameEvents.FromToAction <Part, Part> data)
         {
-            Debug.Log("CLSAddon::OnPartCouple");
+            //Debug.Log("CLSAddon::OnPartCouple");
         }
         private void OnPartDie(Part data)
         {
-            Debug.Log("CLSAddon::OnPartDie");
+            //Debug.Log("CLSAddon::OnPartDie");
         }
         private void OnPartExplode(GameEvents.ExplosionReaction data)
         {
-            Debug.Log("CLSAddon::OnPartExplode");
+            //Debug.Log("CLSAddon::OnPartExplode");
         }
         private void OnPartRemove(GameEvents.HostTargetAction<Part, Part> data)
         {
-            Debug.Log("CLSAddon::OnPartRemove");
+            //Debug.Log("CLSAddon::OnPartRemove");
         }
         private void OnPartUndock(Part data)
         {
-            Debug.Log("CLSAddon::OnPartUndock");
+            //Debug.Log("CLSAddon::OnPartUndock");
         }
         private void OnStageSeparation(EventReport eventReport)
         {
-            Debug.Log("CLSAddon::OnStageSeparation");
+            //Debug.Log("CLSAddon::OnStageSeparation");
         }
         private void OnUndock(EventReport eventReport)
         {
-            Debug.Log("CLSAddon::OnUndock");
+            //Debug.Log("CLSAddon::OnUndock");
         }
         private void OnVesselDestroy(Vessel data)
         {
-            Debug.Log("CLSAddon::OnVesselDestroy");
+            //Debug.Log("CLSAddon::OnVesselDestroy");
         }
         private void OnVesselCreate(Vessel data)
         {
-            Debug.Log("CLSAddon::OnVesselCreate");
+            //Debug.Log("CLSAddon::OnVesselCreate");
         }
         private void OnVesselWasModified(Vessel data)
         {
-            Debug.Log("CLSAddon::OnVesselWasModified");
+            //Debug.Log("CLSAddon::OnVesselWasModified");
 
-            Debug.Log("Calling RebuildCLSVessel from OnVesselWasModified");
+            //Debug.Log("Calling RebuildCLSVessel from OnVesselWasModified");
             
             RebuildCLSVessel(data);
         }
@@ -207,9 +207,9 @@ namespace ConnectedLivingSpace
         // This event is fired when the vessel is changed. If this happens we need to throw away all of our thoiughts about the previous vessel, and analyse the new one.
         private void OnVesselChange(Vessel data)
         {
-            Debug.Log("CLSAddon::OnVesselChange");
+            //Debug.Log("CLSAddon::OnVesselChange");
 
-            Debug.Log("Calling RebuildCLSVessel from OnVesselChange");
+            //Debug.Log("Calling RebuildCLSVessel from OnVesselChange");
             RebuildCLSVessel(data);
         }
 
@@ -241,7 +241,7 @@ namespace ConnectedLivingSpace
 
         private void RebuildCLSVessel(Part newRootPart)
         {
-            Debug.Log("RebuildCLSVessel");
+            //Debug.Log("RebuildCLSVessel");
             // Before we rebuild the vessel, we need to take some steps to tidy up the highlighting and our idea of which space is the selected space. We will make a list of all the parts that are currently in the selected space. We will also unhighlight parts that are highlighted. Once the rebuild is complete we will work out which space will be the selected space based on the first part in our list that we find in oneof the new spaces. We can then highlight that new space.
 
             List<uint> listSelectedParts = new List<uint>();
@@ -252,13 +252,13 @@ namespace ConnectedLivingSpace
                 {
                     Part part = (Part)p;
                     listSelectedParts.Add(part.flightID);
-                    Debug.Log("Part : "+ part.flightID + " currently in use." ) ;
+                    //Debug.Log("Part : "+ part.flightID + " currently in use." ) ;
                 }
 
                 vessel.Spaces[selectedSpace].Highlight(false);
             }
 
-            Debug.Log("Old selected space had "+listSelectedParts.Count + " parts in it.");
+            //Debug.Log("Old selected space had "+listSelectedParts.Count + " parts in it.");
 
             // Tidy up the old vessel information
             if (null != this.vessel)
@@ -277,21 +277,21 @@ namespace ConnectedLivingSpace
             {
                 Part p = clsPart;
 
-                Debug.Log("New vessel contains part : " + p.flightID);
+                //Debug.Log("New vessel contains part : " + p.flightID);
 
                 if (listSelectedParts.Contains(p.flightID))
                 {
-                    Debug.Log("Part " + p.partInfo.title + " was in the old selected space and is in the CLSVessel");
+                    //Debug.Log("Part " + p.partInfo.title + " was in the old selected space and is in the CLSVessel");
                     if (clsPart.Space != null)
                     {
                         // We have found the new space for a part that was in the old selected space.
                         this.selectedSpace = this.vessel.Spaces.IndexOf(clsPart.Space);
-                        Debug.Log("... it is also part of a space. We will use that space to be our new selected space. index:" + this.selectedSpace);
+                        //Debug.Log("... it is also part of a space. We will use that space to be our new selected space. index:" + this.selectedSpace);
                         break;
                     }
                     else
                     {
-                        Debug.Log("it is no longer part of a space :(");
+                        //Debug.Log("it is no longer part of a space :(");
                     }
                 }
             }
@@ -302,7 +302,7 @@ namespace ConnectedLivingSpace
             }
             else
             {
-                Debug.Log("No space is selected after the rebuild.");
+                //Debug.Log("No space is selected after the rebuild.");
             }
 
             // Sanity check the selected space. If the CLSvessel has been rebuilt and there are no Spaces, or it references an out of range space then set it to -1
@@ -484,7 +484,7 @@ namespace ConnectedLivingSpace
 
         public void OnDestroy()
         {
-            Debug.Log("CLSAddon::OnDestroy");
+            //Debug.Log("CLSAddon::OnDestroy");
             GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
             GameEvents.onVesselChange.Remove(OnVesselChange);
             GameEvents.onJointBreak.Remove(OnJointBreak);
@@ -525,7 +525,7 @@ namespace ConnectedLivingSpace
                     {
                         Part prefabPart = part.partPrefab;
 
-                        Debug.Log("Adding ConnectedLivingSpace Support to " + part.name + "/" + prefabPart.partInfo.title);
+                        //Debug.Log("Adding ConnectedLivingSpace Support to " + part.name + "/" + prefabPart.partInfo.title);
 
                         if (!prefabPart.Modules.Contains("ModuleConnectedLivingSpace"))
                         {

@@ -139,14 +139,14 @@ namespace ConnectedLivingSpace
 
         public override void OnStart(PartModule.StartState st)
         {
-            Debug.Log("ModuleDockingNodeHatch::OnStart");
+            //Debug.Log("ModuleDockingNodeHatch::OnStart");
 
             base.OnStart(st);
 
             // As long as we have not started in the editor, ensure the module is active / enabled.
             if (st != StartState.Editor)
             {
-                Debug.Log("ModuleDockingNodeHatch::OnStart setting enabled = true");
+                //Debug.Log("ModuleDockingNodeHatch::OnStart setting enabled = true");
                 this.enabled = true;
             }
         }
@@ -169,7 +169,7 @@ namespace ConnectedLivingSpace
 
             if (FixedUpdateMethod == null)
             {
-                Debug.Log("Failed to get ModuleDockingNode::FixedUpdate");
+                //Debug.Log("Failed to get ModuleDockingNode::FixedUpdate");
             }
             FixedUpdateMethod.Invoke(dockNode, paramList);
         }
