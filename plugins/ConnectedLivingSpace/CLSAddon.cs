@@ -453,7 +453,7 @@ namespace ConnectedLivingSpace
         }
 
 
-        //This meothod uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
+        //This method uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
         public static bool Awaken(PartModule module)
         {
             // thanks to Mu and Kine for help with this bit of Dark Magic. 
