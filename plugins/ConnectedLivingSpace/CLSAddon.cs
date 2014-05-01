@@ -25,6 +25,11 @@ namespace ConnectedLivingSpace
 
         private int editorPartCount = 0; // This is horrible. Because there does not seem to be an obvious callback to sink when parts are added and removed in the editor, on each fixed update we will could the parts and if it has changed then rebuild the CLSVessel. Yuk!
 
+        private int sanityCheckCounter = 0;
+        private int sanityCheckFrequency = 100; // Change this to make the sanity checks more or less frequent.
+
+        private string spaceNameEditField;
+
         public CLSVessel Vessel
         {
             get 
@@ -49,7 +54,7 @@ namespace ConnectedLivingSpace
 
         public void Awake() 
         {
-            Debug.Log("CLSAddon:Awake");
+            //Debug.Log("CLSAddon:Awake");
 
             this.toolbarButton = ToolbarManager.Instance.add("ConnectedLivingSpace", "buttonCLS");
 			this.toolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_icon_off";
@@ -99,11 +104,14 @@ namespace ConnectedLivingSpace
 
             // Add the CLSModule to all parts that can house crew (and do not already have it).
             AddModuleToParts();
+
+            // Add the ModuleDockingNodeHatch to all the Docking Nodes
+            // AddHatchesToDockingNodes();
         }
 
         private void OnToolbarButton_Click()
         {
-            Debug.Log("OnToolbarButton_Click");
+            //Debug.Log("OnToolbarButton_Click");
 
             // If the window is currently visible, set the selected space back to -1 so the highlighting is cleared.
             if (this.visable) 
@@ -125,90 +133,84 @@ namespace ConnectedLivingSpace
 
         private void OnFlightReady()
         {
-            Debug.Log("CLSAddon::OnFlightReady");          
+            //Debug.Log("CLSAddon::OnFlightReady");          
 
             // Now scan the vessel
+            //Debug.Log("Calling RebuildCLSVessel from onFlightReady");
             this.RebuildCLSVessel();
         }
 
         private void OnVesselLoaded(Vessel data)
         {
-            Debug.Log("CLSAddon::OnVesselLoaded");
-            RebuildCLSVessel();
+            //Debug.Log("CLSAddon::OnVesselLoaded");
+
+            //Debug.Log("Calling RebuildCLSVessel from OnVesselLoaded");
+            RebuildCLSVessel(data);
         }
         private void OnVesselTerminated(ProtoVessel data)
         {
-            Debug.Log("CLSAddon::OnVesselTerminated");
+            //Debug.Log("CLSAddon::OnVesselTerminated");
         }
         private void OnJointBreak(EventReport eventReport)
         {
-            Debug.Log("CLSAddon::OnJointBreak");
+            //Debug.Log("CLSAddon::OnJointBreak");
         }
         private void OnPartAttach(GameEvents.HostTargetAction<Part, Part> data)
         {
-            Debug.Log("CLSAddon::OnPartAttach"); 
+            //Debug.Log("CLSAddon::OnPartAttach"); 
         }
         private void OnPartCouple(GameEvents.FromToAction <Part, Part> data)
         {
-            Debug.Log("CLSAddon::OnPartCouple");
+            //Debug.Log("CLSAddon::OnPartCouple");
         }
         private void OnPartDie(Part data)
         {
-            Debug.Log("CLSAddon::OnPartDie");
+            //Debug.Log("CLSAddon::OnPartDie");
         }
         private void OnPartExplode(GameEvents.ExplosionReaction data)
         {
-            Debug.Log("CLSAddon::OnPartExplode");
+            //Debug.Log("CLSAddon::OnPartExplode");
         }
         private void OnPartRemove(GameEvents.HostTargetAction<Part, Part> data)
         {
-            Debug.Log("CLSAddon::OnPartRemove");
+            //Debug.Log("CLSAddon::OnPartRemove");
         }
         private void OnPartUndock(Part data)
         {
-            Debug.Log("CLSAddon::OnPartUndock");
+            //Debug.Log("CLSAddon::OnPartUndock");
         }
         private void OnStageSeparation(EventReport eventReport)
         {
-            Debug.Log("CLSAddon::OnStageSeparation");
+            //Debug.Log("CLSAddon::OnStageSeparation");
         }
         private void OnUndock(EventReport eventReport)
         {
-            Debug.Log("CLSAddon::OnUndock");
+            //Debug.Log("CLSAddon::OnUndock");
         }
         private void OnVesselDestroy(Vessel data)
         {
-            Debug.Log("CLSAddon::OnVesselDestroy");
+            //Debug.Log("CLSAddon::OnVesselDestroy");
         }
         private void OnVesselCreate(Vessel data)
         {
-            Debug.Log("CLSAddon::OnVesselCreate");
+            //Debug.Log("CLSAddon::OnVesselCreate");
         }
         private void OnVesselWasModified(Vessel data)
         {
-            Debug.Log("CLSAddon::OnVesselWasModified");
-            RebuildCLSVessel();
+            //Debug.Log("CLSAddon::OnVesselWasModified");
+
+            //Debug.Log("Calling RebuildCLSVessel from OnVesselWasModified");
+            
+            RebuildCLSVessel(data);
         }
 
         // This event is fired when the vessel is changed. If this happens we need to throw away all of our thoiughts about the previous vessel, and analyse the new one.
         private void OnVesselChange(Vessel data)
         {
-            Debug.Log("CLSAddon::OnVesselChange");
+            //Debug.Log("CLSAddon::OnVesselChange");
 
-            // First unhighlight the current vessel (if there is one)
-            if (this.vessel != null)
-            {
-                this.vessel.Highlight(false);
-
-                // Now destroy the current CLSVessel
-                this.vessel.Clear();
-                this.vessel = null;
-                this.selectedSpace = -1;
-            }
-
-            // Next rebuild the CLSVessel using the new data that we have been given.
-            this.vessel = new CLSVessel();
-            this.vessel.Populate(data);
+            //Debug.Log("Calling RebuildCLSVessel from OnVesselChange");
+            RebuildCLSVessel(data);
         }
 
         private void OnDraw()
@@ -219,8 +221,45 @@ namespace ConnectedLivingSpace
             }
         }
 
+
         private void RebuildCLSVessel()
         {
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                RebuildCLSVessel(FlightGlobals.ActiveVessel);
+            }
+            else if (HighLogic.LoadedSceneIsEditor)
+            {
+                RebuildCLSVessel(EditorLogic.startPod);
+            }
+        }
+
+        private void RebuildCLSVessel(Vessel newVessel)
+        {
+            RebuildCLSVessel(newVessel.rootPart);
+        }
+
+        private void RebuildCLSVessel(Part newRootPart)
+        {
+            //Debug.Log("RebuildCLSVessel");
+            // Before we rebuild the vessel, we need to take some steps to tidy up the highlighting and our idea of which space is the selected space. We will make a list of all the parts that are currently in the selected space. We will also unhighlight parts that are highlighted. Once the rebuild is complete we will work out which space will be the selected space based on the first part in our list that we find in oneof the new spaces. We can then highlight that new space.
+
+            List<uint> listSelectedParts = new List<uint>();
+
+            if (-1 != selectedSpace)
+            {
+                foreach (CLSPart p in vessel.Spaces[selectedSpace].Parts)
+                {
+                    Part part = (Part)p;
+                    listSelectedParts.Add(part.flightID);
+                    //Debug.Log("Part : "+ part.flightID + " currently in use." ) ;
+                }
+
+                vessel.Spaces[selectedSpace].Highlight(false);
+            }
+
+            //Debug.Log("Old selected space had "+listSelectedParts.Count + " parts in it.");
+
             // Tidy up the old vessel information
             if (null != this.vessel)
             {
@@ -228,15 +267,42 @@ namespace ConnectedLivingSpace
             }
             this.vessel = null;
 
-            if (HighLogic.LoadedSceneIsFlight)
+            // Build new vessel information
+            this.vessel = new CLSVessel();
+            this.vessel.Populate(newRootPart);
+
+            // Now work out which space should be highlighted.
+            this.selectedSpace = -1;
+            foreach (CLSPart clsPart in this.vessel.Parts)
             {
-                this.vessel = new CLSVessel();
-                this.vessel.Populate(FlightGlobals.ActiveVessel);
+                Part p = clsPart;
+
+                //Debug.Log("New vessel contains part : " + p.flightID);
+
+                if (listSelectedParts.Contains(p.flightID))
+                {
+                    //Debug.Log("Part " + p.partInfo.title + " was in the old selected space and is in the CLSVessel");
+                    if (clsPart.Space != null)
+                    {
+                        // We have found the new space for a part that was in the old selected space.
+                        this.selectedSpace = this.vessel.Spaces.IndexOf(clsPart.Space);
+                        //Debug.Log("... it is also part of a space. We will use that space to be our new selected space. index:" + this.selectedSpace);
+                        break;
+                    }
+                    else
+                    {
+                        //Debug.Log("it is no longer part of a space :(");
+                    }
+                }
             }
-            else if (HighLogic.LoadedSceneIsEditor)
+
+            if (this.selectedSpace != -1)
             {
-                this.vessel = new CLSVessel();
-                this.vessel.Populate(EditorLogic.startPod);
+                this.vessel.Spaces[this.selectedSpace].Highlight(true);
+            }
+            else
+            {
+                //Debug.Log("No space is selected after the rebuild.");
             }
 
             // Sanity check the selected space. If the CLSvessel has been rebuilt and there are no Spaces, or it references an out of range space then set it to -1
@@ -294,6 +360,9 @@ namespace ConnectedLivingSpace
                             // Update the space that has been selected.
                             this.selectedSpace = newSelectedSpace;
 
+                            // Update the text in the Space edit box
+                            this.spaceNameEditField = vessel.Spaces[this.selectedSpace].Name;
+
                             // Highlight the new space
                             vessel.Spaces[this.selectedSpace].Highlight(true);
                         }
@@ -308,7 +377,11 @@ namespace ConnectedLivingSpace
                         // Display the text box that allows the space name to be changed
                         GUILayout.BeginHorizontal();
                         GUILayout.Label("Space Name:");
-                        vessel.Spaces[this.selectedSpace].Name = GUILayout.TextField(vessel.Spaces[this.selectedSpace].Name);
+                        this.spaceNameEditField = GUILayout.TextField(this.spaceNameEditField);
+                        if (GUILayout.Button("Update"))
+                        {
+                            vessel.Spaces[this.selectedSpace].Name = this.spaceNameEditField;
+                        }
                         GUILayout.EndHorizontal();
 
                         this.scrollViewer = GUILayout.BeginScrollView(this.scrollViewer,GUILayout.ExpandHeight(true),GUILayout.ExpandWidth(true));
@@ -356,32 +429,62 @@ namespace ConnectedLivingSpace
 
         public void FixedUpdate()
         {
-            // Debug.Log("CLSAddon:FixedUpdate");
-
-            // If we are in the editor, and there is a ship in the editor, then compare the number of parts to last time we did this. If it has changed then rebuild the CLSVessel
-            if (HighLogic.LoadedSceneIsEditor)
+            try
             {
-                int currentPartCount = 0;
-                if (null == EditorLogic.startPod)
-                {
-                    currentPartCount = 0; // I know that this is already 0, but just to make the point - if there is no startPod in the editor, then there are no parts in the vessel.
-                }
-                else
-                {
-                    currentPartCount = EditorLogic.SortedShipList.Count;
-                }
+                // Debug.Log("CLSAddon:FixedUpdate");
 
-                if (currentPartCount != this.editorPartCount)
+                // If we are in the editor, and there is a ship in the editor, then compare the number of parts to last time we did this. If it has changed then rebuild the CLSVessel
+                if (HighLogic.LoadedSceneIsEditor)
                 {
-                    this.RebuildCLSVessel();
-                    this.editorPartCount = currentPartCount;
+                    int currentPartCount = 0;
+                    if (null == EditorLogic.startPod)
+                    {
+                        currentPartCount = 0; // I know that this is already 0, but just to make the point - if there is no startPod in the editor, then there are no parts in the vessel.
+                    }
+                    else
+                    {
+                        currentPartCount = EditorLogic.SortedShipList.Count;
+                    }
+
+                    if (currentPartCount != this.editorPartCount)
+                    {
+                        Debug.Log("Calling RebuildCLSVessel as the part count has changed in the editor");
+
+                        this.RebuildCLSVessel();
+                        this.editorPartCount = currentPartCount;
+                    }
                 }
+                else if (HighLogic.LoadedSceneIsFlight)
+                {
+                    // In flight, run the sanity checker.
+                    if (FlightGlobals.ready)
+                    {
+                        // Do not run the sanity checker if the CLSVessel (and hence all the CLS parts) has not yet been constructed.
+                        if (null != this.vessel)
+                        {
+                            // Only run the sanity check every now and again!
+                            this.sanityCheckCounter++;
+                            this.sanityCheckCounter = this.sanityCheckCounter % this.sanityCheckFrequency;
+
+                            // Debug.Log("sanityCheckCounter: " + sanityCheckCounter);
+
+                            if (1 == this.sanityCheckCounter) // but running the checker when the counter is one, we know that we can force the check on the next physics frame by setting it to 0.
+                            {
+                                this.SanityCheck();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
             }
         }
 
         public void OnDestroy()
         {
-            Debug.Log("CLSAddon::OnDestroy");
+            //Debug.Log("CLSAddon::OnDestroy");
             GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
             GameEvents.onVesselChange.Remove(OnVesselChange);
             GameEvents.onJointBreak.Remove(OnJointBreak);
@@ -422,7 +525,7 @@ namespace ConnectedLivingSpace
                     {
                         Part prefabPart = part.partPrefab;
 
-                        Debug.Log("Adding ConnectedLivingSpace Support to " + part.name + "/" + prefabPart.partInfo.title);
+                        //Debug.Log("Adding ConnectedLivingSpace Support to " + part.name + "/" + prefabPart.partInfo.title);
 
                         if (!prefabPart.Modules.Contains("ModuleConnectedLivingSpace"))
                         {
@@ -470,5 +573,16 @@ namespace ConnectedLivingSpace
             return true;
         }
 
+        // Utility method that is run every now an again and just checks that everything is in sync and makes sense. The actualt funtionailty in a method on the module class.
+        private void SanityCheck()
+        {
+            foreach(Part p in FlightGlobals.ActiveVessel.Parts)
+            {
+                foreach (ModuleConnectedLivingSpace clsmod in p.Modules.OfType<ModuleConnectedLivingSpace>())
+                {
+                    //clsmod.SanityCheck();
+                }
+            }
+        }
     }
 }

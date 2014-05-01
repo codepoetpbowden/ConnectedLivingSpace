@@ -7,8 +7,7 @@ using UnityEngine;
 namespace ConnectedLivingSpace
 {
     // A class that contains all the living space data for a particular vessel
-
-    
+       
     public class CLSVessel
     {
         List<CLSPart> listParts;  // A list of parts in this vessel
@@ -87,7 +86,18 @@ namespace ConnectedLivingSpace
             // First add this part to the list of all parts for the vessel.
             this.listParts.Add(newPart);
 
-            // Is the part capable of allowing kerbals to pass? If it is add it to the current space, or it there is not current space, to a new space.
+            // Next ensure that if the actual part has a CLS module, it is pointing to the CLSPart. TODO check that this works!
+            /*
+            {
+                ModuleConnectedLivingSpace modCLS = (ModuleConnectedLivingSpace)p;
+                if (null != modCLS)
+                {
+                    modCLS.clsPart = newPart;
+                }
+            }
+            */
+
+            // Is the part capable of allowing kerbals to pass? If it is add it to the current space, or if there is no current space, to a new space.
             if (newPart.Navigable)
             {
                 thisSpace = currentSpace;
@@ -108,129 +118,247 @@ namespace ConnectedLivingSpace
                 // Get the attachment nodes
                 AttachNode node = p.findAttachNodeByPart(child);
                 AttachNode childNode = child.findAttachNodeByPart(p);
+                bool attachmentIsPassable = false;
+                bool childAttachmentIsPassable = false;
                 bool dockingConnection = false;
+                CLSSpace spaceForChild = thisSpace;
 
-                if (null == node && null == childNode) 
+                // TODO removed debugging
+                //Debug.Log("Considering the connection between " + p.partInfo.title + "(" + p.uid + ") and " + child.partInfo.title + "(" + child.uid + ")");
                 {
-                    // If there are no attachment nodes between the two parts, but they have a child parent relationship, then there is a chance that they are docked together. Consider that possibility.
+                    // Is the attachment on "this" part passable?
+                    if (null != node)
                     {
-                        //Debug.Log("Considering if parts are docked together");
-                        node = FindDockedNodeByPart(p, child);
-                        childNode = FindDockedNodeByPart(child, p);
-                        
-                        // If we found both oif the nodes then we know that this connection is a docked connection. Let's just remember that, it might be useful to know later on.
-                        if (null != node && null != childNode)
-                        {
-                            dockingConnection = true;
-                        }
-                    }
-                }
-
-                if (null != node && null != childNode) // TODO in the case of a surface attached part I believe that we will not have two attachemnt nodes, only one (or is it even posible to have none?) Test for this and work out what to do.
-                {
-                    // So do these two nodes together create a navigable passage?
-                    if (IsNodeNavigable(node, p) && IsNodeNavigable(childNode, child))
-                    {
-                        // The nodes might be navigable, but it is possible that if one of the two parts are docking nodes that have a closed hatch then passage will not be possible.
-                        
-                        if(dockingConnection)
-                        {
-                            ModuleConnectedLivingSpace CLSModp = (ModuleConnectedLivingSpace)p;
-                            ModuleConnectedLivingSpace CLSModchild = (ModuleConnectedLivingSpace)child;
-                            bool hatchPassable = true;
-                            CLSSpace spaceToUse = thisSpace;
-
-                            if (null != CLSModp)
-                            {
-                                if (CLSModp.hatchStatus == DockingPortHatchStatus.DOCKING_PORT_HATCH_CLOSED)
-                                {
-                                    hatchPassable = false;
-                                }
-                            }
-                            if (null != CLSModchild)
-                            {
-                                if (CLSModchild.hatchStatus == DockingPortHatchStatus.DOCKING_PORT_HATCH_CLOSED)
-                                {
-                                    hatchPassable = false;
-                                }
-                            }
-
-                            if (false == hatchPassable)
-                            {
-                                spaceToUse = null;
-                            }
-                            ProcessPart(child, spaceToUse, dockingConnection); // It looks like the connection is navigable. Process the child part and pass in the current space of this part.
-                        }
-                        else
-                        {
-                            ProcessPart(child, thisSpace, dockingConnection); // It looks like the connection is navigable. Process the child part and pass in the current space of this part.
-                        }
+                        // The attachment is in the form of an AttachNode - use it to work out if the attachment is passable.
+                        attachmentIsPassable = IsNodeNavigable(node, p);
+                        //Debug.Log("the attachment on 'this' part is defined by attachment node " + node.id + " and had been given passable=" + attachmentIsPassable);
                     }
                     else
                     {
-                        ProcessPart(child, null); // There does not seem to be a way of Jeb accessing the child part. Sorry buddy - you will have to go EVA from here. Process the child part, bu pass in null. 
+                        // Could it be that we are dealling with a docked connection?
+                        dockingConnection = CheckForDockedPair(p, child);
+
+                        if (true == dockingConnection)
+                        {
+                            //Debug.Log("The two parts are considered to be docked together.");
+                            // The parts are docked, but we still need to have a think about if the docking port is passable.
+                            attachmentIsPassable = IsDockedDockingPortPassable(p, child);
+                            //Debug.Log("the docked attachment on 'this' part has been given passable=" + attachmentIsPassable);
+                        }
+                        else
+                        {
+                            //Debug.Log("The two parts are NOT considered to be docked together - concluding that this part is suface attached");
+                            // It is not a AttachNode attachment, and it is not a docked connection either. The only other option is that we are dealing with a surface attachment. Does this part allow surfact attachments to be passable?
+                            if (PartHasPassableSurfaceAttachments(p))
+                            {
+                                attachmentIsPassable = true;
+                                //Debug.Log("This part is surface attached and is considered to be passable");
+                            }
+                        }
                     }
+                }
+
+                // Repeat the above block for the child part.
+                {
+                    // Is the attachment on "this" part passable?
+                    if (null != childNode)
+                    {
+                        // The attachment is in the form of an AttachNode - use it to work out if the attachment is passable.
+                        childAttachmentIsPassable = IsNodeNavigable(childNode, child);
+                        //Debug.Log("the attachment on the child part is defined by attachment node " + childNode.id + " and had been given passable=" + attachmentIsPassable);
+                    }
+                    else
+                    {
+                        if (true == dockingConnection)
+                        {
+                            //Debug.Log("The two parts are considered to be docked together.");
+                            // The parts are docked, but we still need to have a think about if the docking port is passable.
+                            childAttachmentIsPassable = IsDockedDockingPortPassable(child, p);
+                            //Debug.Log("the docked attachment on the child part has been given passable=" + attachmentIsPassable);
+                        }
+                        else
+                        {
+                            //Debug.Log("The two parts are NOT considered to be docked together - concluding that the child part is suface attached");
+                            // It is not a AttachNode attachment, and it is not a docked connection either. The only other option is that we are dealing with a surface attachment. Does this part allow surfact attachments to be passable?
+                            if (PartHasPassableSurfaceAttachments(child))
+                            {
+                                childAttachmentIsPassable = true;
+                                //Debug.Log("The child part is surface attached and is considered to be passable");
+                            }
+                        }
+                    }
+                }
+
+                // So, is it possible to get from this part to the child part?
+                if (attachmentIsPassable && childAttachmentIsPassable)
+                {
+                    // It is possible to pass between this part and the child part - so the child needs to be in the same space as this part.
+                    //Debug.Log("The connection between 'this' part and the child part s passable in both directions, so the child part will be added to the same space as this part.");
+                    spaceForChild = thisSpace;
                 }
                 else
                 {
-                    ProcessPart(child, null); // There does not seem to be a way of Jeb accessing the child part. Sorry buddy - you will have to go EVA from here. Process the child part, but pass in null.
+                    // it is not possible to get into the child part from this part - it will need to be in a new space.
+                    //Debug.Log("The connection between 'this' part and the child part is NOT passable in both directions, so the child part will be added to a new space.");
+                    spaceForChild = null;
                 }
+
+                // Having work out all the variables, make the recursive call
+                ProcessPart(child, spaceForChild, dockingConnection);
 
                 // Was the connection a docking connection - if so we ought to mark the relevant CLSParts
                 if (dockingConnection || dockedToParent)
                 {
                     newPart.SetDocked(true);
-
-                    // If the part is docked, is the hatch open? We can find out by querrying the CLSModule attached to the part where the hatch state is persisted.
-                    ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)newPart;
-                    if (null != CLSMod)
-                    {
-                        newPart.HatchStatus = CLSMod.hatchStatus;
-                    }
-                }
-                else
-                {
-                    // The connection was not a docking connection. If this part is a docking port, but it is not docked then we need to ensure that the hatch is closed.
-                    ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)newPart;
-                    if (null != CLSMod)
-                    {
-                        if (CLSMod.isDockingPort)
-                        {
-                            CLSMod.SetHatchStatus(DockingPortHatchStatus.DOCKING_PORT_HATCH_CLOSED);
-                        }
-                    }
                 }
             }
         }
 
-        // When parts are docked together it seems that their attachment nodes are not connected up. However since they are docked, they but must be docking ports, and each attachment node that is a docking port has a ModuleDockingNode associated with it, and each of those references an attachment node. This funciton finds the AttchNode referenced by the ModuleDockingNode that refers to another particular part
-        private AttachNode FindDockedNodeByPart(Part thisPart, Part otherPart)
+        // Helper method that figures out if surfaceAttachmentsPassable is set for a CLSModule on the specified part.
+        private bool PartHasPassableSurfaceAttachments(Part p)
         {
-            AttachNode thisNode = null;
-            
+            ModuleConnectedLivingSpace clsMod = (ModuleConnectedLivingSpace)p;
+            if (null == clsMod)
+            {
+                // No CLS mod. Therefore surface attachments are definately not passable
+                return false;
+            }
+            else
+            {
+                return clsMod.surfaceAttachmentsPassable;
+            }
+        }
+
+        private bool CheckForDockedPair(Part thisPart, Part otherPart)
+        {
+            bool thisDockedToOther = false;
+            bool otherDockedToThis = false;
+
+            // Loop through all the ModuleDockingNodes for this part and check if any are docked to the other part.
             foreach (ModuleDockingNode docNode in thisPart.Modules.OfType<ModuleDockingNode>())
             {
-                //Debug.Log("Part: " + thisPart.partInfo.title + " does have a ModuleDockingNode. Is it docked to " + otherPart.partInfo.title);
-                //Debug.Log("docNode.dockedPartUId = " + docNode.dockedPartUId);
-                //Debug.Log("otherPart.ConstructID = " + otherPart.ConstructID);
-
-                if (otherPart == docNode.part.vessel[docNode.dockedPartUId])
+                if (CheckForNodeDockedToPart(docNode, otherPart))
                 {
-                    //Debug.Log("Hopefully we have found the ModuleDockingNode that is docked to the art we are interested in.");
-                    // This is the dockingNode that is docked to otherPart. Find the attachnode that it is associated with.
-                    thisNode = thisPart.attachNodes.Find(n => n.id == docNode.referenceAttachNode);
-                    if (null != thisNode)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Failed to find an attachNode associated with a docked part.");
-                    }
+                    thisDockedToOther = true;
+                    break;
                 }
             }
 
-            return thisNode;
+            // Loop through all the ModuleDockingNodes for the other part and check if any are docked to this part.
+            foreach (ModuleDockingNode docNode in otherPart.Modules.OfType<ModuleDockingNode>())
+            {
+                if (CheckForNodeDockedToPart(docNode, thisPart))
+                {
+                    otherDockedToThis = true;
+                    break;
+                }
+            }
+
+            // Return that this part and the other part are docked together if they are both considered docked to each other.
+            return (thisDockedToOther && otherDockedToThis);
+        }
+
+        private bool IsDockedDockingPortPassable(Part thisPart, Part otherPart)
+        {
+            bool retVal = false;
+
+            // First things first - does this part even support CLS? If it does not then the dockingPort is certain to be impassable.
+            ModuleConnectedLivingSpace clsModThis = (ModuleConnectedLivingSpace)thisPart;
+            if (null == clsModThis)
+            {
+                //Debug.Log("Part " + thisPart.partInfo.title + "(" + thisPart.uid + ") does not seem to support CLS. Setting it as impassable.");
+                return false;
+            }
+            else
+            {
+                // As it does support CLS, first set the passable value to the the "passable" field for this part
+                retVal = clsModThis.passable;
+            }
+
+            // Loop through all the ModuleDockingNodes for this part and check if any are docked to the other part.
+            foreach (ModuleDockingNode docNode in thisPart.Modules.OfType<ModuleDockingNode>())
+            {
+                if (CheckForNodeDockedToPart(docNode, otherPart))
+                {
+                    // We have found the ModuleDockingNode that represents the docking connection on this part.
+                    //Debug.Log("Found docking node that represents the docking connection to the 'other' part");
+
+                    // First consider if this docked connection has an accompanying AttachNode may be defined as (im)passable by CLS. 
+                    if (docNode.referenceAttachNode != string.Empty)
+                    {
+                        //Debug.Log("docking node uses a referenceAttachNode called: " + docNode.referenceAttachNode + " In the meantime, passablenodes: " + clsModThis.passablenodes + " impassablenodes: " + clsModThis.impassablenodes);
+                        if (clsModThis.passablenodes.Contains(docNode.referenceAttachNode))
+                        {
+                            retVal = true;
+                        }
+
+                        if (clsModThis.impassablenodes.Contains(docNode.referenceAttachNode))
+                        {
+                            retVal = false;
+                        }
+                    }
+                    // Second, if there is no AttachNode, what about the type / size of the docking port
+                    else
+                    {
+                        //Debug.Log("docking node does not use referenceAttachNode, instead considering the nodeType: " + docNode.nodeType + " In the meantime, impassableDockingNodeTypes:" + clsModThis.impassableDockingNodeTypes + " passableDockingNodeTypes:" + clsModThis.passableDockingNodeTypes);
+                        if (clsModThis.impassableDockingNodeTypes.Contains(docNode.nodeType))
+                        {
+                            retVal = false; // Docking node is of an impassable type.
+                        }
+                        if (clsModThis.passableDockingNodeTypes.Contains(docNode.nodeType))
+                        {
+                            retVal = true; // Docking node is of a passable type.
+                        }
+                    }
+
+                    // third, consider if there is an open / closed hatch
+                    {
+                        ModuleDockingNodeHatch docNodeHatch = (ModuleDockingNodeHatch)docNode;
+                        if (docNodeHatch != null)
+                        {
+                            // The dockingNode is actually a DockingNodeHatch :)
+                            if (!docNodeHatch.HatchOpen)
+                            {
+                                //Debug.Log("DockingNodeHatch is closed and so can not be passed through");
+                                retVal = false; // Hatch in the docking node is closed, so it is impassable
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+            //Debug.Log("returning " + retVal);
+            return retVal;
+        }
+
+        private bool CheckForNodeDockedToPart(ModuleDockingNode thisNode, Part otherPart)
+        {
+            bool retVal = false;
+
+            // TODO remove debugging
+            //Debug.Log("thisNode.dockedPartUId=" + thisNode.dockedPartUId + " otherPart.flightID=" + otherPart.flightID + " thisNode.state:" + thisNode.state);
+
+            // if (otherPart == thisNode.part.vessel[thisNode.dockedPartUId])
+            if (thisNode.dockedPartUId == otherPart.flightID)
+            {
+                //Debug.Log("IDs match");
+                if(thisNode.state == "Docked (dockee)")
+                {
+                    //Debug.Log("this module is docked (dockee) to the other part");
+                    retVal = true;
+                }
+                else if (thisNode.state == "Docked (docker)")
+                {
+                    //Debug.Log("this module is docked (docker) to the other part");
+                    retVal = true;
+                }
+                else if (thisNode.state == "Acquire")
+                {
+                    Debug.LogWarning("this module is in the Acquire state, which might mean it is in the process of docking.");
+                    retVal = true;
+                }
+            }
+            return retVal;
         }
 
         // Decides is an attachment node on a part could allow a kerbal to pass through it.
@@ -238,30 +366,34 @@ namespace ConnectedLivingSpace
         {
             String passablenodes ="";
             String impassablenodes="";
+            bool passableWhenSurfaceAttached = false;
 
             // Get the config for this part
-            foreach (PartModule pm in p.Modules)
+            foreach (ModuleConnectedLivingSpace CLSMod in p.Modules.OfType<ModuleConnectedLivingSpace>())
             {
-                if (pm.moduleName == "ModuleConnectedLivingSpace")
+                // This part does have a CLSmodule
+                passablenodes = CLSMod.passablenodes;
+                impassablenodes = CLSMod.impassablenodes;
+                passableWhenSurfaceAttached = CLSMod.passableWhenSurfaceAttached;
+                break;
+            }
+
+            if (node.nodeType == AttachNode.NodeType.Surface)
+            {
+                //Debug.Log("node is a surface attachment node. Considering if the part is configured to allow passing when it is surface attached. - " + passableWhenSurfaceAttached);
+                return passableWhenSurfaceAttached;
+            }
+            else
+            {
+                if (passablenodes.Contains(node.id))
                 {
-                    // This part does have a CLSmodule
-                    ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)pm;
-
-                    passablenodes = CLSMod.passablenodes;
-                    impassablenodes = CLSMod.impassablenodes;
-
-                    break;
+                    return true;
                 }
-            }
 
-            if (passablenodes.Contains(node.id))
-            {
-                return true;
-            }
-
-            if (impassablenodes.Contains(node.id))
-            {
-                return false;
+                if (impassablenodes.Contains(node.id))
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -297,8 +429,6 @@ namespace ConnectedLivingSpace
         // Method to throw away potential circular references before the object is disposed of
         public void Clear()
         {
-            Debug.Log("CLSVessel::Clear");
-
             foreach (CLSSpace s in this.listSpaces)
             {
                 s.Clear();
