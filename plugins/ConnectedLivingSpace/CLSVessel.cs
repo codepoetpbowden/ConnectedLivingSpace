@@ -313,11 +313,11 @@ namespace ConnectedLivingSpace
 
                     // third, consider if there is an open / closed hatch
                     {
-                        ModuleDockingNodeHatch docNodeHatch = (ModuleDockingNodeHatch)docNode;
-                        if (docNodeHatch != null)
+                        ModuleDockingHatch docHatch = GetHatchForDockingNode(docNode);
+                        if (docHatch != null)
                         {
                             // The dockingNode is actually a DockingNodeHatch :)
-                            if (!docNodeHatch.HatchOpen)
+                            if (!docHatch.HatchOpen)
                             {
                                 //Debug.Log("DockingNodeHatch is closed and so can not be passed through");
                                 retVal = false; // Hatch in the docking node is closed, so it is impassable
@@ -329,6 +329,18 @@ namespace ConnectedLivingSpace
             }
             //Debug.Log("returning " + retVal);
             return retVal;
+        }
+
+        private ModuleDockingHatch GetHatchForDockingNode(ModuleDockingNode dockNode)
+        {
+            foreach (ModuleDockingHatch dockHatch in dockNode.part.Modules.OfType<ModuleDockingHatch>())
+            {
+                if (dockHatch.modDockNode == dockNode)
+                {
+                    return dockHatch;
+                }
+            }
+            return null;
         }
 
         private bool CheckForNodeDockedToPart(ModuleDockingNode thisNode, Part otherPart)

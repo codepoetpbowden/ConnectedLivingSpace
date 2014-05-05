@@ -157,7 +157,7 @@ namespace ConnectedLivingSpace
 
                 Color docNodeColor = Color.cyan;
 
-                foreach (ModuleDockingNodeHatch docNodeHatch in this.part.Modules.OfType<ModuleDockingNodeHatch>())
+                foreach (ModuleDockingHatch docNodeHatch in this.part.Modules.OfType<ModuleDockingHatch>())
                 {
                     if (!docNodeHatch.HatchOpen)
                     {
