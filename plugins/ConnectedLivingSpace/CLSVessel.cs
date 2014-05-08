@@ -86,17 +86,6 @@ namespace ConnectedLivingSpace
             // First add this part to the list of all parts for the vessel.
             this.listParts.Add(newPart);
 
-            // Next ensure that if the actual part has a CLS module, it is pointing to the CLSPart. TODO check that this works!
-            /*
-            {
-                ModuleConnectedLivingSpace modCLS = (ModuleConnectedLivingSpace)p;
-                if (null != modCLS)
-                {
-                    modCLS.clsPart = newPart;
-                }
-            }
-            */
-
             // Is the part capable of allowing kerbals to pass? If it is add it to the current space, or if there is no current space, to a new space.
             if (newPart.Navigable)
             {
@@ -379,6 +368,8 @@ namespace ConnectedLivingSpace
             String passablenodes ="";
             String impassablenodes="";
             bool passableWhenSurfaceAttached = false;
+            bool closedHatch = false;
+            bool retVal = false;
 
             // Get the config for this part
             foreach (ModuleConnectedLivingSpace CLSMod in p.Modules.OfType<ModuleConnectedLivingSpace>())
@@ -387,28 +378,51 @@ namespace ConnectedLivingSpace
                 passablenodes = CLSMod.passablenodes;
                 impassablenodes = CLSMod.impassablenodes;
                 passableWhenSurfaceAttached = CLSMod.passableWhenSurfaceAttached;
+                retVal = CLSMod.passable;
                 break;
+            }
+
+            // Is there a DockingHatch that relates to this node? This would occur in a situation where a docking node was assembled onto another part in the VAB.
+            foreach (ModuleDockingHatch hatchMod in p.Modules.OfType<ModuleDockingHatch>())
+            {
+                // This part does have a Docking Hatch - (it might have several) Consider if this hatch relates to the attachment node in question
+                if (hatchMod.docNodeAttachmentNodeName == node.id)
+                {
+                    // This hatch relates to this attachment node
+                    if (!hatchMod.HatchOpen)
+                    {
+                        closedHatch = true;
+                    }
+
+                    break;
+                }
             }
 
             if (node.nodeType == AttachNode.NodeType.Surface)
             {
                 //Debug.Log("node is a surface attachment node. Considering if the part is configured to allow passing when it is surface attached. - " + passableWhenSurfaceAttached);
-                return passableWhenSurfaceAttached;
+                retVal = passableWhenSurfaceAttached;
             }
             else
             {
                 if (passablenodes.Contains(node.id))
                 {
-                    return true;
+                    retVal = true;
                 }
 
                 if (impassablenodes.Contains(node.id))
                 {
-                    return false;
+                    retVal = false;
                 }
             }
 
-            return true;
+            // Finally  - have we concluded that passage is blocked by a closed hatch?
+            if (closedHatch)
+            {
+                retVal = false;
+            }
+
+            return retVal;
         }
 
         CLSSpace AddPartToNewSpace(CLSPart p)

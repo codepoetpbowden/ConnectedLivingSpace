@@ -14,9 +14,9 @@ namespace ConnectedLivingSpace
         private bool hatchOpen;
 
         [KSPField(isPersistant = true)]
-        private string docNodeAttachmentNodeName;// = "strangdefault1"; // TODO remove this. ust checking to see what is happening at construction
+        internal string docNodeAttachmentNodeName;
         [KSPField(isPersistant = true)]
-        private string docNodeTransformName;// = "strangdefault2";// TODO remove this. ust checking to see what is happening at construction
+        internal string docNodeTransformName;
         internal  ModuleDockingNode modDockNode;
 
         public bool HatchOpen
