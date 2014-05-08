@@ -7,11 +7,17 @@ using System.Reflection;
 
 namespace ConnectedLivingSpace
 {
-    // Module that is added to every part with a ModuleDockingPort with one per ModuleDockingPort. It will add the functionality of a closable hatch to each docking port.
-    public class ModuleDockingNodeHatch : ModuleDockingNode
+    // This module will be added at runtime to any part that also has a ModuleDockingNode. There will be a one to one relationship between ModuleDockingHatch and ModuleDockingNode
+    public class ModuleDockingHatch : PartModule
     {
         [KSPField(isPersistant = true)]
         private bool hatchOpen;
+
+        [KSPField(isPersistant = true)]
+        internal string docNodeAttachmentNodeName;
+        [KSPField(isPersistant = true)]
+        internal string docNodeTransformName;
+        internal  ModuleDockingNode modDockNode;
 
         public bool HatchOpen
         {
@@ -83,10 +89,12 @@ namespace ConnectedLivingSpace
 
         public override void OnLoad(ConfigNode node)
         {
-            // Call the base class
-            base.OnLoad(node);
-
-            // The base class with have set hatchOpen, but not via the Property HatchOpen, so we need to re-do it to ensure that hatchStatus gets properly set.
+            //Debug.Log("this.docNodeAttachmentNodeName: " + this.docNodeAttachmentNodeName);
+            //Debug.Log("this.docNodeTransformName: " + this.docNodeTransformName);
+            //Debug.Log("node.GetValue(docNodeTransformName): " + node.GetValue("docNodeTransformName"));
+            //Debug.Log("node.GetValue(docNodeAttachmentNodeName): " + node.GetValue("docNodeAttachmentNodeName"));
+ 
+            // The Loader with have set hatchOpen, but not via the Property HatchOpen, so we need to re-do it to ensure that hatchStatus gets properly set.
             this.HatchOpen = this.hatchOpen;
 
             // Set the GUI state of the open/close hatch events as appropriate
@@ -113,9 +121,6 @@ namespace ConnectedLivingSpace
         // Called every physics frame. Make sure that the menu options are valid for the state that we are in. 
         private void FixedUpdate()
         {
-            // Call the base class implimentation (Calling some reflection dark magic)
-            CallModuleDockingNodeFixedUpdate(this);
-
             if (isInDockedState())
             {
                 if (!this.HatchOpen)
@@ -137,11 +142,10 @@ namespace ConnectedLivingSpace
             }
         }
 
+        // TODO is this necassery now that we ar eusing FixedUpdate and no OnFixedUpdate?
         public override void OnStart(PartModule.StartState st)
         {
             //Debug.Log("ModuleDockingNodeHatch::OnStart");
-
-            base.OnStart(st);
 
             // As long as we have not started in the editor, ensure the module is active / enabled.
             if (st != StartState.Editor)
@@ -151,27 +155,70 @@ namespace ConnectedLivingSpace
             }
         }
 
-        // tries to work out if the docking port is docked based on the state
-        private bool isInDockedState()
+        private bool CheckModuleDockingNode()
         {
-            if (this.state == "Docked (dockee)" || this.state == "Docked (docker)")
+            if (null == this.modDockNode)
+            {
+                // We do not know which ModuleDockingNode we are attached to yet. Try to find one.
+                foreach (ModuleDockingNode dockNode in this.part.Modules.OfType<ModuleDockingNode>())
+                {
+                    if (IsRelatedDockingNode(dockNode))
+                    {
+                        this.modDockNode = dockNode;
+                        return true;
+                    }
+                }
+            }
+            else
             {
                 return true;
             }
             return false;
         }
 
-        //This method uses reflection to call the FixedUpdate private method in ModuleDockingNode. 
-        public static void CallModuleDockingNodeFixedUpdate(ModuleDockingNode dockNode)
+        // This method allows us to check if a specified ModuleDockingNode is one that this hatch is attached to
+        internal bool IsRelatedDockingNode(ModuleDockingNode dockNode)
         {
-            object[] paramList = new object[] { };
-            MethodInfo FixedUpdateMethod = typeof(ModuleDockingNode).GetMethod("FixedUpdate", BindingFlags.Instance | BindingFlags.NonPublic);
-
-            if (FixedUpdateMethod == null)
+            if (dockNode.nodeTransformName == this.docNodeTransformName)
             {
-                //Debug.Log("Failed to get ModuleDockingNode::FixedUpdate");
+                this.modDockNode = dockNode;
+                return true;
             }
-            FixedUpdateMethod.Invoke(dockNode, paramList);
+            if (dockNode.referenceAttachNode == this.docNodeAttachmentNodeName)
+            {
+                this.modDockNode = dockNode;
+                return true;
+            }
+            return false;
+        }
+
+        // tries to work out if the docking port is docked based on the state
+        private bool isInDockedState()
+        {
+            // First ensure that we know which ModuleDockingNode we are reffering to.
+            if (CheckModuleDockingNode())
+            {
+                if (this.modDockNode.state == "Docked (dockee)" || this.modDockNode.state == "Docked (docker)")
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                // This is bad - it means there is a hatch that we can not match to a docking node. This should not happen. We will log an error but it will likely spam the log.
+                Debug.LogError(" Error - Docking port hatch can not find its ModuleDockingNode docNodeTransformName:" + this.docNodeTransformName + " docNodeAttachmentNodeName " + this.docNodeAttachmentNodeName);
+            }
+
+            return false;
+        }
+
+        // Method that cna be used to set up the ModuleDockingNode that this ModuleDockingHatch reffers to.
+        public void AttachModuleDockingNode(ModuleDockingNode _modDocNode)
+        {
+            this.modDockNode = _modDocNode;
+
+            this.docNodeTransformName = _modDocNode.nodeTransformName;
+            this.docNodeAttachmentNodeName = _modDocNode.referenceAttachNode;
         }
     }
 }

@@ -104,9 +104,6 @@ namespace ConnectedLivingSpace
 
             // Add the CLSModule to all parts that can house crew (and do not already have it).
             AddModuleToParts();
-
-            // Add the ModuleDockingNodeHatch to all the Docking Nodes
-            // AddHatchesToDockingNodes();
         }
 
         private void OnToolbarButton_Click()
@@ -431,7 +428,10 @@ namespace ConnectedLivingSpace
         {
             try
             {
-                // Debug.Log("CLSAddon:FixedUpdate");
+                //Debug.Log("CLSAddon:FixedUpdate");
+
+                // Add the ModuleDockingHatch to all the Docking Nodes
+                AddHatchModuleToParts();
 
                 // If we are in the editor, and there is a ship in the editor, then compare the number of parts to last time we did this. If it has changed then rebuild the CLSVessel
                 if (HighLogic.LoadedSceneIsEditor)
@@ -448,7 +448,7 @@ namespace ConnectedLivingSpace
 
                     if (currentPartCount != this.editorPartCount)
                     {
-                        Debug.Log("Calling RebuildCLSVessel as the part count has changed in the editor");
+                        //Debug.Log("Calling RebuildCLSVessel as the part count has changed in the editor");
 
                         this.RebuildCLSVessel();
                         this.editorPartCount = currentPartCount;
@@ -554,6 +554,106 @@ namespace ConnectedLivingSpace
                 }
             }
         }
+
+        // Method to add Docking Hatches to all pars that have Dockong Nodes
+        private void AddHatchModuleToParts()
+        {
+            // If we are in the editor or if flight, take a look at the active vesssel and add a ModuleDockingHatch to any part that has a ModuleDockingNode without a corresponding ModuleDockingHatch
+            List<Part> listParts;
+
+            if (HighLogic.LoadedSceneIsEditor && null != EditorLogic.startPod)
+            {
+                listParts = EditorLogic.SortedShipList;
+            }
+            else if (HighLogic.LoadedSceneIsFlight && null != FlightGlobals.ActiveVessel && null != FlightGlobals.ActiveVessel.Parts)
+            {
+                listParts = FlightGlobals.ActiveVessel.Parts;
+            }
+            else
+            {
+                listParts = new List<Part>();
+            }
+
+            foreach (Part part in listParts)
+            {
+                try
+                {
+                    // If the part does not have any modules set up then move to the next part
+                    if (null == part.Modules)
+                    {
+                        continue;
+                    }
+
+                    List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
+                    List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
+
+                    // Build a temporary list of docking nodes to consider. This is necassery can we can not add hatch modules to the modules list while we are enumerating the very same list!
+                    foreach (ModuleDockingNode dockNode in part.Modules.OfType<ModuleDockingNode>())
+                    {
+                        listDockNodes.Add(dockNode);
+                    }
+
+                    foreach (ModuleDockingHatch dockHatch in part.Modules.OfType<ModuleDockingHatch>())
+                    {
+                        listDockHatches.Add(dockHatch);
+                    }
+
+                    foreach (ModuleDockingNode dockNode in listDockNodes)
+                    {
+                        // Does this docking node have a corresponding hatch?
+                        ModuleDockingHatch hatch = null;
+                        foreach (ModuleDockingHatch h in listDockHatches)
+                        {
+                            if (h.IsRelatedDockingNode(dockNode))
+                            {
+                                hatch = h;
+                                break;
+                            }
+                        }
+
+                        if (null == hatch)
+                        {
+                            // There is no corresponding hatch - add one.
+                            ConfigNode node = new ConfigNode("MODULE");
+                            node.AddValue("name", "ModuleDockingHatch");
+
+                            if (dockNode.referenceAttachNode != string.Empty)
+                            {
+                                //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
+                                node.AddValue("docNodeAttachmentNodeName", dockNode.referenceAttachNode);
+                            }
+                            else
+                            {
+                                if (dockNode.nodeTransformName != string.Empty)
+                                {
+                                    //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
+                                    node.AddValue("docNodeTransformName", dockNode.nodeTransformName);
+                                }
+                            }
+
+                            {
+                                // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
+                                PartModule pm = part.AddModule("ModuleDockingHatch");
+                                if (Awaken(pm))
+                                {
+                                    //Debug.Log("Loading the ModuleDockingHatch config");
+                                    pm.Load(node);
+                                }
+                                else
+                                {
+                                    Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+            }
+        }
+
 
 
         //This method uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
