@@ -16,6 +16,7 @@ namespace ConnectedLivingSpace
         private static GUIStyle windowStyle = null;
 
         private Vector2 scrollViewer = Vector2.zero;
+        private GUIDropdown spacesDropDown;
 
         private CLSVessel vessel = null;
         private int selectedSpace = -1;
@@ -70,6 +71,8 @@ namespace ConnectedLivingSpace
             // Debug.Log("CLSAddon:Start");
 
             windowStyle = new GUIStyle(HighLogic.Skin.window);
+
+            this.CreateSpacesDropDown(); // populates the drop down contol with a list of spaces.
 
             try
             {
@@ -308,6 +311,44 @@ namespace ConnectedLivingSpace
             {
                 this.selectedSpace = -1;
             }
+
+            // Rebuild the drop down control used to select a space.
+            this.CreateSpacesDropDown();
+        }
+
+        private void CreateSpacesDropDown()
+        {
+            List<GUIContent> names = new List<GUIContent>();
+
+            if (null != this.vessel)
+            {
+                foreach (CLSSpace space in this.vessel.Spaces)
+                {
+                    names.Add(new GUIContent(space.Name));
+                }
+            }
+            
+            if(names.Count>0)
+            {
+                GUIStyle spaceListStyle = new GUIStyle();
+                GUIContent buttonContent;
+                spaceListStyle.normal.textColor = Color.white;
+                spaceListStyle.onHover.background =
+                spaceListStyle.hover.background = new Texture2D(2, 2);
+                spaceListStyle.padding.left =
+                spaceListStyle.padding.right =
+                spaceListStyle.padding.top =
+                spaceListStyle.padding.bottom = 1;
+                if(-1 == this.selectedSpace)
+                {
+                    buttonContent = new GUIContent("Select Space");
+                }
+                else
+                {
+                    buttonContent = names[this.selectedSpace];
+                }
+                this.spacesDropDown = new GUIDropdown(buttonContent, names.ToArray(), "button", "box", spaceListStyle);
+            }
         }
 
         private void OnWindow(int windowID)
@@ -320,32 +361,25 @@ namespace ConnectedLivingSpace
                     GUILayout.BeginVertical();
                     
                     String[] spaceNames = new String[vessel.Spaces.Count];
-                    int counter = 0;
                     int newSelectedSpace = -1;
 
                     String partsList = "";
-                    foreach (CLSSpace space in vessel.Spaces)
-                    {
-                        if (space.Name == "")
-                        {
-                            spaceNames[counter] = "Living Space " + (counter + 1).ToString();
-                        }
-                        else
-                        {
-                            spaceNames[counter] = space.Name;
-                        }
-                        counter++;
-                    }
 
                     if (vessel.Spaces.Count > 0)
                     {
-                        newSelectedSpace = GUILayout.SelectionGrid(this.selectedSpace, spaceNames, counter);
+                        GUILayout.Space(35); // Creates a space in the layout. This space will be filled with the drop down.
+
+                        if (-1 != this.selectedSpace)
+                        {
+                            this.spacesDropDown.SelectedItemIndex = this.selectedSpace;
+                        }
+                        newSelectedSpace = this.spacesDropDown.Show(new Rect(5, 30, 150, 25));
                     }
 
                     // If one of the spaces has been selected then display a list of parts that make it up and sort out the highlighting
                     if (-1 != newSelectedSpace)
                     {
-                        // Only fiddle witht he highlighting is the selected space has actually changed
+                        // Only fiddle with the highlighting is the selected space has actually changed
                         if (newSelectedSpace != this.selectedSpace)
                         {
                             // First unhighlight the space that was selected.
@@ -378,6 +412,7 @@ namespace ConnectedLivingSpace
                         if (GUILayout.Button("Update"))
                         {
                             vessel.Spaces[this.selectedSpace].Name = this.spaceNameEditField;
+                            this.CreateSpacesDropDown();
                         }
                         GUILayout.EndHorizontal();
 
