@@ -10,7 +10,7 @@ using Toolbar;
 namespace ConnectedLivingSpace
 {
     [KSPAddonFixedCLS(KSPAddon.Startup.EveryScene, false, typeof(CLSAddon))]
-    public class CLSAddon : MonoBehaviour
+    public class CLSAddon : MonoBehaviour , ICLSAddon
     {
         private static Rect windowPosition = new Rect(0,0,320,360);
         private static GUIStyle windowStyle = null;
@@ -31,7 +31,7 @@ namespace ConnectedLivingSpace
 
         private string spaceNameEditField;
 
-        public CLSVessel Vessel
+        public ICLSVessel Vessel
         {
             get 
             {

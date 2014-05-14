@@ -8,18 +8,18 @@ namespace ConnectedLivingSpace
 {
     // A class that contains all the living space data for a particular vessel
        
-    public class CLSVessel
+    public class CLSVessel : ICLSVessel
     {
-        List<CLSPart> listParts;  // A list of parts in this vessel
-        List<CLSSpace> listSpaces; // A list of seperate habitable spaces in this vessel.
+        List<ICLSPart> listParts;  // A list of parts in this vessel
+        List<ICLSSpace> listSpaces; // A list of seperate habitable spaces in this vessel.
 
         public CLSVessel()
         {
-            listParts = new List<CLSPart>();
-            listSpaces = new List<CLSSpace>();
+            listParts = new List<ICLSPart>();
+            listSpaces = new List<ICLSSpace>();
         }
 
-        public List<CLSSpace> Spaces
+        public List<ICLSSpace> Spaces
         {
             get
             {
@@ -27,7 +27,7 @@ namespace ConnectedLivingSpace
             }
         }
 
-        public List<CLSPart> Parts
+        public List<ICLSPart> Parts
         {
             get
             {

@@ -5,15 +5,15 @@ using System.Text;
 
 namespace ConnectedLivingSpace
 {
-    public class CLSSpace
+    public class CLSSpace : ICLSSpace
     {
-        List<CLSPart> parts;
-        List<CLSKerbal> crew;
+        List<ICLSPart> parts;
+        List<ICLSKerbal> crew;
         String name;
         int maxCrew=0;
         CLSVessel vessel = null;
 
-        public List<CLSPart> Parts
+        public List<ICLSPart> Parts
         {
             get
             {
@@ -50,7 +50,7 @@ namespace ConnectedLivingSpace
             }
         }
 
-        public CLSVessel Vessel
+        public ICLSVessel Vessel
         {
             get
             {
@@ -58,7 +58,7 @@ namespace ConnectedLivingSpace
             }
         }
 
-        public List<CLSKerbal> Crew
+        public List<ICLSKerbal> Crew
         {
             get
             {
@@ -68,8 +68,8 @@ namespace ConnectedLivingSpace
 
         public CLSSpace(CLSVessel v)
         {
-            this.parts = new List<CLSPart>();
-            this.crew = new List<CLSKerbal>();
+            this.parts = new List<ICLSPart>();
+            this.crew = new List<ICLSKerbal>();
             this.name = "";
             this.vessel = v;
         }
