@@ -79,6 +79,10 @@ namespace ConnectedLivingSpace
  
             if( isClickedComboButton )
             {
+/*                Debug.Log("GUI Depth before set: " + GUI.depth);
+                GUI.depth = GUI.depth - 1;
+                Debug.Log("GUI Depth after set: " + GUI.depth);
+*/
                 Rect listRect = new Rect( rect.x, rect.y + listStyle.CalcHeight(listContent[0], 1.0f),
                           rect.width, listStyle.CalcHeight(listContent[0], 1.0f) * listContent.Length );
  
@@ -89,6 +93,11 @@ namespace ConnectedLivingSpace
                     selectedItemIndex = newSelectedItemIndex;
                     buttonContent = listContent[selectedItemIndex];
                 }
+/*
+                Debug.Log("GUI Depth before reset: " + GUI.depth);
+                GUI.depth = GUI.depth + 1;
+                Debug.Log("GUI Depth after reset: " + GUI.depth);
+*/
             }
  
             if( done )

@@ -217,6 +217,9 @@ namespace ConnectedLivingSpace
         {
             if (this.visable)
             {
+                //Set the GUI Skin
+                GUI.skin = HighLogic.Skin;
+
                 windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle,GUILayout.MinHeight(20));
             }
         }
@@ -330,7 +333,7 @@ namespace ConnectedLivingSpace
             
             if(names.Count>0)
             {
-                GUIStyle spaceListStyle = new GUIStyle();
+                GUIStyle spaceListStyle = new GUIStyle() ;
                 GUIContent buttonContent;
                 spaceListStyle.normal.textColor = Color.white;
                 spaceListStyle.onHover.background =
@@ -339,7 +342,33 @@ namespace ConnectedLivingSpace
                 spaceListStyle.padding.right =
                 spaceListStyle.padding.top =
                 spaceListStyle.padding.bottom = 1;
-                if(-1 == this.selectedSpace)
+
+                //spaceListStyle.normal.background = new Texture2D(2, 2);
+                /*
+                {
+                    Color bgColor = spaceListStyle.normal.background.GetPixel(0, 0);
+                    bgColor = Color.cyan;
+                    spaceListStyle.normal.background.SetPixel(0, 0, bgColor);
+                }
+                {
+                    Color bgColor = spaceListStyle.normal.background.GetPixel(0, 1);
+                    bgColor.a = 1;
+                    spaceListStyle.normal.background.SetPixel(0, 1, bgColor);
+                }
+                {
+                    Color bgColor = spaceListStyle.normal.background.GetPixel(1, 0);
+                    bgColor.a = 1;
+                    spaceListStyle.normal.background.SetPixel(1, 0, bgColor);
+                }
+                {
+                    Color bgColor = spaceListStyle.normal.background.GetPixel(1, 1);
+                    bgColor.a = 1;
+                    spaceListStyle.normal.background.SetPixel(1, 1, bgColor);
+                }
+                spaceListStyle.onFocused.background = spaceListStyle.focused.background = spaceListStyle.onActive.background = spaceListStyle.active.background = spaceListStyle.onNormal.background = spaceListStyle.normal.background;
+                */
+
+                if (-1 == this.selectedSpace)
                 {
                     buttonContent = new GUIContent("Select Space");
                 }
@@ -355,6 +384,8 @@ namespace ConnectedLivingSpace
         {
             try
             {
+                GUI.depth = -200;
+
                 // Build a string descibing the contents of each of the spaces.
                 if (null != this.vessel)
                 {
@@ -365,39 +396,20 @@ namespace ConnectedLivingSpace
 
                     String partsList = "";
 
+                    Rect dropDownRect = new Rect();
+
                     if (vessel.Spaces.Count > 0)
                     {
-                        GUILayout.Space(35); // Creates a space in the layout. This space will be filled with the drop down.
-
                         if (-1 != this.selectedSpace)
                         {
                             this.spacesDropDown.SelectedItemIndex = this.selectedSpace;
                         }
-                        newSelectedSpace = this.spacesDropDown.Show(new Rect(5, 30, 150, 25));
+                        dropDownRect = GUILayoutUtility.GetRect(150, 25);
                     }
 
                     // If one of the spaces has been selected then display a list of parts that make it up and sort out the highlighting
-                    if (-1 != newSelectedSpace)
+                    if (-1 != this.selectedSpace)
                     {
-                        // Only fiddle with the highlighting is the selected space has actually changed
-                        if (newSelectedSpace != this.selectedSpace)
-                        {
-                            // First unhighlight the space that was selected.
-                            if (-1 != this.selectedSpace && this.selectedSpace < this.vessel.Spaces.Count)
-                            {
-                                vessel.Spaces[this.selectedSpace].Highlight(false);
-                            }
-
-                            // Update the space that has been selected.
-                            this.selectedSpace = newSelectedSpace;
-
-                            // Update the text in the Space edit box
-                            this.spaceNameEditField = vessel.Spaces[this.selectedSpace].Name;
-
-                            // Highlight the new space
-                            vessel.Spaces[this.selectedSpace].Highlight(true);
-                        }
-
                         // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
                         foreach (CLSPart p in vessel.Spaces[this.selectedSpace].Parts)
                         {
@@ -439,12 +451,39 @@ namespace ConnectedLivingSpace
 
                     }
                     GUILayout.EndVertical();
+
+                    // finally - go back and draw in the dropdown control on top of everything else
+                    if (vessel.Spaces.Count > 0)
+                    {
+                        GUI.depth = -250;
+
+                        newSelectedSpace = this.spacesDropDown.Show(dropDownRect);
+                        // Only fiddle with the highlighting is the selected space has actually changed
+                        if (newSelectedSpace != this.selectedSpace)
+                        {
+                            // First unhighlight the space that was selected.
+                            if (-1 != this.selectedSpace && this.selectedSpace < this.vessel.Spaces.Count)
+                            {
+                                vessel.Spaces[this.selectedSpace].Highlight(false);
+                            }
+
+                            // Update the space that has been selected.
+                            this.selectedSpace = newSelectedSpace;
+
+                            // Update the text in the Space edit box
+                            this.spaceNameEditField = vessel.Spaces[this.selectedSpace].Name;
+
+                            // Highlight the new space
+                            vessel.Spaces[this.selectedSpace].Highlight(true);
+                        }
+
+                        GUI.depth = 200;
+                    }
                 }
                 else
                 {
                     Debug.LogError("this.vessel was null");
                 }
-
                 
                 GUI.DragWindow();
             }
