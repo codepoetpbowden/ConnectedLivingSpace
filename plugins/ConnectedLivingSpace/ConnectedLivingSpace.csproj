@@ -72,8 +72,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "C:\Program Files\KSP_win.0.23.5\GameData\ConnectedLivingSpace\Plugins\"
-$(SolutionDir)\..\..\buildrelease.bat</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetPath)" "C:\Program Files\KSP_win.0.23.5\GameData\ConnectedLivingSpace\Plugins\"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
