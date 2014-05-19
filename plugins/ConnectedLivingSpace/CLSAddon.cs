@@ -12,12 +12,11 @@ namespace ConnectedLivingSpace
     [KSPAddonFixedCLS(KSPAddon.Startup.EveryScene, false, typeof(CLSAddon))]
     public class CLSAddon : MonoBehaviour , ICLSAddon
     {
-        private static Rect windowPosition = new Rect(0,0,320,360);
+        private static Rect windowPosition = new Rect(0,0,360,480);
         private static GUIStyle windowStyle = null;
 
         private Vector2 scrollViewer = Vector2.zero;
-        private GUIDropdown spacesDropDown;
-
+        
         private CLSVessel vessel = null;
         private int selectedSpace = -1;
 
@@ -71,8 +70,6 @@ namespace ConnectedLivingSpace
             // Debug.Log("CLSAddon:Start");
 
             windowStyle = new GUIStyle(HighLogic.Skin.window);
-
-            this.CreateSpacesDropDown(); // populates the drop down contol with a list of spaces.
 
             try
             {
@@ -218,9 +215,9 @@ namespace ConnectedLivingSpace
             if (this.visable)
             {
                 //Set the GUI Skin
-                GUI.skin = HighLogic.Skin;
+                //GUI.skin = HighLogic.Skin;
 
-                windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle,GUILayout.MinHeight(20));
+                windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle,GUILayout.MinHeight(20),GUILayout.ExpandHeight(true));
             }
         }
 
@@ -314,151 +311,44 @@ namespace ConnectedLivingSpace
             {
                 this.selectedSpace = -1;
             }
-
-            // Rebuild the drop down control used to select a space.
-            this.CreateSpacesDropDown();
-        }
-
-        private void CreateSpacesDropDown()
-        {
-            List<GUIContent> names = new List<GUIContent>();
-
-            if (null != this.vessel)
-            {
-                foreach (CLSSpace space in this.vessel.Spaces)
-                {
-                    names.Add(new GUIContent(space.Name));
-                }
-            }
-            
-            if(names.Count>0)
-            {
-                GUIStyle spaceListStyle = new GUIStyle() ;
-                GUIContent buttonContent;
-                spaceListStyle.normal.textColor = Color.white;
-                spaceListStyle.onHover.background =
-                spaceListStyle.hover.background = new Texture2D(2, 2);
-                spaceListStyle.padding.left =
-                spaceListStyle.padding.right =
-                spaceListStyle.padding.top =
-                spaceListStyle.padding.bottom = 1;
-
-                //spaceListStyle.normal.background = new Texture2D(2, 2);
-                /*
-                {
-                    Color bgColor = spaceListStyle.normal.background.GetPixel(0, 0);
-                    bgColor = Color.cyan;
-                    spaceListStyle.normal.background.SetPixel(0, 0, bgColor);
-                }
-                {
-                    Color bgColor = spaceListStyle.normal.background.GetPixel(0, 1);
-                    bgColor.a = 1;
-                    spaceListStyle.normal.background.SetPixel(0, 1, bgColor);
-                }
-                {
-                    Color bgColor = spaceListStyle.normal.background.GetPixel(1, 0);
-                    bgColor.a = 1;
-                    spaceListStyle.normal.background.SetPixel(1, 0, bgColor);
-                }
-                {
-                    Color bgColor = spaceListStyle.normal.background.GetPixel(1, 1);
-                    bgColor.a = 1;
-                    spaceListStyle.normal.background.SetPixel(1, 1, bgColor);
-                }
-                spaceListStyle.onFocused.background = spaceListStyle.focused.background = spaceListStyle.onActive.background = spaceListStyle.active.background = spaceListStyle.onNormal.background = spaceListStyle.normal.background;
-                */
-
-                if (-1 == this.selectedSpace)
-                {
-                    buttonContent = new GUIContent("Select Space");
-                }
-                else
-                {
-                    buttonContent = names[this.selectedSpace];
-                }
-                this.spacesDropDown = new GUIDropdown(buttonContent, names.ToArray(), "button", "box", spaceListStyle);
-            }
         }
 
         private void OnWindow(int windowID)
         {
             try
             {
-                GUI.depth = -200;
-
                 // Build a string descibing the contents of each of the spaces.
                 if (null != this.vessel)
                 {
                     GUILayout.BeginVertical();
-                    
+
                     String[] spaceNames = new String[vessel.Spaces.Count];
+                    int counter = 0;
                     int newSelectedSpace = -1;
 
                     String partsList = "";
-
-                    Rect dropDownRect = new Rect();
+                    foreach (CLSSpace space in vessel.Spaces)
+                    {
+                        if (space.Name == "")
+                        {
+                            spaceNames[counter] = "Living Space " + (counter + 1).ToString();
+                        }
+                        else
+                        {
+                            spaceNames[counter] = space.Name;
+                        }
+                        counter++;
+                    }
 
                     if (vessel.Spaces.Count > 0)
                     {
-                        if (-1 != this.selectedSpace)
-                        {
-                            this.spacesDropDown.SelectedItemIndex = this.selectedSpace;
-                        }
-                        dropDownRect = GUILayoutUtility.GetRect(150, 25);
+                        newSelectedSpace = GUILayout.SelectionGrid(this.selectedSpace, spaceNames, 1);
                     }
 
                     // If one of the spaces has been selected then display a list of parts that make it up and sort out the highlighting
-                    if (-1 != this.selectedSpace)
+                    if (-1 != newSelectedSpace)
                     {
-                        // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
-                        foreach (CLSPart p in vessel.Spaces[this.selectedSpace].Parts)
-                        {
-                            Part part = (Part)p;
-                            partsList += part.partInfo.title + "\n";
-                        }
-
-                        // Display the text box that allows the space name to be changed
-                        GUILayout.BeginHorizontal();
-                        GUILayout.Label("Space Name:");
-                        this.spaceNameEditField = GUILayout.TextField(this.spaceNameEditField);
-                        if (GUILayout.Button("Update"))
-                        {
-                            vessel.Spaces[this.selectedSpace].Name = this.spaceNameEditField;
-                            this.CreateSpacesDropDown();
-                        }
-                        GUILayout.EndHorizontal();
-
-                        this.scrollViewer = GUILayout.BeginScrollView(this.scrollViewer,GUILayout.ExpandHeight(true),GUILayout.ExpandWidth(true));
-                        GUILayout.BeginVertical();
-
-                        // Display the crew capacity of the space.
-                        GUILayout.Label("Crew Capacity: " + vessel.Spaces[this.selectedSpace].MaxCrew);
-
-                        // And list the crew names
-                        String crewList = "Crew Info:\n";
-
-                        foreach(CLSKerbal crewMember in vessel.Spaces[this.selectedSpace].Crew)
-                        {
-                            crewList += ((ProtoCrewMember)crewMember).name +"\n";
-                        }
-                        GUILayout.Label(crewList);
-
-                        // Display the list of component parts.
-                        GUILayout.Label(partsList);
-
-                        GUILayout.EndVertical();
-                        GUILayout.EndScrollView();
-
-                    }
-                    GUILayout.EndVertical();
-
-                    // finally - go back and draw in the dropdown control on top of everything else
-                    if (vessel.Spaces.Count > 0)
-                    {
-                        GUI.depth = -250;
-
-                        newSelectedSpace = this.spacesDropDown.Show(dropDownRect);
-                        // Only fiddle with the highlighting is the selected space has actually changed
+                        // Only fiddle witht he highlighting is the selected space has actually changed
                         if (newSelectedSpace != this.selectedSpace)
                         {
                             // First unhighlight the space that was selected.
@@ -477,14 +367,52 @@ namespace ConnectedLivingSpace
                             vessel.Spaces[this.selectedSpace].Highlight(true);
                         }
 
-                        GUI.depth = 200;
+                        // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
+                        foreach (CLSPart p in vessel.Spaces[this.selectedSpace].Parts)
+                        {
+                            Part part = (Part)p;
+                            partsList += part.partInfo.title + "\n";
+                        }
+
+                        // Display the text box that allows the space name to be changed
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label("Name:");
+                        this.spaceNameEditField = GUILayout.TextField(this.spaceNameEditField);
+                        if (GUILayout.Button("Update"))
+                        {
+                            vessel.Spaces[this.selectedSpace].Name = this.spaceNameEditField;
+                        }
+                        GUILayout.EndHorizontal();
+
+                        this.scrollViewer = GUILayout.BeginScrollView(this.scrollViewer, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
+                        GUILayout.BeginVertical();
+
+                        // Display the crew capacity of the space.
+                        GUILayout.Label("Crew Capacity: " + vessel.Spaces[this.selectedSpace].MaxCrew);
+
+                        // And list the crew names
+                        String crewList = "Crew Info:\n";
+
+                        foreach (CLSKerbal crewMember in vessel.Spaces[this.selectedSpace].Crew)
+                        {
+                            crewList += ((ProtoCrewMember)crewMember).name + "\n";
+                        }
+                        GUILayout.Label(crewList);
+
+                        // Display the list of component parts.
+                        GUILayout.Label(partsList);
+
+                        GUILayout.EndVertical();
+                        GUILayout.EndScrollView();
+
                     }
+                    GUILayout.EndVertical();
                 }
                 else
                 {
-                    Debug.LogError("this.vessel was null");
+                    GUILayout.Label("No current vessel.");
                 }
-                
+
                 GUI.DragWindow();
             }
             catch (Exception ex)
@@ -492,7 +420,7 @@ namespace ConnectedLivingSpace
                 Debug.LogException(ex);
             }
         }
-        
+
         public void Update()
         {
             // Debug.Log("CLSAddon:Update");
@@ -727,8 +655,6 @@ namespace ConnectedLivingSpace
                 }
             }
         }
-
-
 
         //This method uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
         public static bool Awaken(PartModule module)
