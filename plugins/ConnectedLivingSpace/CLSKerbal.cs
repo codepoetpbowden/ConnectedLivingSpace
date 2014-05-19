@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ConnectedLivingSpace
 {
-    public class CLSKerbal
+    public class CLSKerbal : ICLSKerbal
     {
     	ProtoCrewMember kerbal;
         CLSPart part;
@@ -22,11 +22,19 @@ namespace ConnectedLivingSpace
             return _k.kerbal;
         }
 
-        public CLSPart Part
+        public ICLSPart Part
         {
             get
             {
                 return this.part;
+            }
+        }
+
+        public ProtoCrewMember Kerbal
+        {
+            get
+            {
+                return this.kerbal;
             }
         }
 

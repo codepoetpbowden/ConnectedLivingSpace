@@ -10,13 +10,13 @@ using Toolbar;
 namespace ConnectedLivingSpace
 {
     [KSPAddonFixedCLS(KSPAddon.Startup.EveryScene, false, typeof(CLSAddon))]
-    public class CLSAddon : MonoBehaviour
+    public class CLSAddon : MonoBehaviour , ICLSAddon
     {
-        private static Rect windowPosition = new Rect(0,0,320,360);
+        private static Rect windowPosition = new Rect(0,0,360,480);
         private static GUIStyle windowStyle = null;
 
         private Vector2 scrollViewer = Vector2.zero;
-
+        
         private CLSVessel vessel = null;
         private int selectedSpace = -1;
 
@@ -30,7 +30,7 @@ namespace ConnectedLivingSpace
 
         private string spaceNameEditField;
 
-        public CLSVessel Vessel
+        public ICLSVessel Vessel
         {
             get 
             {
@@ -214,7 +214,10 @@ namespace ConnectedLivingSpace
         {
             if (this.visable)
             {
-                windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle,GUILayout.MinHeight(20));
+                //Set the GUI Skin
+                //GUI.skin = HighLogic.Skin;
+
+                windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle,GUILayout.MinHeight(20),GUILayout.ExpandHeight(true));
             }
         }
 
@@ -318,7 +321,7 @@ namespace ConnectedLivingSpace
                 if (null != this.vessel)
                 {
                     GUILayout.BeginVertical();
-                    
+
                     String[] spaceNames = new String[vessel.Spaces.Count];
                     int counter = 0;
                     int newSelectedSpace = -1;
@@ -339,7 +342,7 @@ namespace ConnectedLivingSpace
 
                     if (vessel.Spaces.Count > 0)
                     {
-                        newSelectedSpace = GUILayout.SelectionGrid(this.selectedSpace, spaceNames, counter);
+                        newSelectedSpace = GUILayout.SelectionGrid(this.selectedSpace, spaceNames, 1);
                     }
 
                     // If one of the spaces has been selected then display a list of parts that make it up and sort out the highlighting
@@ -373,7 +376,7 @@ namespace ConnectedLivingSpace
 
                         // Display the text box that allows the space name to be changed
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label("Space Name:");
+                        GUILayout.Label("Name:");
                         this.spaceNameEditField = GUILayout.TextField(this.spaceNameEditField);
                         if (GUILayout.Button("Update"))
                         {
@@ -381,7 +384,7 @@ namespace ConnectedLivingSpace
                         }
                         GUILayout.EndHorizontal();
 
-                        this.scrollViewer = GUILayout.BeginScrollView(this.scrollViewer,GUILayout.ExpandHeight(true),GUILayout.ExpandWidth(true));
+                        this.scrollViewer = GUILayout.BeginScrollView(this.scrollViewer, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
                         GUILayout.BeginVertical();
 
                         // Display the crew capacity of the space.
@@ -390,9 +393,9 @@ namespace ConnectedLivingSpace
                         // And list the crew names
                         String crewList = "Crew Info:\n";
 
-                        foreach(CLSKerbal crewMember in vessel.Spaces[this.selectedSpace].Crew)
+                        foreach (CLSKerbal crewMember in vessel.Spaces[this.selectedSpace].Crew)
                         {
-                            crewList += ((ProtoCrewMember)crewMember).name +"\n";
+                            crewList += ((ProtoCrewMember)crewMember).name + "\n";
                         }
                         GUILayout.Label(crewList);
 
@@ -407,10 +410,9 @@ namespace ConnectedLivingSpace
                 }
                 else
                 {
-                    Debug.LogError("this.vessel was null");
+                    GUILayout.Label("No current vessel.");
                 }
 
-                
                 GUI.DragWindow();
             }
             catch (Exception ex)
@@ -418,7 +420,7 @@ namespace ConnectedLivingSpace
                 Debug.LogException(ex);
             }
         }
-        
+
         public void Update()
         {
             // Debug.Log("CLSAddon:Update");
@@ -653,8 +655,6 @@ namespace ConnectedLivingSpace
                 }
             }
         }
-
-
 
         //This method uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
         public static bool Awaken(PartModule module)

@@ -6,21 +6,14 @@ using UnityEngine;
 
 namespace ConnectedLivingSpace
 {
-    public enum DockingPortHatchStatus
-    {
-        NOT_DOCKING_PORT = 0,
-        DOCKING_PORT_HATCH_CLOSED = 1,
-        DOCKING_PORT_HATCH_OPEN = 2
-    }
-
-    public class CLSPart
+    public class CLSPart : ICLSPart
     {
         bool habitable = false;
         bool navigable = false;
         Part part;
         CLSSpace space;
         bool docked = false;
-        List<CLSKerbal> crew;
+        List<ICLSKerbal> crew;
         bool highlighted = false; // This allows us to remember if a part is SUPPOSED to be highlighted by CLS. We can then use appropriate moments to ensure that it either is or is not.
 
         public CLSPart(Part p)
@@ -31,7 +24,7 @@ namespace ConnectedLivingSpace
             navigable = IsNavigable(this.part);
             space = null;
 
-            this.crew = new List<CLSKerbal>();
+            this.crew = new List<ICLSKerbal>();
             foreach (ProtoCrewMember crewMember in p.protoModuleCrew)
             {
                 CLSKerbal kerbal = new CLSKerbal(crewMember, this);
@@ -64,7 +57,7 @@ namespace ConnectedLivingSpace
             }
         }
 
-        public CLSSpace Space
+        public ICLSSpace Space
         {
             get
             {
@@ -73,7 +66,7 @@ namespace ConnectedLivingSpace
 
             internal set
             {
-                this.space = value;
+                this.space = (CLSSpace) value;
             }
         }
         public bool Docked
@@ -84,7 +77,7 @@ namespace ConnectedLivingSpace
             }
         }
 
-        public List<CLSKerbal> Crew 
+        public List<ICLSKerbal> Crew 
         {
             get
             {
@@ -92,27 +85,38 @@ namespace ConnectedLivingSpace
             }
         }
 
+        public ModuleConnectedLivingSpace modCLS
+        {
+            get
+            {
+                foreach (ModuleConnectedLivingSpace retVal in this.part.Modules.OfType<ModuleConnectedLivingSpace>())
+                {
+                    return retVal;
+                }
+                return null;
+            }
+        }
+
+        public Part Part
+        {
+            get
+            {
+                return this.part;
+            }
+        }
+
         // Allow a CLSPart to be cast into a Part
         public static implicit operator Part(CLSPart _p)
         {
-            return _p.part;
+            return _p.Part;
         }
 
         // Allow a CLSPart to be cast into a ModuleConnectedLivingSpace. Note that this might fail, if the part in question does not have the CLS module configured.
         public static implicit operator ModuleConnectedLivingSpace(CLSPart _p)
         {
-            foreach (PartModule pm in _p.part.Modules)
-            {
-                if (pm.moduleName == "ModuleConnectedLivingSpace")
-                {
-                    // This part does have a CLSmodule
-                    ModuleConnectedLivingSpace CLSMod = (ModuleConnectedLivingSpace)pm;
-
-                    return (CLSMod);
-                }
-            }
-            return null;
+            return _p.modCLS;
         }
+        
 
         public void Highlight(bool val)
         {
