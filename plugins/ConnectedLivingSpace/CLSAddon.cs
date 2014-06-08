@@ -72,9 +72,10 @@ namespace ConnectedLivingSpace
             {
                 RenderingManager.RemoveFromPostDrawQueue(0, OnDraw);
             }
-            catch (Exception ex)
+            catch
             {
-				Debug.LogException(ex);
+                // This is generally not a problem - do not log it.
+				// Debug.LogException(ex);
             }
 
             if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
