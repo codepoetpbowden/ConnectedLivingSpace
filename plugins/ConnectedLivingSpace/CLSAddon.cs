@@ -25,9 +25,6 @@ namespace ConnectedLivingSpace
 
         private int editorPartCount = 0; // This is horrible. Because there does not seem to be an obvious callback to sink when parts are added and removed in the editor, on each fixed update we will could the parts and if it has changed then rebuild the CLSVessel. Yuk!
 
-        private int sanityCheckCounter = 0;
-        private int sanityCheckFrequency = 100; // Change this to make the sanity checks more or less frequent.
-
         private string spaceNameEditField;
 
         public ICLSVessel Vessel
@@ -104,6 +101,9 @@ namespace ConnectedLivingSpace
 
             // Add the CLSModule to all parts that can house crew (and do not already have it).
             AddModuleToParts();
+
+            // Add hatches to all the docking ports (prefabs)
+            AddHatchModuleToPartPrefabs();
         }
 
         private void OnToolbarButton_Click()
@@ -432,8 +432,20 @@ namespace ConnectedLivingSpace
             {
                 //Debug.Log("CLSAddon:FixedUpdate");
 
-                // Add the ModuleDockingHatch to all the Docking Nodes
-                AddHatchModuleToParts();
+                // Although hatches have been added to the docking port prefabs, for some reason that is not fully understood when the prefab is used to instantiate an actual part the hatch module has not been properly setup. This is not a problem where the craft is being loaded, as the act of loading it will overwrite all the persisted KSPFields with the saved values. However in the VAB/SPH we end up with a ModuleDockingHatch that has not its docNodeTransformName or docNodeAttahcmentNodeName set properly. The solution is to check for this state in the editor, and patch it up. In flight the part will get loaded so it is not an issue.
+                if (HighLogic.LoadedSceneIsEditor)
+                {
+                    CheckAndFixDockingHatchesInEditor();
+                }
+
+                // It seems that there are sometimes problems with hatches that do not refer to dockingports in flight too, so check this in flight. It would be good to find a way of making this less expensive.
+                if (HighLogic.LoadedSceneIsFlight)
+                {
+                    if(FlightGlobals.ready)
+                    {
+                        CheckAndFixDockingHatchesInFlight();
+                    }
+                }
 
                 // If we are in the editor, and there is a ship in the editor, then compare the number of parts to last time we did this. If it has changed then rebuild the CLSVessel
                 if (HighLogic.LoadedSceneIsEditor)
@@ -454,27 +466,6 @@ namespace ConnectedLivingSpace
 
                         this.RebuildCLSVessel();
                         this.editorPartCount = currentPartCount;
-                    }
-                }
-                else if (HighLogic.LoadedSceneIsFlight)
-                {
-                    // In flight, run the sanity checker.
-                    if (FlightGlobals.ready)
-                    {
-                        // Do not run the sanity checker if the CLSVessel (and hence all the CLS parts) has not yet been constructed.
-                        if (null != this.vessel)
-                        {
-                            // Only run the sanity check every now and again!
-                            this.sanityCheckCounter++;
-                            this.sanityCheckCounter = this.sanityCheckCounter % this.sanityCheckFrequency;
-
-                            // Debug.Log("sanityCheckCounter: " + sanityCheckCounter);
-
-                            if (1 == this.sanityCheckCounter) // but running the checker when the counter is one, we know that we can force the check on the next physics frame by setting it to 0.
-                            {
-                                this.SanityCheck();
-                            }
-                        }
                     }
                 }
             }
@@ -557,7 +548,214 @@ namespace ConnectedLivingSpace
             }
         }
 
-        // Method to add Docking Hatches to all pars that have Dockong Nodes
+
+        // Method to add Docking Hatches to all parts that have Docking Nodes
+        private void AddHatchModuleToPartPrefabs()
+        {
+            IEnumerable<AvailablePart> parts = PartLoader.LoadedPartsList.Where(p => p.partPrefab != null);
+            foreach (AvailablePart part in parts)
+            {
+                Part partPrefab = part.partPrefab;
+
+                // If the part does not have any modules set up then move to the next part
+                if (null == partPrefab.Modules)
+                {
+                    continue;
+                }
+
+                List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
+                List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
+
+                // Build a temporary list of docking nodes to consider. This is necassery can we can not add hatch modules to the modules list while we are enumerating the very same list!
+                foreach (ModuleDockingNode dockNode in partPrefab.Modules.OfType<ModuleDockingNode>())
+                {
+                    listDockNodes.Add(dockNode);
+                }
+
+                foreach (ModuleDockingHatch dockHatch in partPrefab.Modules.OfType<ModuleDockingHatch>())
+                {
+                    listDockHatches.Add(dockHatch);
+                }
+
+                foreach (ModuleDockingNode dockNode in listDockNodes)
+                {
+                    // Does this docking node have a corresponding hatch?
+                    ModuleDockingHatch hatch = null;
+                    foreach (ModuleDockingHatch h in listDockHatches)
+                    {
+                        if (h.IsRelatedDockingNode(dockNode))
+                        {
+                            hatch = h;
+                            break;
+                        }
+                    }
+
+                    if (null == hatch)
+                    {
+                        // There is no corresponding hatch - add one.
+                        ConfigNode node = new ConfigNode("MODULE");
+                        node.AddValue("name", "ModuleDockingHatch");
+
+                        if (dockNode.referenceAttachNode != string.Empty)
+                        {
+                            Debug.Log("Adding ModuleDockingHatch to part " + part.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
+                            node.AddValue("docNodeAttachmentNodeName", dockNode.referenceAttachNode);
+                        }
+                        else
+                        {
+                            if (dockNode.nodeTransformName != string.Empty)
+                            {
+                                Debug.Log("Adding ModuleDockingHatch to part " + part.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
+                                node.AddValue("docNodeTransformName", dockNode.nodeTransformName);
+                            }
+                        }
+
+                        {
+                            // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
+                            PartModule pm = partPrefab.AddModule("ModuleDockingHatch");
+                            if (Awaken(pm))
+                            {
+                                Debug.Log("Loading the ModuleDockingHatch config");
+                                pm.Load(node);
+                            }
+                            else
+                            {
+                                Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
+                            }
+                        }
+                    }
+                }
+            }                        
+        }
+
+
+        private void CheckAndFixDockingHatches(List<Part> listParts)
+        {
+            foreach (Part part in listParts)
+            {
+                // If the part does not have any modules set up then move to the next part
+                if (null == part.Modules)
+                {
+                    continue;
+                }
+
+                List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
+                List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
+
+                // Build a temporary list of docking nodes to consider. This is necassery can we can not add hatch modules to the modules list while we are enumerating the very same list!
+                foreach (ModuleDockingNode dockNode in part.Modules.OfType<ModuleDockingNode>())
+                {
+                    listDockNodes.Add(dockNode);
+                }
+
+                foreach (ModuleDockingHatch dockHatch in part.Modules.OfType<ModuleDockingHatch>())
+                {
+                    listDockHatches.Add(dockHatch);
+                }
+
+                // First go through all the hatches. If any do not refer to a dockingPort then remove it.
+                foreach (ModuleDockingHatch dockHatch in listDockHatches)
+                {
+                    // I know we are making  abit of a meal of this. It is unclear to me what the unset vakues will be, and this way we are catching every possibility. It seems that open (3) is the open that gets called, but I will leave this as is for now.
+                    if ("" == dockHatch.docNodeAttachmentNodeName && "" == dockHatch.docNodeTransformName)
+                    {
+                        Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(1)");
+                        part.RemoveModule(dockHatch);
+                    }
+                    else if (string.Empty == dockHatch.docNodeAttachmentNodeName && string.Empty == dockHatch.docNodeTransformName)
+                    {
+                        Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(2)");
+                        part.RemoveModule(dockHatch);
+                    }
+                    else if (null == dockHatch.docNodeAttachmentNodeName && null == dockHatch.docNodeTransformName)
+                    {
+                        Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(3)");
+                        part.RemoveModule(dockHatch);
+                    }
+                    else if ((null == dockHatch.docNodeAttachmentNodeName || string.Empty == dockHatch.docNodeAttachmentNodeName || "" == dockHatch.docNodeAttachmentNodeName) && ("" == dockHatch.docNodeTransformName || string.Empty == dockHatch.docNodeTransformName || null == dockHatch.docNodeTransformName))
+                    {
+                        Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(4)");
+                        part.RemoveModule(dockHatch);
+                    }
+                }
+
+                // Now because we might have removed for dodgy hatches, rebuild the hatch list.
+                listDockHatches.Clear();
+                foreach (ModuleDockingHatch dockHatch in part.Modules.OfType<ModuleDockingHatch>())
+                {
+                    listDockHatches.Add(dockHatch);
+                }
+
+                // Now go through all the dockingPorts and add hatches for any docking ports that do not have one.
+                foreach (ModuleDockingNode dockNode in listDockNodes)
+                {
+                    // Does this docking node have a corresponding hatch?
+                    ModuleDockingHatch hatch = null;
+                    foreach (ModuleDockingHatch h in listDockHatches)
+                    {
+                        if (h.IsRelatedDockingNode(dockNode))
+                        {
+                            hatch = h;
+                            break;
+                        }
+                    }
+
+                    if (null == hatch)
+                    {
+                        // There is no corresponding hatch - add one.
+                        ConfigNode node = new ConfigNode("MODULE");
+                        node.AddValue("name", "ModuleDockingHatch");
+
+                        if (dockNode.referenceAttachNode != string.Empty)
+                        {
+                            // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
+                            node.AddValue("docNodeAttachmentNodeName", dockNode.referenceAttachNode);
+                        }
+                        else
+                        {
+                            if (dockNode.nodeTransformName != string.Empty)
+                            {
+                                // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
+                                node.AddValue("docNodeTransformName", dockNode.nodeTransformName);
+                            }
+                        }
+
+                        {
+                            // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
+                            PartModule pm = part.AddModule("ModuleDockingHatch");
+                            if (Awaken(pm))
+                            {
+                                // Debug.Log("Loading the ModuleDockingHatch config");
+                                pm.Load(node);
+                            }
+                            else
+                            {
+                                Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void CheckAndFixDockingHatchesInEditor()
+        {
+            if (EditorLogic.startPod == null)
+            {
+                return; // If there are no parts then there is nothing to check. 
+            }
+            else
+            {
+                this.CheckAndFixDockingHatches(EditorLogic.SortedShipList);
+            }
+        }
+
+        private void CheckAndFixDockingHatchesInFlight()
+        {
+            this.CheckAndFixDockingHatches(FlightGlobals.ActiveVessel.Parts);
+        }
+
+        // Method to add Docking Hatches to all parts that have Docking Nodes
         private void AddHatchModuleToParts()
         {
             // If we are in the editor or if flight, take a look at the active vesssel and add a ModuleDockingHatch to any part that has a ModuleDockingNode without a corresponding ModuleDockingHatch
@@ -671,18 +869,6 @@ namespace ConnectedLivingSpace
 
             awakeMethod.Invoke(module, paramList);
             return true;
-        }
-
-        // Utility method that is run every now an again and just checks that everything is in sync and makes sense. The actualt funtionailty in a method on the module class.
-        private void SanityCheck()
-        {
-            foreach(Part p in FlightGlobals.ActiveVessel.Parts)
-            {
-                foreach (ModuleConnectedLivingSpace clsmod in p.Modules.OfType<ModuleConnectedLivingSpace>())
-                {
-                    //clsmod.SanityCheck();
-                }
-            }
         }
     }
 }

@@ -89,6 +89,7 @@ namespace ConnectedLivingSpace
 
         public override void OnLoad(ConfigNode node)
         {
+            //Debug.Log("ModuleDockingHatch::OnLoad");
             //Debug.Log("this.docNodeAttachmentNodeName: " + this.docNodeAttachmentNodeName);
             //Debug.Log("this.docNodeTransformName: " + this.docNodeTransformName);
             //Debug.Log("node.GetValue(docNodeTransformName): " + node.GetValue("docNodeTransformName"));
@@ -121,37 +122,33 @@ namespace ConnectedLivingSpace
         // Called every physics frame. Make sure that the menu options are valid for the state that we are in. 
         private void FixedUpdate()
         {
-            if (isInDockedState())
+            if (HighLogic.LoadedSceneIsFlight)
             {
-                if (!this.HatchOpen)
+                if (FlightGlobals.ready)
                 {
-                    // We are docked, but the hatch is closed. Make sure that it is possible to open the hatch
-                    this.Events["CloseHatch"].active = false;
-                    this.Events["OpenHatch"].active = true; 
-                }
-            }
-            else
-            {
-                // We are not docked - close up the hatch if it is open!
-                if (this.HatchOpen)
-                {
-                    this.HatchOpen = false;
-                    this.Events["CloseHatch"].active = false;
-                    this.Events["OpenHatch"].active = false; 
-                }
-            }
-        }
 
-        // TODO is this necassery now that we ar eusing FixedUpdate and no OnFixedUpdate?
-        public override void OnStart(PartModule.StartState st)
-        {
-            //Debug.Log("ModuleDockingNodeHatch::OnStart");
+                    if (isInDockedState())
+                    {
+                        if (!this.HatchOpen)
+                        {
+                            // We are docked, but the hatch is closed. Make sure that it is possible to open the hatch
+                            this.Events["CloseHatch"].active = false;
+                            this.Events["OpenHatch"].active = true;
+                        }
+                    }
+                    else
+                    {
+                        // We are not docked - close up the hatch if it is open!
+                        if (this.HatchOpen)
+                        {
+                            Debug.Log("Closing a hatch because its corresponding docking port is in state: " + this.modDockNode.state);
 
-            // As long as we have not started in the editor, ensure the module is active / enabled.
-            if (st != StartState.Editor)
-            {
-                //Debug.Log("ModuleDockingNodeHatch::OnStart setting enabled = true");
-                this.enabled = true;
+                            this.HatchOpen = false;
+                            this.Events["CloseHatch"].active = false;
+                            this.Events["OpenHatch"].active = false;
+                        }
+                    }
+                }
             }
         }
 
