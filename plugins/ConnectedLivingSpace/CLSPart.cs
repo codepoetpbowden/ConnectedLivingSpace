@@ -173,7 +173,18 @@ namespace ConnectedLivingSpace
             }
             else if (this.Navigable)
             {
-                this.part.SetHighlightColor(Color.yellow);
+                // A navigable part might be an undocked docking port, in which case it still might have a closed/open hatch. check for this and colour apropriately.
+                Color docNodeColor = Color.yellow;
+
+                foreach (ModuleDockingHatch docNodeHatch in this.part.Modules.OfType<ModuleDockingHatch>())
+                {
+                    if (!docNodeHatch.HatchOpen)
+                    {
+                        docNodeColor.g = docNodeColor.g *0.66f; // This will turn my yellow into orange.
+                        break;
+                    }
+                }
+                this.part.SetHighlightColor(docNodeColor);
             }
             else
             {
