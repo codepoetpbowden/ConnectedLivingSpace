@@ -221,8 +221,7 @@ namespace ConnectedLivingSpace
                 windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle,GUILayout.MinHeight(20),GUILayout.ExpandHeight(true));
             }
         }
-
-
+        
         private void RebuildCLSVessel()
         {
             if (HighLogic.LoadedSceneIsFlight)
@@ -231,7 +230,20 @@ namespace ConnectedLivingSpace
             }
             else if (HighLogic.LoadedSceneIsEditor)
             {
-                RebuildCLSVessel(EditorLogic.startPod);
+                if (null == EditorLogic.startPod)
+                {
+                    // There is no root part in the editor - this ought to mean that there are no parts. Juest clear out everything
+                    if (null != this.vessel)
+                    {
+                        vessel.Clear();
+                    }
+                    this.vessel = null;
+                    this.selectedSpace = -1;
+                }
+                else
+                {
+                    RebuildCLSVessel(EditorLogic.startPod);
+                }
             }
         }
 
