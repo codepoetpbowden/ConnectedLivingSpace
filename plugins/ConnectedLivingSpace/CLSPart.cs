@@ -117,7 +117,6 @@ namespace ConnectedLivingSpace
             return _p.modCLS;
         }
         
-
         public void Highlight(bool val)
         {
             // Set the variable to mark if this part is SUPPOSED to be hightlighted or not.
