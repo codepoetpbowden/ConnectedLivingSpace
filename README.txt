@@ -19,6 +19,7 @@ changelog:
 release v1.0.8.0
 * Built against KSP 0.24.2
 * Updated build process to use zip utilities installed on 64 bit OS
+* Changed to use the stock toolbar, and removed the dependency on blizzy's toolbar.
 
 release v1.0.7.0
 * Added support for the FASA parts pack

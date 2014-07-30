@@ -44,9 +44,6 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Toolbar">
-      <HintPath>..\..\..\..\..\Desktop\KSP_win.0.24.2\GameData\000_Toolbar\Toolbar.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\Desktop\KSP_win.0.24.2\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
