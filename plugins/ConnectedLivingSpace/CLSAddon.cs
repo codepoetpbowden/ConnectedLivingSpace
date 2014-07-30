@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using UnityEngine;
-using Toolbar;
-
 
 namespace ConnectedLivingSpace
 {
@@ -20,7 +18,8 @@ namespace ConnectedLivingSpace
         private CLSVessel vessel = null;
         private int selectedSpace = -1;
 
-        private IButton toolbarButton = null; // Toolbar button
+        private ApplicationLauncherButton stockToolbarButton = null; // Stock Toolbar Button
+
         private bool visable = false;
 
         private int editorPartCount = 0; // This is horrible. Because there does not seem to be an obvious callback to sink when parts are added and removed in the editor, on each fixed update we will could the parts and if it has changed then rebuild the CLSVessel. Yuk!
@@ -53,13 +52,12 @@ namespace ConnectedLivingSpace
         {
             //Debug.Log("CLSAddon:Awake");
 
-            this.toolbarButton = ToolbarManager.Instance.add("ConnectedLivingSpace", "buttonCLS");
-			this.toolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_icon_off";
-            this.toolbarButton.ToolTip = "Connected Living Space";
-            this.toolbarButton.OnClick += (e) => { OnToolbarButton_Click(); };
-            this.toolbarButton.Visibility = new GameScenesVisibility(GameScenes.EDITOR, GameScenes.SPH, GameScenes.FLIGHT);
-
             this.selectedSpace = -1;
+
+            // Set up the stock toolbar
+            GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+            GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+    
         }
 
         public void Start() 
@@ -107,27 +105,50 @@ namespace ConnectedLivingSpace
             AddHatchModuleToPartPrefabs();
         }
 
-        private void OnToolbarButton_Click()
+        void OnGUIAppLauncherReady()
         {
-            //Debug.Log("OnToolbarButton_Click");
-
-            // If the window is currently visible, set the selected space back to -1 so the highlighting is cleared.
-            if (this.visable) 
+            if (ApplicationLauncher.Ready)
             {
-				if (null != this.vessel) 
-                {
-					vessel.Highlight (false);
-				}
-				this.selectedSpace = -1;
-				this.toolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_icon_off";
-			} 
-            else 
-            {
-                this.toolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_icon_on";
-			}
-
-            this.visable = !this.visable;
+                this.stockToolbarButton = ApplicationLauncher.Instance.AddModApplication(onAppLaunchToggleOn,
+                                                                                         onAppLaunchToggleOff,
+                                                                                         DummyVoid,
+                                                                                         DummyVoid,
+                                                                                         DummyVoid,
+                                                                                         DummyVoid,
+                                                                                         ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.FLIGHT,
+                                                                                         (Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
+            }
         }
+
+        void OnGUIAppLauncherDestroyed()
+        {
+            if (this.stockToolbarButton != null)
+            {
+                ApplicationLauncher.Instance.RemoveModApplication(this.stockToolbarButton);
+                this.stockToolbarButton = null;
+            }
+        }
+
+        void onAppLaunchToggleOn()
+        {
+            this.stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_on", false));
+            this.visable = true;
+        }
+
+        void onAppLaunchToggleOff()
+        {
+            if (null != this.vessel)
+            {
+                vessel.Highlight(false);
+            }
+            this.selectedSpace = -1;
+            this.stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
+
+            this.visable = false;
+        }
+
+        void DummyVoid() { } 
+
 
         private void OnFlightReady()
         {
@@ -510,9 +531,11 @@ namespace ConnectedLivingSpace
             GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
             GameEvents.onFlightReady.Remove(OnFlightReady);
 
-            // Remove the toolbar button
+            // Remove the stock toolbar button
+            GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
+            if (this.stockToolbarButton != null)
+                ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
 
-            this.toolbarButton.Destroy();
         }
 
         // Method to ensure that all parts which have a crewcapacity >0 have a CLSModule attached to it.

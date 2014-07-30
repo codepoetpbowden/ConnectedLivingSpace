@@ -1,4 +1,4 @@
-Connected Living Space v1.0.6.0
+Connected Living Space v1.0.8.0
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Be aware that a release of the Toolbar mod is included. Module Manager is required to load the configuration.
@@ -7,7 +7,7 @@ If you are integrating a mod with CLS then the contents of the dev directory has
 
 Thread for discussion: http://forum.kerbalspaceprogram.com/threads/70161
 Please log bugs in github if possible: https://github.com/codepoetpbowden/ConnectedLivingSpace
-If you can use github then report in the forum.
+If you can not use github then report in the forum.
 
 License:
 --------
@@ -16,6 +16,15 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.0.8.0
+* Built against KSP 0.24.2
+* Updated build process to use zip utilities installed on 64 bit OS
+* Changed to use the stock toolbar, and removed the dependency on blizzy's toolbar.
+
+release v1.0.7.0
+* Added support for the FASA parts pack
+* removed the config for Porkworks habitat part pack as this will be shipped with the habitate pack in the future.
+* Fixed bug where root part is deleted in the editor.
 
 release v1.0.6.0
 * Added support for the Novapunch parts pack
