@@ -21,6 +21,7 @@ release v1.0.8.0
 * Updated build process to use zip utilities installed on 64 bit OS
 * Changed to use the stock toolbar, and removed the dependency on blizzy's toolbar.
 * Improved the configuration documentation, and made it easier to find (in the mod root directory)
+* Fixed issue with the descriptions of the parts in the VAB/SPH
 
 release v1.0.7.0
 * Added support for the FASA parts pack
