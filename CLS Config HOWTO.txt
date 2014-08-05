@@ -50,7 +50,7 @@ There are several other values that can be set:
 
 * impassablenodes
 * passablenodes
-These two values allow a list of attachment node names to be specified where the passablity of those nodes is different from the passable for the whole part. This allows parts to be entered via some nodes by not others. The names of the nodes are the names specified in the Node Definitions section of the .cfg file, but without the "node_stack_" prefix. In the example above there are two node that are defined "top" and "bottom". (note that node_attach is used to surface attach the part and can not be specified).
+These two values allow a list of attachment node names to be specified where the passablity of those nodes is different from the passable for the whole part. This allows parts to be entered via some nodes by not others. The names of the nodes are the names specified in the Node Definitions section of the .cfg file, but without the "node_stack_" prefix. In the example above there are two node that are defined "top" and "bottom". (note that node_attach is used to surface attach the part and can not be specified). It is possible to set more than one node to be passable or impassable by seperating them with a comma - for example impassablenode=top,side
 
 * passableDockingNodeTypes
 * impassableDockingNodeTypes
@@ -65,7 +65,3 @@ Setting passableWhenSurfaceAttached to be true means that it is possible for a k
 In practice setting passable=true is all that is required for most parts forthem to work with CLS, however the config does allow for more subtle configurations.
 
 
-Hatches in docking ports
--------------------------
-
-CLS provides an update to the stock docking port functionality to allow docking ports to have hatches in them the can be closed. This allows docked  vessels to be seperated into 2 living spaces before undocking so the player can double check which kerbals are in which vessel. The fuctionailty is provided by adding ModuleDockingPortHatch to a part INSTEAD of ModuleDockingNode. The default config files that come with CLS will replace all the ModuleDockingNode modules with ModuleDockingNodeHatch modules, however if a part mod provides a new docking port part, then it would be best for it to be explicitly configured with a ModuleDockingNodeHatch.

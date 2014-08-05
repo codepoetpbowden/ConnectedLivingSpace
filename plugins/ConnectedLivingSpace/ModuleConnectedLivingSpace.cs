@@ -105,43 +105,35 @@ namespace ConnectedLivingSpace
             if (this.part.CrewCapacity > 0)
             {
                 returnValue = "Kerbals are able to stay in this part ";
-
-                if (this.passable)
-                {
-                    returnValue += "and can pass into it from any attachment node.";
-                }
-                else
-                {
-                    if (this.impassablenodes != "")
-                    {
-                        returnValue += "but can not get access to it through the nodes " + this.impassablenodes;
-                    }
-                    else
-                    {
-                        returnValue += "and can pass into it from any attachment node."; 
-                    }
-                }
             }
             else
             {
                 returnValue = "Kerbals are not able to stay in this part ";
+            }
 
-                if (this.passable)
+            if (this.passable)
+            {
+                if (this.impassablenodes != "")
                 {
-                    returnValue += "but can pass through it from any attachment node.";
+                    returnValue += "but can not get access to it through the nodes " + this.impassablenodes;
                 }
                 else
                 {
-                    if (this.impassablenodes != "")
-                    {
-                        returnValue += " but can pass through it through on all nodes except for " + this.impassablenodes;
-                    }
-                    else
-                    {
-                        returnValue += "but can pass through it from any attachment node.";
-                    }
+                    returnValue += "and can pass into it from any attachment node."; 
                 }
             }
+            else
+            {
+                if (this.passablenodes != "")
+                {
+                    returnValue += "but can only get access to it through the nodes " + this.passablenodes;
+                }
+                else
+                {
+                    returnValue += "but can not get access other parts.";
+                }
+            }
+         
             return returnValue;
         }
     }
