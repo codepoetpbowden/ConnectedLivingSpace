@@ -79,7 +79,6 @@ namespace ConnectedLivingSpace
             if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
             {
                 RenderingManager.AddToPostDrawQueue(0, OnDraw);
-                GameEvents.onJointBreak.Add(OnJointBreak);
                 GameEvents.onPartAttach.Add(OnPartAttach);
                 GameEvents.onPartCouple.Add(OnPartCouple);
                 GameEvents.onPartDie.Add(OnPartDie);
@@ -169,10 +168,6 @@ namespace ConnectedLivingSpace
         private void OnVesselTerminated(ProtoVessel data)
         {
             //Debug.Log("CLSAddon::OnVesselTerminated");
-        }
-        private void OnJointBreak(EventReport eventReport)
-        {
-            //Debug.Log("CLSAddon::OnJointBreak");
         }
         private void OnPartAttach(GameEvents.HostTargetAction<Part, Part> data)
         {
@@ -514,7 +509,6 @@ namespace ConnectedLivingSpace
             //Debug.Log("CLSAddon::OnDestroy");
             GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
             GameEvents.onVesselChange.Remove(OnVesselChange);
-            GameEvents.onJointBreak.Remove(OnJointBreak);
             GameEvents.onPartAttach.Remove(OnPartAttach);
             GameEvents.onPartCouple.Remove(OnPartCouple);
             GameEvents.onPartDie.Remove(OnPartDie);
