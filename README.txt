@@ -1,7 +1,7 @@
-Connected Living Space v1.0.8.0
+Connected Living Space v1.0.9.0
 ---------------------------
 
-To install copy the GameData folder to your KSP folder. Be aware that a release of the Toolbar mod is included. Module Manager is required to load the configuration.
+To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
 
 If you are integrating a mod with CLS then the contents of the dev directory has all you will need - an assebly that defines the interfaces, and a suggested snippet of code for testing for and accessing CLS.
 
@@ -16,6 +16,19 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.0.9.0
+* built against KSP 0.25
+* Added config for the new Mk spaceplane parts added to stock by porkjet.
+* Added config for Near Future Spacecraft mod.
+* Added config for Better Science mod
+* Added config for Coffee Industries mod
+* Added config for Hawkspeed Airstairs mod
+* Added config for IXS mod
+* Added config for KAX mod
+* Added config for mk3 Nazari mod
+* Added config for SH mod
+* Added config for TT mod
+
 release v1.0.8.0
 * Built against KSP 0.24.2
 * Updated build process to use zip utilities installed on 64 bit OS

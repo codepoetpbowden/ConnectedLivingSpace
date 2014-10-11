@@ -14,7 +14,7 @@ Connected Living Space (CLS) creates an understanding of your vessels that consi
 Use of Module Manager
 ---------------------
 
-All th examples show below show what the configration for a part should look like. However in practice config for CLS is usually shipped as a config file for Module Manager that patches the config for a part. Read the documentation on module manager, and look at the examples that ship with CLS to see how this works.
+All the examples show below show what the configration for a part should look like. However in practice config for CLS is usually shipped as a config file for Module Manager that patches the config for a part. Read the documentation on module manager, and look at the examples that ship with CLS to see how this works.
 
 Configuration
 -------------
