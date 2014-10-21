@@ -371,6 +371,12 @@ namespace ConnectedLivingSpace
             bool closedHatch = false;
             bool retVal = false;
 
+            // First off - does the part has a crew capacity? If so then start by assuming that all its nods are navigable. This might get overridden  later by the passable config if it is supplied.
+            if (p.CrewCapacity > 0)
+            {
+                retVal = true;
+            }
+
             // Get the config for this part
             foreach (ModuleConnectedLivingSpace CLSMod in p.Modules.OfType<ModuleConnectedLivingSpace>())
             {
