@@ -12,6 +12,8 @@ namespace ConnectedLivingSpace
     {
         private static Rect windowPosition = new Rect(0,0,360,480);
         private static GUIStyle windowStyle = null;
+        
+        private static bool stockTransferFixInstalled = false;
 
         private Vector2 scrollViewer = Vector2.zero;
         
@@ -51,6 +53,12 @@ namespace ConnectedLivingSpace
         public void Awake() 
         {
             //Debug.Log("CLSAddon:Awake");
+            
+            if(!stockTransferFixInstalled)
+            {
+            	GameEvents.onCrewTransferred.Add(CrewTransfered);
+            	stockTransferFixInstalled = true;
+            }
 
             this.selectedSpace = -1;
 
@@ -899,6 +907,49 @@ namespace ConnectedLivingSpace
 
             awakeMethod.Invoke(module, paramList);
             return true;
+        }
+        
+        private static void CrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
+        {
+            try
+            {
+                if (data.from.Modules.Cast<PartModule>().Any(x => x is KerbalEVA) ||
+                    data.to.Modules.Cast<PartModule>().Any(x => x is KerbalEVA))
+                {
+                    // "Transfers" to/from EVA are always permitted.
+                    // Trying to step them results in really bad things happening, and would be out of
+                    // scope for this plugin anyway.
+                    return;
+                }
+                
+                var clsFrom = Instance.Vessel.Parts.Find(x => x.Part == data.from);
+                var clsTo = Instance.Vessel.Parts.Find(x => x.Part == data.to);
+                
+                if (clsFrom == null || clsTo == null || clsFrom.Space != clsTo.Space)
+                {
+                    data.to.RemoveCrewmember(data.host);
+                    data.from.AddCrewmember(data.host);
+                    
+                    var message=new ScreenMessage(string.Empty, 15f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", data.host.name, data.to.partInfo.title), message, true);
+                    
+                    // Now try to remove the sucessful transfer message
+                    // that stock displayed. 
+                    var messages=FindObjectOfType<ScreenMessages>();
+                    if (messages != null)
+                    {
+                        var messagesToRemove = messages.activeMessages.Where(x => x.startTime == message.startTime && x.style == ScreenMessageStyle.LOWER_CENTER).ToList();
+                        foreach (var m in messagesToRemove)
+                        {
+                            ScreenMessages.RemoveMessage(m);
+                        }
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
     }
 }
