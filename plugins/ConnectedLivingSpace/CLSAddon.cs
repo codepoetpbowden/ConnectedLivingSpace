@@ -12,6 +12,8 @@ namespace ConnectedLivingSpace
     {
         private static Rect windowPosition = new Rect(0,0,360,480);
         private static GUIStyle windowStyle = null;
+        private static bool stockTransferFixInstalled = false;
+        private static bool allowUnrestrictedTransfers = false;
 
         private Vector2 scrollViewer = Vector2.zero;
         
@@ -57,7 +59,12 @@ namespace ConnectedLivingSpace
             // Set up the stock toolbar
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
             GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
-    
+
+            if (!stockTransferFixInstalled)
+            {
+                GameEvents.onCrewTransferred.Add(CrewTransfered);
+                stockTransferFixInstalled = true;
+            }
         }
 
         public void Start() 
@@ -94,7 +101,6 @@ namespace ConnectedLivingSpace
                 GameEvents.onVesselLoaded.Add(OnVesselLoaded);
                 GameEvents.onVesselTerminated.Add(OnVesselTerminated);
                 GameEvents.onFlightReady.Add(OnFlightReady);
-
             }
 
             // Add the CLSModule to all parts that can house crew (and do not already have it).
@@ -350,7 +356,7 @@ namespace ConnectedLivingSpace
                 if (null != this.vessel)
                 {
                     GUILayout.BeginVertical();
-
+                    allowUnrestrictedTransfers = GUILayout.Toggle(allowUnrestrictedTransfers, "Allow Crew Unrestricted Transfers");
                     String[] spaceNames = new String[vessel.Spaces.Count];
                     int counter = 0;
                     int newSelectedSpace = -1;
@@ -507,6 +513,7 @@ namespace ConnectedLivingSpace
         public void OnDestroy()
         {
             //Debug.Log("CLSAddon::OnDestroy");
+            
             GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
             GameEvents.onVesselChange.Remove(OnVesselChange);
             GameEvents.onPartAttach.Remove(OnPartAttach);
@@ -528,8 +535,9 @@ namespace ConnectedLivingSpace
             // Remove the stock toolbar button
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
             if (this.stockToolbarButton != null)
+            {
                 ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
-
+            }
         }
 
         // Method to ensure that all parts which have a crewcapacity >0 have a CLSModule attached to it.
@@ -899,6 +907,63 @@ namespace ConnectedLivingSpace
 
             awakeMethod.Invoke(module, paramList);
             return true;
+        }
+
+        // Method to optionally abort an attempt to use the stock crew transfer mechanism
+        private void CrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
+        {
+            // TODO make this functionaility configurable
+            try
+            {
+                if (allowUnrestrictedTransfers)
+                {
+                    // If transfers are not restricted then we have got nothing to do here.
+                    return;
+                }
+
+                if (data.from.Modules.Cast<PartModule>().Any(x => x is KerbalEVA) ||
+                    data.to.Modules.Cast<PartModule>().Any(x => x is KerbalEVA))
+                {
+                    // "Transfers" to/from EVA are always permitted.
+                    // Trying to step them results in really bad things happening, and would be out of
+                    // scope for this plugin anyway.
+                    return;
+                }
+
+                if (null == this.Vessel)
+                {
+                    this.RebuildCLSVessel();
+                }
+
+                ICLSPart clsFrom = Vessel.Parts.Find(x => x.Part == data.from);
+                ICLSPart clsTo = Vessel.Parts.Find(x => x.Part == data.to);
+
+                if (clsFrom == null || clsTo == null || clsFrom.Space != clsTo.Space)
+                {
+                    data.to.RemoveCrewmember(data.host);
+                    data.from.AddCrewmember(data.host);
+
+                    var message = new ScreenMessage(string.Empty, 15f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", data.host.name, data.to.partInfo.title), message, true);
+
+                    // Now try to remove the sucessful transfer message
+                    // that stock displayed. 
+                    var messages = FindObjectOfType<ScreenMessages>();
+
+                    if (messages != null)
+                    {
+                        var messagesToRemove = messages.activeMessages.Where(x => x.startTime == message.startTime && x.style == ScreenMessageStyle.LOWER_CENTER).ToList();
+                        foreach (var m in messagesToRemove)
+                        {
+                            ScreenMessages.RemoveMessage(m);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
         }
     }
 }
