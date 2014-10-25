@@ -910,7 +910,7 @@ namespace ConnectedLivingSpace
         }
 
         // Method to optionally abort an attempt to use the stock crew transfer mechanism
-        private void CrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
+        private static void CrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
         {
             // TODO make this functionaility configurable
             try
@@ -930,13 +930,13 @@ namespace ConnectedLivingSpace
                     return;
                 }
 
-                if (null == this.Vessel)
+                if (null == Instance.Vessel)
                 {
-                    this.RebuildCLSVessel();
+                    Instance.RebuildCLSVessel();
                 }
 
-                ICLSPart clsFrom = Vessel.Parts.Find(x => x.Part == data.from);
-                ICLSPart clsTo = Vessel.Parts.Find(x => x.Part == data.to);
+                ICLSPart clsFrom = Instance.Vessel.Parts.Find(x => x.Part == data.from);
+                ICLSPart clsTo = Instance.Vessel.Parts.Find(x => x.Part == data.to);
 
                 if (clsFrom == null || clsTo == null || clsFrom.Space != clsTo.Space)
                 {
