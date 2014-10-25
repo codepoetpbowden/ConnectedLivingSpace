@@ -13,6 +13,7 @@ copy plugins\ConnectedLivingSpace\bin\Release\ConnectedLivingSpace.dll GameData\
 delete release\CLSv%1.zip
 
 "c:\program files (x86)\7zip\7za.exe" a -r release\CLSv%1.zip GameData\*
+"c:\program files (x86)\7zip\7za.exe" a -r release\CLSv%1.zip README.txt
 
 rmdir /S /Q GameData
 

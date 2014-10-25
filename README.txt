@@ -1,4 +1,4 @@
-Connected Living Space v1.0.10.0
+Connected Living Space v1.0.11.0
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,9 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.0.11.0
+* Fixed a bug in the stock transfer code that ment it only worked for the first vessel.
+
 release v1.0.10.0
 * Add CLS support to stock transfers
 * Fixed a problem of unconfigured parts with crewspace not being considered passable
