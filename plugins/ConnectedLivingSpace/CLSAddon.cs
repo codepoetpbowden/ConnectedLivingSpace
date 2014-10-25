@@ -912,7 +912,6 @@ namespace ConnectedLivingSpace
         // Method to optionally abort an attempt to use the stock crew transfer mechanism
         private static void CrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
         {
-            // TODO make this functionaility configurable
             try
             {
                 if (allowUnrestrictedTransfers)
