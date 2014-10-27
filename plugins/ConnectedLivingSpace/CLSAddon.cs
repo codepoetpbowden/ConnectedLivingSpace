@@ -12,7 +12,6 @@ namespace ConnectedLivingSpace
     {
         private static Rect windowPosition = new Rect(0,0,360,480);
         private static GUIStyle windowStyle = null;
-        private static bool stockTransferFixInstalled = false;
         private static bool allowUnrestrictedTransfers = false;
 
         private Vector2 scrollViewer = Vector2.zero;
@@ -60,11 +59,6 @@ namespace ConnectedLivingSpace
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
             GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
 
-            if (!stockTransferFixInstalled)
-            {
-                GameEvents.onCrewTransferred.Add(CrewTransfered);
-                stockTransferFixInstalled = true;
-            }
         }
 
         public void Start() 
@@ -101,6 +95,8 @@ namespace ConnectedLivingSpace
                 GameEvents.onVesselLoaded.Add(OnVesselLoaded);
                 GameEvents.onVesselTerminated.Add(OnVesselTerminated);
                 GameEvents.onFlightReady.Add(OnFlightReady);
+
+                GameEvents.onCrewTransferred.Add(CrewTransfered);
             }
 
             // Add the CLSModule to all parts that can house crew (and do not already have it).
@@ -383,7 +379,7 @@ namespace ConnectedLivingSpace
                     // If one of the spaces has been selected then display a list of parts that make it up and sort out the highlighting
                     if (-1 != newSelectedSpace)
                     {
-                        // Only fiddle witht he highlighting is the selected space has actually changed
+                        // Only fiddle with the highlighting if the selected space has actually changed
                         if (newSelectedSpace != this.selectedSpace)
                         {
                             // First unhighlight the space that was selected.
@@ -538,6 +534,8 @@ namespace ConnectedLivingSpace
             {
                 ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
             }
+
+            GameEvents.onCrewTransferred.Remove(CrewTransfered);
         }
 
         // Method to ensure that all parts which have a crewcapacity >0 have a CLSModule attached to it.
@@ -910,7 +908,7 @@ namespace ConnectedLivingSpace
         }
 
         // Method to optionally abort an attempt to use the stock crew transfer mechanism
-        private static void CrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
+        private void CrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
         {
             try
             {
@@ -958,6 +956,10 @@ namespace ConnectedLivingSpace
                         }
                     }
                 }
+
+
+                // Whatever happened it seems like a good idea to rebuild the CLS data as the kerbals may now in different places.
+                Instance.RebuildCLSVessel();
             }
             catch (Exception ex)
             {
