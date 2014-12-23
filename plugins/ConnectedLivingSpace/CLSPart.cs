@@ -138,6 +138,7 @@ namespace ConnectedLivingSpace
 
                 part.SetHighlightDefault();
                 this.part.SetHighlight(false, false);
+                this.part.highlightType = Part.HighlightType.OnMouseOver;
             }
         }
 
