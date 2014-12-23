@@ -248,7 +248,7 @@ namespace ConnectedLivingSpace
             }
             else if (HighLogic.LoadedSceneIsEditor)
             {
-                if (null == EditorLogic.startPod)
+                if (null == EditorLogic.RootPart)
                 {
                     // There is no root part in the editor - this ought to mean that there are no parts. Juest clear out everything
                     if (null != this.vessel)
@@ -260,7 +260,7 @@ namespace ConnectedLivingSpace
                 }
                 else
                 {
-                    RebuildCLSVessel(EditorLogic.startPod);
+                    RebuildCLSVessel(EditorLogic.RootPart);
                 }
             }
         }
@@ -482,7 +482,7 @@ namespace ConnectedLivingSpace
                 if (HighLogic.LoadedSceneIsEditor)
                 {
                     int currentPartCount = 0;
-                    if (null == EditorLogic.startPod)
+                    if (null == EditorLogic.RootPart)
                     {
                         currentPartCount = 0; // I know that this is already 0, but just to make the point - if there is no startPod in the editor, then there are no parts in the vessel.
                     }
@@ -776,7 +776,7 @@ namespace ConnectedLivingSpace
 
         private void CheckAndFixDockingHatchesInEditor()
         {
-            if (EditorLogic.startPod == null)
+            if (EditorLogic.RootPart == null)
             {
                 return; // If there are no parts then there is nothing to check. 
             }
@@ -797,7 +797,7 @@ namespace ConnectedLivingSpace
             // If we are in the editor or if flight, take a look at the active vesssel and add a ModuleDockingHatch to any part that has a ModuleDockingNode without a corresponding ModuleDockingHatch
             List<Part> listParts;
 
-            if (HighLogic.LoadedSceneIsEditor && null != EditorLogic.startPod)
+            if (HighLogic.LoadedSceneIsEditor && null != EditorLogic.RootPart)
             {
                 listParts = EditorLogic.SortedShipList;
             }
