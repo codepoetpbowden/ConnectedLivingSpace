@@ -137,7 +137,8 @@ namespace ConnectedLivingSpace
                 part.RemoveOnMouseExit(OnMouseExit);
 
                 part.SetHighlightDefault();
-                this.part.SetHighlight(false);
+                this.part.SetHighlight(false, false);
+                this.part.highlightType = Part.HighlightType.OnMouseOver;
             }
         }
 
@@ -189,7 +190,7 @@ namespace ConnectedLivingSpace
             {
                 this.part.SetHighlightColor(Color.red);
             }
-            this.part.SetHighlight(true);
+            this.part.SetHighlight(true, false);
         }
 
         public bool Habitable
