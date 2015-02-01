@@ -14,7 +14,7 @@ namespace ConnectedLivingSpace
         CLSSpace space;
         bool docked = false;
         List<ICLSKerbal> crew;
-        bool highlighted = false; // This allows us to remember if a part is SUPPOSED to be highlighted by CLS. We can then use appropriate moments to ensure that it either is or is not.
+        public bool highlighted = false; // This allows us to remember if a part is SUPPOSED to be highlighted by CLS. We can then use appropriate moments to ensure that it either is or is not.
 
         public CLSPart(Part p)
         {
@@ -117,36 +117,29 @@ namespace ConnectedLivingSpace
             return _p.modCLS;
         }
         
-        public void Highlight(bool val)
+        public void Highlight(bool val, bool force = false)
         {
             // Set the variable to mark if this part is SUPPOSED to be hightlighted or not.
-            this.highlighted = val;
-
-            if (this.highlighted)
+            if (val && (!this.highlighted || force))
             {
-                this.SetHighlighting(); 
-  
-                // Set up an event handler to handle the mouse being moved away from this part while it is supposed to be being highlighted.
-                Part.OnActionDelegate OnMouseExit = MouseExit;
-                part.AddOnMouseExit(OnMouseExit);
+                this.SetHighlighting(force);
+                this.highlighted = val;
+                this.part.highlightType = Part.HighlightType.AlwaysOn;
             }
             else
             {
-                // Remove the event handler that picks up on the mouse being moved away from the part when it is highlighted.
-                Part.OnActionDelegate OnMouseExit = MouseExit;
-                part.RemoveOnMouseExit(OnMouseExit);
-
-                part.SetHighlightDefault();
-                this.part.SetHighlight(false, false);
-                this.part.highlightType = Part.HighlightType.OnMouseOver;
+                if(!val && (this.highlighted || force))
+                {
+                    this.highlighted = val;
+                    this.part.SetHighlight(false, false);
+                    part.SetHighlightDefault();
+                    this.part.highlightType = Part.HighlightType.OnMouseOver;
+                }
             }
         }
 
-
-
-
         // Actually set this part to be highlighted
-        private void SetHighlighting()
+        private void SetHighlighting(bool force)
         {
             part.SetHighlightDefault();
 
@@ -190,7 +183,7 @@ namespace ConnectedLivingSpace
             {
                 this.part.SetHighlightColor(Color.red);
             }
-            this.part.SetHighlight(true, false);
+            this.part.SetHighlight(true, force);
         }
 
         public bool Habitable
@@ -246,22 +239,5 @@ namespace ConnectedLivingSpace
             }
             this.crew.Clear();
         }
-
-        #region Event handlers
-        // this is the delagate needed to support the part event handlers
-        // extern is needed, as the addon is considered external to KSP, and is expected by the part delagate call.
-        extern Part.OnActionDelegate OnMouseExit(Part part);
-
-        // this is the method used with the delagate
-        void MouseExit(Part part)
-        {
-            // Debug.Log("MouseExit from part: " + part.partInfo.title);
-            // When the mouse moves away from a part, if it is supposed to be highlighted by us, then highlight it!
-            if (this.highlighted)
-            {
-                this.SetHighlighting(); 
-            }
-        }
-        #endregion
     }
 }

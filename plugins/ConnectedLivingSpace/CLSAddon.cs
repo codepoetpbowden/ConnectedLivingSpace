@@ -17,7 +17,9 @@ namespace ConnectedLivingSpace
         private Vector2 scrollViewer = Vector2.zero;
         
         private CLSVessel vessel = null;
-        private int selectedSpace = -1;
+
+        // this var is now restricted to use by the CLS window.  Highlighting will be handled by part.
+        int WindowSelectedSpace = -1;
 
         private ApplicationLauncherButton stockToolbarButton = null; // Stock Toolbar Button
 
@@ -52,8 +54,6 @@ namespace ConnectedLivingSpace
         public void Awake() 
         {
             //Debug.Log("CLSAddon:Awake");
-
-            this.selectedSpace = -1;
 
             // Set up the stock toolbar
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
@@ -142,7 +142,6 @@ namespace ConnectedLivingSpace
             {
                 vessel.Highlight(false);
             }
-            this.selectedSpace = -1;
             this.stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
 
             this.visable = false;
@@ -236,7 +235,16 @@ namespace ConnectedLivingSpace
                 //Set the GUI Skin
                 //GUI.skin = HighLogic.Skin;
 
-                windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle,GUILayout.MinHeight(20),GUILayout.ExpandHeight(true));
+                windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
+            }
+            else
+            {
+                if (WindowSelectedSpace > -1)
+                {
+                    vessel.Spaces[WindowSelectedSpace].Highlight(false);
+                    WindowSelectedSpace = -1;
+                }
+
             }
         }
         
@@ -256,7 +264,6 @@ namespace ConnectedLivingSpace
                         vessel.Clear();
                     }
                     this.vessel = null;
-                    this.selectedSpace = -1;
                 }
                 else
                 {
@@ -272,75 +279,56 @@ namespace ConnectedLivingSpace
 
         private void RebuildCLSVessel(Part newRootPart)
         {
-            //Debug.Log("RebuildCLSVessel");
-            // Before we rebuild the vessel, we need to take some steps to tidy up the highlighting and our idea of which space is the selected space. We will make a list of all the parts that are currently in the selected space. We will also unhighlight parts that are highlighted. Once the rebuild is complete we will work out which space will be the selected space based on the first part in our list that we find in oneof the new spaces. We can then highlight that new space.
-
-            List<uint> listSelectedParts = new List<uint>();
-
-            if (-1 != selectedSpace)
+            try
             {
-                foreach (CLSPart p in vessel.Spaces[selectedSpace].Parts)
+                //Debug.Log("RebuildCLSVessel");
+                // Before we rebuild the vessel, we need to take some steps to tidy up the highlighting and our idea of which space is the selected space. We will make a list of all the parts that are currently in the selected space. We will also unhighlight parts that are highlighted. Once the rebuild is complete we will work out which space will be the selected space based on the first part in our list that we find in oneof the new spaces. We can then highlight that new space.
+                // This needs to be revised to be based on part level highlighting.. to ensure that other mod interactions are addressed.
+
+                uint flightID = 0;
+                List<CLSPart> listHighlightedParts = new List<CLSPart>();
+                try
                 {
-                    Part part = (Part)p;
-                    listSelectedParts.Add(part.flightID);
-                    //Debug.Log("Part : "+ part.flightID + " currently in use." ) ;
-                }
-
-                vessel.Spaces[selectedSpace].Highlight(false);
-            }
-
-            //Debug.Log("Old selected space had "+listSelectedParts.Count + " parts in it.");
-
-            // Tidy up the old vessel information
-            if (null != this.vessel)
-            {
-                vessel.Clear();
-            }
-            this.vessel = null;
-
-            // Build new vessel information
-            this.vessel = new CLSVessel();
-            this.vessel.Populate(newRootPart);
-
-            // Now work out which space should be highlighted.
-            this.selectedSpace = -1;
-            foreach (CLSPart clsPart in this.vessel.Parts)
-            {
-                Part p = clsPart;
-
-                //Debug.Log("New vessel contains part : " + p.flightID);
-
-                if (listSelectedParts.Contains(p.flightID))
-                {
-                    //Debug.Log("Part " + p.partInfo.title + " was in the old selected space and is in the CLSVessel");
-                    if (clsPart.Space != null)
+                    foreach (CLSSpace space in vessel.Spaces)
                     {
-                        // We have found the new space for a part that was in the old selected space.
-                        this.selectedSpace = this.vessel.Spaces.IndexOf(clsPart.Space);
-                        //Debug.Log("... it is also part of a space. We will use that space to be our new selected space. index:" + this.selectedSpace);
-                        break;
-                    }
-                    else
-                    {
-                        //Debug.Log("it is no longer part of a space :(");
+                        foreach (CLSPart p in space.Parts)
+                        {
+                            Part part = (Part)p;
+                            if (flightID != part.flightID)
+                            {
+                                flightID = part.flightID;
+                                //Debug.Log("Part : "+ part.flightID + " found." ) ;
+                            }
+                            if (p.highlighted)
+                            {
+                                listHighlightedParts.Add(p);
+                                p.Highlight(false);
+                            }
+                        }
+
                     }
                 }
-            }
+                catch (Exception ex)
+                {
+                    Debug.Log("CLS highlighted parts gathering Error:  " + ex.ToString());
+                }
 
-            if (this.selectedSpace != -1)
-            {
-                this.vessel.Spaces[this.selectedSpace].Highlight(true);
-            }
-            else
-            {
-                //Debug.Log("No space is selected after the rebuild.");
-            }
+                //Debug.Log("Old selected vessel had "+ listHighlightedParts.Count + " parts in it.");
 
-            // Sanity check the selected space. If the CLSvessel has been rebuilt and there are no Spaces, or it references an out of range space then set it to -1
+                // Tidy up the old vessel information
+                if (null != this.vessel)
+                {
+                    vessel.Clear();
+                }
+                this.vessel = null;
 
-            if (vessel.Spaces.Count == 0 || vessel.Spaces.Count <= this.selectedSpace)
+                // Build new vessel information
+                this.vessel = new CLSVessel();
+                this.vessel.Populate(newRootPart);
+            }
+            catch (Exception ex)
             {
-                this.selectedSpace = -1;
+                Debug.Log("CLS rebuild Vessel Error:  " + ex.ToString());
             }
         }
 
@@ -373,33 +361,33 @@ namespace ConnectedLivingSpace
 
                     if (vessel.Spaces.Count > 0)
                     {
-                        newSelectedSpace = GUILayout.SelectionGrid(this.selectedSpace, spaceNames, 1);
+                        newSelectedSpace = GUILayout.SelectionGrid(this.WindowSelectedSpace, spaceNames, 1);
                     }
 
                     // If one of the spaces has been selected then display a list of parts that make it up and sort out the highlighting
                     if (-1 != newSelectedSpace)
                     {
                         // Only fiddle with the highlighting if the selected space has actually changed
-                        if (newSelectedSpace != this.selectedSpace)
+                        if (newSelectedSpace != this.WindowSelectedSpace)
                         {
                             // First unhighlight the space that was selected.
-                            if (-1 != this.selectedSpace && this.selectedSpace < this.vessel.Spaces.Count)
+                            if (-1 != this.WindowSelectedSpace && this.WindowSelectedSpace < this.vessel.Spaces.Count)
                             {
-                                vessel.Spaces[this.selectedSpace].Highlight(false);
+                                vessel.Spaces[this.WindowSelectedSpace].Highlight(false);
                             }
 
                             // Update the space that has been selected.
-                            this.selectedSpace = newSelectedSpace;
+                            this.WindowSelectedSpace = newSelectedSpace;
 
                             // Update the text in the Space edit box
-                            this.spaceNameEditField = vessel.Spaces[this.selectedSpace].Name;
+                            this.spaceNameEditField = vessel.Spaces[this.WindowSelectedSpace].Name;
 
                             // Highlight the new space
-                            vessel.Spaces[this.selectedSpace].Highlight(true);
+                            vessel.Spaces[this.WindowSelectedSpace].Highlight(true);
                         }
 
                         // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
-                        foreach (CLSPart p in vessel.Spaces[this.selectedSpace].Parts)
+                        foreach (CLSPart p in vessel.Spaces[this.WindowSelectedSpace].Parts)
                         {
                             Part part = (Part)p;
                             partsList += part.partInfo.title + "\n";
@@ -411,7 +399,7 @@ namespace ConnectedLivingSpace
                         this.spaceNameEditField = GUILayout.TextField(this.spaceNameEditField);
                         if (GUILayout.Button("Update"))
                         {
-                            vessel.Spaces[this.selectedSpace].Name = this.spaceNameEditField;
+                            vessel.Spaces[this.WindowSelectedSpace].Name = this.spaceNameEditField;
                         }
                         GUILayout.EndHorizontal();
 
@@ -419,12 +407,12 @@ namespace ConnectedLivingSpace
                         GUILayout.BeginVertical();
 
                         // Display the crew capacity of the space.
-                        GUILayout.Label("Crew Capacity: " + vessel.Spaces[this.selectedSpace].MaxCrew);
+                        GUILayout.Label("Crew Capacity: " + vessel.Spaces[this.WindowSelectedSpace].MaxCrew);
 
                         // And list the crew names
                         String crewList = "Crew Info:\n";
 
-                        foreach (CLSKerbal crewMember in vessel.Spaces[this.selectedSpace].Crew)
+                        foreach (CLSKerbal crewMember in vessel.Spaces[this.WindowSelectedSpace].Crew)
                         {
                             crewList += ((ProtoCrewMember)crewMember).name + "\n";
                         }
@@ -455,6 +443,7 @@ namespace ConnectedLivingSpace
         public void Update()
         {
             // Debug.Log("CLSAddon:Update");
+            //UpdateHighlighting();
         }
 
         public void FixedUpdate()
@@ -964,6 +953,25 @@ namespace ConnectedLivingSpace
             catch (Exception ex)
             {
                 Debug.LogException(ex);
+            }
+        }
+
+        private void UpdateHighlighting()
+        {
+            if (WindowSelectedSpace > -1 )
+            {
+                vessel.Spaces[WindowSelectedSpace].Highlight(true);
+            }
+            else
+            {
+                foreach (CLSSpace space in Vessel.Spaces)
+                {
+                    foreach (CLSPart part in space.Parts)
+                    {
+                        if (part.highlighted)
+                            part.Highlight(true, false);
+                    }
+                }
             }
         }
     }
