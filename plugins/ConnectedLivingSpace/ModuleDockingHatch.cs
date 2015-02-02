@@ -8,7 +8,7 @@ using System.Reflection;
 namespace ConnectedLivingSpace
 {
     // This module will be added at runtime to any part that also has a ModuleDockingNode. There will be a one to one relationship between ModuleDockingHatch and ModuleDockingNode
-    public class ModuleDockingHatch : PartModule
+    public class ModuleDockingHatch : PartModule, IModuleDockingHatch
     {
         [KSPField(isPersistant = true)]
         private bool hatchOpen;
@@ -17,7 +17,7 @@ namespace ConnectedLivingSpace
         internal string docNodeAttachmentNodeName;
         [KSPField(isPersistant = true)]
         internal string docNodeTransformName;
-        internal  ModuleDockingNode modDockNode;
+        internal ModuleDockingNode modDockNode;
 
         public bool HatchOpen
         {
@@ -38,6 +38,38 @@ namespace ConnectedLivingSpace
                 {
                     this.hatchStatus = "Closed";
                 }
+            }
+        }
+
+        public string HatchStatus
+        { 
+            get
+            { 
+                return this.hatchStatus; 
+            }
+        }
+
+        public bool IsDocked
+        { 
+            get
+            {
+                return isInDockedState() || isAttachedToDockingPort(); 
+            }
+        }
+
+        public BaseEventList HatchEvents
+        {
+            get
+            {
+                return this.Events;
+            }
+        }
+
+        public ModuleDockingNode ModDockNode
+        {
+            get
+            {
+                return this.modDockNode;
             }
         }
 
@@ -215,7 +247,7 @@ namespace ConnectedLivingSpace
         // tries to work out if the docking port is docked based on the state
         private bool isInDockedState()
         {
-            // First ensure that we know which ModuleDockingNode we are reffering to.
+            // First ensure that we know which ModuleDockingNode we are referring to.
             if (CheckModuleDockingNode())
             {
                 if (this.modDockNode.state == "Docked (dockee)" || this.modDockNode.state == "Docked (docker)")
@@ -244,11 +276,11 @@ namespace ConnectedLivingSpace
                     Part attachedPart = thisNode.attachedPart;
                     if (null != attachedPart)
                     {
-                        // What is the attachNode in the attachedPart that limks back to us?
+                        // What is the attachNode in the attachedPart that links back to us?
                         AttachNode reverseNode = attachedPart.findAttachNodeByPart(this.part);
                         if (null != reverseNode)
                         {
-                            // Now the big question - is the attached part a docking ndoe that is centred on the reverseNode?
+                            // Now the big question - is the attached part a docking node that is centred on the reverseNode?
                             foreach (ModuleDockingNode n in attachedPart.Modules.OfType<ModuleDockingNode>())
                             {
                                 if (n.referenceAttachNode == reverseNode.id)
@@ -265,7 +297,7 @@ namespace ConnectedLivingSpace
             return false;
         }
 
-        // Method that cna be used to set up the ModuleDockingNode that this ModuleDockingHatch reffers to.
+        // Method that can be used to set up the ModuleDockingNode that this ModuleDockingHatch refers to.
         public void AttachModuleDockingNode(ModuleDockingNode _modDocNode)
         {
             this.modDockNode = _modDocNode;

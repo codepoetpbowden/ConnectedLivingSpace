@@ -28,11 +28,19 @@ namespace ConnectedLivingSpace
         bool Docked { get; }
         List<ICLSKerbal> Crew { get; }
         Part Part { get; }
-        void Highlight(bool val);
+        void Highlight(bool val, bool force);
         bool Habitable { get; }
         bool Navigable { get; }
     }
 
+    public interface IModuleDockingHatch
+    {
+        bool HatchOpen { get; set; }
+        string HatchStatus { get; }
+        bool IsDocked { get; }
+        ModuleDockingNode ModDockNode { get; }
+        BaseEventList HatchEvents { get; }
+    }
 
     public interface ICLSKerbal
     {
