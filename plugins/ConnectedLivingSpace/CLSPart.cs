@@ -122,7 +122,7 @@ namespace ConnectedLivingSpace
             // Set the variable to mark if this part is SUPPOSED to be hightlighted or not.
             if (val && (!this.highlighted || force))
             {
-                this.SetHighlighting(force);
+                this.SetHighlighting();
                 this.highlighted = val;
                 this.part.highlightType = Part.HighlightType.AlwaysOn;
             }
@@ -139,7 +139,7 @@ namespace ConnectedLivingSpace
         }
 
         // Actually set this part to be highlighted
-        private void SetHighlighting(bool force)
+        private void SetHighlighting()
         {
             part.SetHighlightDefault();
 
@@ -183,7 +183,7 @@ namespace ConnectedLivingSpace
             {
                 this.part.SetHighlightColor(Color.red);
             }
-            this.part.SetHighlight(true, force);
+            this.part.SetHighlight(true, false);
         }
 
         public bool Habitable
