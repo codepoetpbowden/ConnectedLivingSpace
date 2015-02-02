@@ -443,7 +443,6 @@ namespace ConnectedLivingSpace
         public void Update()
         {
             // Debug.Log("CLSAddon:Update");
-            //UpdateHighlighting();
         }
 
         public void FixedUpdate()
@@ -953,25 +952,6 @@ namespace ConnectedLivingSpace
             catch (Exception ex)
             {
                 Debug.LogException(ex);
-            }
-        }
-
-        private void UpdateHighlighting()
-        {
-            if (WindowSelectedSpace > -1 )
-            {
-                vessel.Spaces[WindowSelectedSpace].Highlight(true);
-            }
-            else
-            {
-                foreach (CLSSpace space in Vessel.Spaces)
-                {
-                    foreach (CLSPart part in space.Parts)
-                    {
-                        if (part.highlighted)
-                            part.Highlight(true, false);
-                    }
-                }
             }
         }
     }

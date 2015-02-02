@@ -77,7 +77,7 @@ namespace ConnectedLivingSpace
         private string hatchStatus = "";
 
         [KSPEvent(active = true, guiActive = true, guiName = "Open Hatch")]
-        public void OpenHatch()
+        private void OpenHatch()
         {
             this.Events["OpenHatch"].active = false;
             if (isInDockedState() || isAttachedToDockingPort())
@@ -96,7 +96,7 @@ namespace ConnectedLivingSpace
         }
 
         [KSPEvent(active = true, guiActive = true, guiName = "Close Hatch")]
-        public void CloseHatch()
+        private void CloseHatch()
         {
             bool docked = isInDockedState();
             
