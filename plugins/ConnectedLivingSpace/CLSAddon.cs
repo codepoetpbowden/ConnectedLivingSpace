@@ -282,44 +282,43 @@ namespace ConnectedLivingSpace
             try
             {
                 //Debug.Log("RebuildCLSVessel");
-                // Before we rebuild the vessel, we need to take some steps to tidy up the highlighting and our idea of which space is the selected space. We will make a list of all the parts that are currently in the selected space. We will also unhighlight parts that are highlighted. Once the rebuild is complete we will work out which space will be the selected space based on the first part in our list that we find in oneof the new spaces. We can then highlight that new space.
-                // This needs to be revised to be based on part level highlighting.. to ensure that other mod interactions are addressed.
+                // Before we rebuild the vessel, we need to take some steps to tidy up the highlighting. 
+                // We will make a list of all the parts that are currently highlighted. We will also unhighlight parts that are highlighted. 
+                // Once the rebuild is complete we will then highlight any parts that are still in the list we created.
 
                 uint flightID = 0;
                 List<CLSPart> listHighlightedParts = new List<CLSPart>();
-                try
-                {
-                    foreach (CLSSpace space in vessel.Spaces)
-                    {
-                        foreach (CLSPart p in space.Parts)
-                        {
-                            Part part = (Part)p;
-                            if (flightID != part.flightID)
-                            {
-                                flightID = part.flightID;
-                                //Debug.Log("Part : "+ part.flightID + " found." ) ;
-                            }
-                            if (p.highlighted)
-                            {
-                                listHighlightedParts.Add(p);
-                                p.Highlight(false);
-                            }
-                        }
-
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.Log("CLS highlighted parts gathering Error:  " + ex.ToString());
-                }
-
-                //Debug.Log("Old selected vessel had "+ listHighlightedParts.Count + " parts in it.");
-
-                // Tidy up the old vessel information
                 if (null != this.vessel)
                 {
+                    try
+                    {
+                        foreach (CLSSpace space in vessel.Spaces)
+                        {
+                            foreach (CLSPart p in space.Parts)
+                            {
+                                Part part = (Part)p;
+                                if (flightID != part.flightID)
+                                {
+                                    flightID = part.flightID;
+                                    //Debug.Log("Part : "+ part.flightID + " found." ) ;
+                                }
+                                if (p.highlighted)
+                                {
+                                    listHighlightedParts.Add(p);
+                                    p.Highlight(false);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Log("CLS highlighted parts gathering Error:  " + ex.ToString());
+                    }
+                    //Debug.Log("Old selected vessel had "+ listHighlightedParts.Count + " parts in it.");
                     vessel.Clear();
                 }
+
+                // Tidy up the old vessel information
                 this.vessel = null;
 
                 // Build new vessel information
