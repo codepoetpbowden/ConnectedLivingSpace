@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Reflection;
@@ -13,6 +14,10 @@ namespace ConnectedLivingSpace
         private static Rect windowPosition = new Rect(0,0,360,480);
         private static GUIStyle windowStyle = null;
         private static bool allowUnrestrictedTransfers = false;
+        private static bool enableBlizzyToolbar = false;
+        private static bool prevEnableBlizzyToolbar = false;
+        private static readonly string SETTINGS_FILE = KSPUtil.ApplicationRootPath + "GameData/cls_settings.dat";
+        private ConfigNode settings = null;
 
         private Vector2 scrollViewer = Vector2.zero;
         
@@ -21,7 +26,8 @@ namespace ConnectedLivingSpace
         // this var is now restricted to use by the CLS window.  Highlighting will be handled by part.
         int WindowSelectedSpace = -1;
 
-        private ApplicationLauncherButton stockToolbarButton = null; // Stock Toolbar Button
+        private static ApplicationLauncherButton stockToolbarButton = null; // Stock Toolbar Button
+        internal static IButton blizzyToolbarButton = null; // Blizzy Toolbar Button
 
         private bool visable = false;
 
@@ -54,11 +60,26 @@ namespace ConnectedLivingSpace
         public void Awake() 
         {
             //Debug.Log("CLSAddon:Awake");
-
-            // Set up the stock toolbar
-            GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
-            GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
-
+            // Added support for Blizzy Toolbar and hot switching between Stock and Blizzy
+            if (enableBlizzyToolbar)
+            {
+                // Let't try to use Blizzy's toolbar
+                //Debug.Log("CLSAddon.Awake - Blizzy Toolbar Selected.");
+                if (!ActivateBlizzyToolBar())
+                {
+                    // We failed to activate the toolbar, so revert to stock
+                    //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
+                    GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+                    GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+                }
+            }
+            else
+            {
+                // Use stock Toolbar
+                //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
+                GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+                GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+            }
         }
 
         public void Start() 
@@ -76,6 +97,9 @@ namespace ConnectedLivingSpace
                 // This is generally not a problem - do not log it.
 				// Debug.LogException(ex);
             }
+
+            // load toolbar selection setting
+            ApplySettings();
 
             if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
             {
@@ -97,6 +121,12 @@ namespace ConnectedLivingSpace
                 GameEvents.onFlightReady.Add(OnFlightReady);
 
                 GameEvents.onCrewTransferred.Add(CrewTransfered);
+
+
+                //KSP 1.0 has an issue with GameEvents.onGUIAppLauncherReady.  It does not fire as expected.  This code line accounts for it.
+                // Reference:  http://forum.kerbalspaceprogram.com/threads/86682-Appilcation-Launcher-and-Mods?p=1871124&viewfull=1#post1871124
+                if (!enableBlizzyToolbar && ApplicationLauncher.Ready)
+                    OnGUIAppLauncherReady();
             }
 
             // Add the CLSModule to all parts that can house crew (and do not already have it).
@@ -106,34 +136,62 @@ namespace ConnectedLivingSpace
             AddHatchModuleToPartPrefabs();
         }
 
+        private void CheckForToolbarTypeToggle()
+        {
+            if (enableBlizzyToolbar && !prevEnableBlizzyToolbar)
+            {
+                // Let't try to use Blizzy's toolbar
+                if (!ActivateBlizzyToolBar())
+                {
+                    // We failed to activate the toolbar, so revert to stock
+                    GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+                    GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+
+                    enableBlizzyToolbar = prevEnableBlizzyToolbar;
+                }
+                else
+                {
+                    OnGUIAppLauncherDestroyed();
+                    GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
+                    GameEvents.onGUIApplicationLauncherDestroyed.Remove(OnGUIAppLauncherDestroyed);
+                    prevEnableBlizzyToolbar = enableBlizzyToolbar;
+                    if (HighLogic.LoadedSceneIsFlight)
+                        blizzyToolbarButton.Visible = true;
+                }
+
+            }
+            else if (!enableBlizzyToolbar && prevEnableBlizzyToolbar)
+            {
+                // Use stock Toolbar
+                if (HighLogic.LoadedSceneIsFlight)
+                    blizzyToolbarButton.Visible = false;
+                GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+                GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+                OnGUIAppLauncherReady();
+                prevEnableBlizzyToolbar = enableBlizzyToolbar;
+            }
+        }
+
         void OnGUIAppLauncherReady()
         {
-            if (ApplicationLauncher.Ready)
-            {
-                this.stockToolbarButton = ApplicationLauncher.Instance.AddModApplication(onAppLaunchToggleOn,
-                                                                                         onAppLaunchToggleOff,
-                                                                                         DummyVoid,
-                                                                                         DummyVoid,
-                                                                                         DummyVoid,
-                                                                                         DummyVoid,
-                                                                                         ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.FLIGHT,
-                                                                                         (Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
-            }
+            stockToolbarButton = ApplicationLauncher.Instance.AddModApplication(
+                OnCLSButtonToggle,
+                OnCLSButtonToggle,
+                DummyVoid,
+                DummyVoid,
+                DummyVoid,
+                DummyVoid,
+                ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.FLIGHT,
+                (Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
         }
 
         void OnGUIAppLauncherDestroyed()
         {
-            if (this.stockToolbarButton != null)
+            if (stockToolbarButton != null)
             {
-                ApplicationLauncher.Instance.RemoveModApplication(this.stockToolbarButton);
-                this.stockToolbarButton = null;
+                ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
+                stockToolbarButton = null;
             }
-        }
-
-        void onAppLaunchToggleOn()
-        {
-            this.stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_on", false));
-            this.visable = true;
         }
 
         void onAppLaunchToggleOff()
@@ -142,7 +200,7 @@ namespace ConnectedLivingSpace
             {
                 vessel.Highlight(false);
             }
-            this.stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
+            stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
 
             this.visable = false;
         }
@@ -164,7 +222,9 @@ namespace ConnectedLivingSpace
             //Debug.Log("CLSAddon::OnVesselLoaded");
 
             //Debug.Log("Calling RebuildCLSVessel from OnVesselLoaded");
-            RebuildCLSVessel(data);
+            //  This check is needed to differentiate from nearby debris, as event is fired for every object within range
+            if (data.Equals(FlightGlobals.ActiveVessel))
+                RebuildCLSVessel(data);
         }
         private void OnVesselTerminated(ProtoVessel data)
         {
@@ -226,6 +286,20 @@ namespace ConnectedLivingSpace
 
             //Debug.Log("Calling RebuildCLSVessel from OnVesselChange");
             RebuildCLSVessel(data);
+        }
+
+        internal void OnCLSButtonToggle()
+        {
+            //Debug.Log("CLSAddon::OnCLSButtonToggle");
+            this.visable = !this.visable;
+
+            if (!this.visable && null != this.vessel)
+                vessel.Highlight(false);
+
+            if (enableBlizzyToolbar)
+                blizzyToolbarButton.TexturePath = this.visable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
+            else
+                stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture(this.visable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
         }
 
         private void OnDraw()
@@ -340,6 +414,7 @@ namespace ConnectedLivingSpace
                 {
                     GUILayout.BeginVertical();
                     allowUnrestrictedTransfers = GUILayout.Toggle(allowUnrestrictedTransfers, "Allow Crew Unrestricted Transfers");
+                    enableBlizzyToolbar = GUILayout.Toggle(enableBlizzyToolbar, "Use Blizzy's Toolbar instead of Stock");
                     String[] spaceNames = new String[vessel.Spaces.Count];
                     int counter = 0;
                     int newSelectedSpace = -1;
@@ -442,6 +517,7 @@ namespace ConnectedLivingSpace
         public void Update()
         {
             // Debug.Log("CLSAddon:Update");
+            CheckForToolbarTypeToggle();
         }
 
         public void FixedUpdate()
@@ -496,7 +572,9 @@ namespace ConnectedLivingSpace
         public void OnDestroy()
         {
             //Debug.Log("CLSAddon::OnDestroy");
-            
+
+            saveSettings();
+
             GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
             GameEvents.onVesselChange.Remove(OnVesselChange);
             GameEvents.onPartAttach.Remove(OnPartAttach);
@@ -517,7 +595,7 @@ namespace ConnectedLivingSpace
 
             // Remove the stock toolbar button
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
-            if (this.stockToolbarButton != null)
+            if (stockToolbarButton != null)
             {
                 ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
             }
@@ -952,6 +1030,72 @@ namespace ConnectedLivingSpace
             {
                 Debug.LogException(ex);
             }
+        }
+        
+        internal bool ActivateBlizzyToolBar()
+        {
+            if (enableBlizzyToolbar)
+            {
+                try
+                {
+                    if (ToolbarManager.ToolbarAvailable)
+                    {
+                        if (HighLogic.LoadedScene == GameScenes.EDITOR || HighLogic.LoadedScene == GameScenes.FLIGHT)
+                        {
+                            blizzyToolbarButton = ToolbarManager.Instance.add("ConnectedLivingSpace", "ConnectedLivingSpace");
+                            blizzyToolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_b_icon_on";
+                            blizzyToolbarButton.ToolTip = "Connected Living Space";
+                            blizzyToolbarButton.Visible = true;
+                            blizzyToolbarButton.OnClick += (e) =>
+                            {
+                                OnCLSButtonToggle();
+                            };
+                        }
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                catch
+                {
+                    // Blizzy Toolbar instantiation error.  ignore.
+                    return false;
+                }
+            }
+            else
+            {
+                // No Blizzy Toolbar
+                return false;
+            }
+        }
+
+        private void ApplySettings()
+        {
+            if (settings == null)
+                loadSettings();
+            ConfigNode toolbarNode = settings.HasNode("clsSettings") ? settings.GetNode("clsSettings") : settings.AddNode("clsSettings");
+            if (toolbarNode.HasValue("enableBlizzyToolbar"))
+                enableBlizzyToolbar = bool.Parse(toolbarNode.GetValue("enableBlizzyToolbar"));
+        }
+
+        private ConfigNode loadSettings()
+        {
+            if (settings == null)
+                settings = ConfigNode.Load(SETTINGS_FILE) ?? new ConfigNode();
+            return settings;
+        }
+
+        private void saveSettings()
+        {
+            if (settings == null)
+                settings = loadSettings();
+            ConfigNode toolbarNode = settings.HasNode("clsSettings") ? settings.GetNode("clsSettings") : settings.AddNode("clsSettings");
+            if (toolbarNode.HasValue("enableBlizzyToolbar"))
+                toolbarNode.RemoveValue("enableBlizzyToolbar");
+            toolbarNode.AddValue("enableBlizzyToolbar", enableBlizzyToolbar.ToString());
+            settings.Save(SETTINGS_FILE);
         }
     }
 }
