@@ -1,4 +1,4 @@
-Connected Living Space v1.1.1.0
+Connected Living Space v1.1.2.0
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,9 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.1.2.0
+* Bug fix
+
 release v1.1.1.0
 * Changes to highlighting to allow less clashing with other highlighting mods.
 
