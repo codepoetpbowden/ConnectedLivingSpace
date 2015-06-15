@@ -414,7 +414,16 @@ namespace ConnectedLivingSpace
                 {
                     GUILayout.BeginVertical();
                     allowUnrestrictedTransfers = GUILayout.Toggle(allowUnrestrictedTransfers, "Allow Crew Unrestricted Transfers");
+                    if (ToolbarManager.ToolbarAvailable)
+                        GUI.enabled = true;
+                    else
+                    {
+                        GUI.enabled = false;
+                        enableBlizzyToolbar = false;
+                    }
                     enableBlizzyToolbar = GUILayout.Toggle(enableBlizzyToolbar, "Use Blizzy's Toolbar instead of Stock");
+                    GUI.enabled = true;
+
                     String[] spaceNames = new String[vessel.Spaces.Count];
                     int counter = 0;
                     int newSelectedSpace = -1;
