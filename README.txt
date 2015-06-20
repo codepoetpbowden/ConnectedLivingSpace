@@ -1,4 +1,4 @@
-Connected Living Space v1.1.3.0
+Connected Living Space v1.1.3.1
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,10 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.1.3.1
+* Changed Unrestricted Crew Transfers option to be available when no vessel is loaded in VAB/SPH
+* Fixed a bug in the Use Blizzy Toolbar option to disable the option when Blizzy Toolbar is not installed.
+
 release v1.1.3.0
 * Added trigger to overcome bug in KSP 1.0.2 that prevents stock toolbar icon from displaying.
 * Added Blizzy Toolbar support with hot switching between stock and blizzy toolbars.
