@@ -411,11 +411,20 @@ namespace ConnectedLivingSpace
             {
                 GUILayout.BeginVertical();
                 allowUnrestrictedTransfers = GUILayout.Toggle(allowUnrestrictedTransfers, "Allow Crew Unrestricted Transfers");
+                if (ToolbarManager.ToolbarAvailable)
+                    GUI.enabled = true;
+                else
+                {
+                    GUI.enabled = false;
+                    enableBlizzyToolbar = false;
+                }
                 enableBlizzyToolbar = GUILayout.Toggle(enableBlizzyToolbar, "Use Blizzy's Toolbar instead of Stock");
-
+                GUI.enabled = true;
+                
                 // Build a string descibing the contents of each of the spaces.
                 if (null != this.vessel)
                 {
+
                     String[] spaceNames = new String[vessel.Spaces.Count];
                     int counter = 0;
                     int newSelectedSpace = -1;
@@ -505,7 +514,6 @@ namespace ConnectedLivingSpace
                 {
                     GUILayout.Label("No current vessel.");
                 }
-
                 GUILayout.EndVertical();
                 GUI.DragWindow();
             }
