@@ -183,7 +183,7 @@ namespace ConnectedLivingSpace
             {
                 this.part.SetHighlightColor(Color.red);
             }
-            this.part.SetHighlight(true, false);
+            this.part.SetHighlight(true,false);
         }
 
         public bool Habitable

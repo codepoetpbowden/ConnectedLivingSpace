@@ -1,11 +1,11 @@
-Connected Living Space v1.0.11.0
+Connected Living Space v1.1.3.0
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
 
-If you are integrating a mod with CLS then the contents of the dev directory has all you will need - an assebly that defines the interfaces, and a suggested snippet of code for testing for and accessing CLS.
+If you are integrating a mod with CLS then the contents of the dev directory has all you will need - an assembly that defines the interfaces, and a suggested snippet of code for testing for and accessing CLS.
 
-Thread for discussion: http://forum.kerbalspaceprogram.com/threads/70161
+Thread for discussion: http://forum.kerbalspaceprogram.com/threads/122126
 Please log bugs in github if possible: https://github.com/codepoetpbowden/ConnectedLivingSpace
 If you can not use github then report in the forum.
 
@@ -16,6 +16,21 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.1.3.0
+* Added trigger to overcome bug in KSP 1.0.2 that prevents stock toolbar icon from displaying.
+* Added Blizzy Toolbar support with hot switching between stock and blizzy toolbars.
+* Added support for KSP-AVC (if installed).
+* Fixed a bug in OnVesselLoad to ensure only the active vessel is loaded into CLS.
+
+release v1.1.2.0
+* Bug fix
+
+release v1.1.1.0
+* Changes to highlighting to allow less clashing with other highlighting mods.
+
+release v1.1.0.0
+* Updated to be compatible with KSP 0.90
+
 release v1.0.11.0
 * Fixed a bug in the stock transfer code that ment it only worked for the first vessel.
 
