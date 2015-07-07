@@ -17,7 +17,7 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 changelog:
 ----------
 release v1.1.4.0
-* Espand and reformat parameter info in the RMB of the editor part description dialog.
+* Expand and reformat parameter info in the RMB of the editor part description dialog.
 * Added Editor-based tweakables to allow passability customization of a part during vessel construction.
 
 release v1.1.3.1
