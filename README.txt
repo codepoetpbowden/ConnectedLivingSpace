@@ -1,4 +1,4 @@
-Connected Living Space v1.1.3.1
+Connected Living Space v1.1.4.0
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,10 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.1.4.0
+* Espand and reformat parameter info in the RMB of the editor part description dialog.
+* Added Editor-based tweakables to allow passability customization of a part during vessel construction.
+
 release v1.1.3.1
 * Changed Unrestricted Crew Transfers option to be available when no vessel is loaded in VAB/SPH
 * Fixed a bug in the Use Blizzy Toolbar option to disable the option when Blizzy Toolbar is not installed.
