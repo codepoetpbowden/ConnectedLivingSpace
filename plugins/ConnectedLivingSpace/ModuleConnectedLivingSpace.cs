@@ -11,15 +11,15 @@ namespace ConnectedLivingSpace
     {
         internal CLSPart clsPart; // reference back to the CLS Part that refers to the part that this is a module on. Tghis value might well be null, but the CLSPart will attempt to set it when the CLS part is created.
 
-        [KSPField]
-        public bool passableWhenSurfaceAttached = false;
-        [KSPField]
-        public bool surfaceAttachmentsPassable = false;
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public bool passable = false;
-        [KSPField]
+        [KSPField(isPersistant = true)]
+        public bool passableWhenSurfaceAttached = false;
+        [KSPField(isPersistant = true)]
+        public bool surfaceAttachmentsPassable = false;
+        [KSPField(isPersistant = true)]
         public string passablenodes = "";
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public string impassablenodes = "";
         [KSPField]
         public string impassableDockingNodeTypes = "";
@@ -59,7 +59,7 @@ namespace ConnectedLivingSpace
                 {
                     this.spaceName = this.part.partInfo.title;
                 }
-
+                SetEventState();
             }
             catch (Exception ex)
             {
@@ -74,7 +74,12 @@ namespace ConnectedLivingSpace
         /// <param name='node'>The node to save in to</param>
         public override void OnSave(ConfigNode node)
         {
-
+            //node.AddValue("passable", passable);
+            //node.AddValue("passableWhenSurfaceAttached", passableWhenSurfaceAttached);
+            //node.AddValue("surfaceAttachmentsPassable", surfaceAttachmentsPassable);
+            //node.AddValue("passablenodes", passablenodes);
+            //node.AddValue("impassablenodes", passable);
+            //node.AddValue("spaceName", spaceName);
         }
 
         /// <summary>
@@ -84,7 +89,41 @@ namespace ConnectedLivingSpace
         /// <param name='node'>The node to load from</param>
         public override void OnLoad(ConfigNode node)
         {
+            SetEventState();
+        }
 
+        private void SetEventState()
+        {
+            if (this.passable)
+            {
+                Events["EnablePassable"].active = false;
+                Events["DisablePassable"].active = true;
+            }
+            else
+            {
+                Events["EnablePassable"].active = true;
+                Events["DisablePassable"].active = false;
+            }
+            if (this.passableWhenSurfaceAttached)
+            {
+                Events["EnableSurfaceAttachable"].active = false;
+                Events["DisableSurfaceAttachable"].active = true;
+            }
+            else
+            {
+                Events["EnableSurfaceAttachable"].active = true;
+                Events["DisableSurfaceAttachable"].active = false;
+            }
+            if (this.surfaceAttachmentsPassable)
+            {
+                Events["EnableAttachableSurface"].active = false;
+                Events["DisableAttachableSurface"].active = true;
+            }
+            else
+            {
+                Events["EnableAttachableSurface"].active = true;
+                Events["DisableAttachableSurface"].active = false;
+            }
         }
 
         // Allow a CLSPart to be cast into a ModuleConnectedLivingSpace. Note that this might fail, if the part in question does not have the CLS module configured.
@@ -101,40 +140,61 @@ namespace ConnectedLivingSpace
         public override string GetInfo()
         {
             String returnValue = String.Empty;
-
-            if (this.part.CrewCapacity > 0)
-            {
-                returnValue = "Kerbals are able to stay in this part ";
-            }
-            else
-            {
-                returnValue = "Kerbals are not able to stay in this part ";
-            }
-
-            if (this.passable)
-            {
-                if (this.impassablenodes != "")
-                {
-                    returnValue += "but can not get access to it through the nodes " + this.impassablenodes;
-                }
-                else
-                {
-                    returnValue += "and can pass into it from any attachment node."; 
-                }
-            }
-            else
-            {
-                if (this.passablenodes != "")
-                {
-                    returnValue += "but can only get access to it through the nodes " + this.passablenodes;
-                }
-                else
-                {
-                    returnValue += "but can not get access other parts.";
-                }
-            }
-         
+            returnValue = "Crewable:  " + (this.part.CrewCapacity > 0 ? "Yes" : "No");
+            returnValue += "\r\nPassable:  " + (this.passable ? "Yes" : "No");
+            returnValue += "\r\nImpassable Nodes:  " + (this.impassablenodes != "" ? this.impassablenodes : (this.passable ? "None" : "All"));
+            returnValue += "\r\nPassable Nodes:  " + (this.passablenodes != "" ? this.passablenodes : (this.passable ? "All": "None"));
+            returnValue += "\r\nPass when Surface Attached:  " + (this.passableWhenSurfaceAttached ? "Yes" : "No");
+            returnValue += "\r\nSurface Attached Parts Pass:  " + (this.surfaceAttachmentsPassable ? "Yes" : "No");
             return returnValue;
         }
+
+
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisablePassable", guiName = "Passable:  Yes")]
+        public void DisablePassable()
+        {
+            this.passable = false;
+            Events["EnablePassable"].active = true;
+            Events["DisablePassable"].active = false;
+        }
+
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnablePassable", guiName = "Passable:  No")]
+        public void EnablePassable()
+        {
+            this.passable = true;
+            Events["EnablePassable"].active = false;
+            Events["DisablePassable"].active = true;
+        }
+
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisableSurfaceAttachable", guiName = "Surface Attachable: Yes")]
+        public void DisableSurfaceAttachable()
+        {
+            this.passableWhenSurfaceAttached = false;
+            Events["EnableSurfaceAttachable"].active = true;
+            Events["DisableSurfaceAttachable"].active = false;
+        }
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnableSurfaceAttachable", guiName = "Surface Attachable: No")]
+        public void EnableSurfaceAttachable()
+        {
+            this.passableWhenSurfaceAttached = true;
+            Events["EnableSurfaceAttachable"].active = false;
+            Events["DisableSurfaceAttachable"].active = true;
+        }
+
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisableAttachableSurface", guiName = "Attachable Surface: Yes")]
+        public void DisableAttachableSurface()
+        {
+            this.surfaceAttachmentsPassable = false;
+            Events["EnableAttachableSurface"].active = true;
+            Events["DisableAttachableSurface"].active = false;
+        }
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnableAttachableSurface", guiName = "Attachable Surface: No")]
+        public void EnableAttachableSurface()
+        {
+            this.surfaceAttachmentsPassable = true;
+            Events["EnableAttachableSurface"].active = false;
+            Events["DisableAttachableSurface"].active = true;
+        }
+
     }
 }

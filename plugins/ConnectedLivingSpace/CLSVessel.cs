@@ -124,7 +124,7 @@ namespace ConnectedLivingSpace
                     }
                     else
                     {
-                        // Could it be that we are dealling with a docked connection?
+                        // Could it be that we are dealing with a docked connection?
                         dockingConnection = CheckForDockedPair(p, child);
 
                         if (true == dockingConnection)
