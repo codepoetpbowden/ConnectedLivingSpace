@@ -150,7 +150,7 @@ namespace ConnectedLivingSpace
         }
 
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisablePassable", guiName = "Passable:  Yes")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisablePassable", guiName = "CLS Passable: Yes")]
         public void DisablePassable()
         {
             this.passable = false;
@@ -158,7 +158,7 @@ namespace ConnectedLivingSpace
             Events["DisablePassable"].active = false;
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnablePassable", guiName = "Passable:  No")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnablePassable", guiName = "CLS Passable: No")]
         public void EnablePassable()
         {
             this.passable = true;
@@ -166,14 +166,14 @@ namespace ConnectedLivingSpace
             Events["DisablePassable"].active = true;
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisableSurfaceAttachable", guiName = "Surface Attachable: Yes")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisableSurfaceAttachable", guiName = "CLS Surface Attachable: Yes")]
         public void DisableSurfaceAttachable()
         {
             this.passableWhenSurfaceAttached = false;
             Events["EnableSurfaceAttachable"].active = true;
             Events["DisableSurfaceAttachable"].active = false;
         }
-        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnableSurfaceAttachable", guiName = "Surface Attachable: No")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnableSurfaceAttachable", guiName = "CLS Surface Attachable: No")]
         public void EnableSurfaceAttachable()
         {
             this.passableWhenSurfaceAttached = true;
@@ -181,14 +181,14 @@ namespace ConnectedLivingSpace
             Events["DisableSurfaceAttachable"].active = true;
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisableAttachableSurface", guiName = "Attachable Surface: Yes")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisableAttachableSurface", guiName = "CLS Attachable Surface: Yes")]
         public void DisableAttachableSurface()
         {
             this.surfaceAttachmentsPassable = false;
             Events["EnableAttachableSurface"].active = true;
             Events["DisableAttachableSurface"].active = false;
         }
-        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnableAttachableSurface", guiName = "Attachable Surface: No")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnableAttachableSurface", guiName = "CLS Attachable Surface: No")]
         public void EnableAttachableSurface()
         {
             this.surfaceAttachmentsPassable = true;
