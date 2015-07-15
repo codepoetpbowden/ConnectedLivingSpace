@@ -20,3 +20,4 @@ E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\plugins\CLSInterfaces\bin\Debug\
 E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\plugins\CLSInterfaces\obj\Debug\CLSInterfaces.dll
 E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\plugins\CLSInterfaces\obj\Debug\CLSInterfaces.pdb
 E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\plugins\CLSInterfaces\bin\Debug\TrackIRUnity.dll
+E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\plugins\CLSInterfaces\obj\Debug\CLSInterfaces.csprojResolveAssemblyReference.cache

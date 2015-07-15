@@ -160,7 +160,7 @@ namespace ConnectedLivingSpace
                     GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
                     GameEvents.onGUIApplicationLauncherDestroyed.Remove(OnGUIAppLauncherDestroyed);
                     prevEnableBlizzyToolbar = enableBlizzyToolbar;
-                    if (HighLogic.LoadedSceneIsFlight)
+                    if (HighLogic.LoadedSceneIsFlight || HighLogic.LoadedSceneIsEditor)
                         blizzyToolbarButton.Visible = true;
                 }
 
@@ -168,7 +168,7 @@ namespace ConnectedLivingSpace
             else if (!enableBlizzyToolbar && prevEnableBlizzyToolbar)
             {
                 // Use stock Toolbar
-                if (HighLogic.LoadedSceneIsFlight || HighLogic.LoadedScene == GameScenes.EDITOR)
+                if (HighLogic.LoadedSceneIsFlight || HighLogic.LoadedSceneIsEditor)
                     blizzyToolbarButton.Visible = false;
                 GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
                 GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
@@ -319,7 +319,7 @@ namespace ConnectedLivingSpace
                 windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
                 if (this.optionsVisible)
                 {
-                    windowOptionsPosition = new Rect(windowPosition.x + windowPosition.width + 10, windowPosition.y + windowPosition.height - windowOptionsPosition.height, 275, 120);
+                    windowOptionsPosition = new Rect(windowPosition.x + windowPosition.width + 10, windowPosition.y + windowPosition.height - windowOptionsPosition.height, 260, 115);
                     windowOptionsPosition = GUILayout.Window(947696, windowOptionsPosition, OnOptionWindow, "Options", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
                 }
             }
