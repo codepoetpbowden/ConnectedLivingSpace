@@ -17,8 +17,11 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 changelog:
 ----------
 release v1.1.4.0
-* Expand and reformat parameter info in the RMB of the editor part description dialog.
 * Added Editor-based tweakables to allow passability customization of a part during vessel construction.
+* Added option to enable / disable parts not originally passable.  
+* Expand and reformat parameter info in the RMB of the editor part description dialog.
+* Added options window and moved options out of CLS window.
+* Fixed bug with turning off Blizzy toolbar icon in Editor.
 
 release v1.1.3.1
 * Changed Unrestricted Crew Transfers option to be available when no vessel is loaded in VAB/SPH
