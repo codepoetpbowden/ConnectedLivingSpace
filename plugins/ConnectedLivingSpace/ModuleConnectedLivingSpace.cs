@@ -59,7 +59,7 @@ namespace ConnectedLivingSpace
                 {
                     this.spaceName = this.part.partInfo.title;
                 }
-                SetEventState();
+                SetButtonStates();
             }
             catch (Exception ex)
             {
@@ -89,40 +89,53 @@ namespace ConnectedLivingSpace
         /// <param name='node'>The node to load from</param>
         public override void OnLoad(ConfigNode node)
         {
-            SetEventState();
+            SetButtonStates();
         }
 
-        private void SetEventState()
+        private void SetButtonStates(bool refresh = false)
         {
             if (this.passable)
             {
                 Events["EnablePassable"].active = false;
                 Events["DisablePassable"].active = true;
+
+                if (this.passableWhenSurfaceAttached)
+                {
+                    Events["EnableSurfaceAttachable"].active = false;
+                    Events["DisableSurfaceAttachable"].active = true;
+                }
+                else
+                {
+                    Events["EnableSurfaceAttachable"].active = true;
+                    Events["DisableSurfaceAttachable"].active = false;
+                }
+                if (this.surfaceAttachmentsPassable)
+                {
+                    Events["EnableAttachableSurface"].active = false;
+                    Events["DisableAttachableSurface"].active = true;
+                }
+                else
+                {
+                    Events["EnableAttachableSurface"].active = true;
+                    Events["DisableAttachableSurface"].active = false;
+                }
             }
             else
             {
-                Events["EnablePassable"].active = true;
+                Events["EnablePassable"].active = CLSAddon.enablePassable;
                 Events["DisablePassable"].active = false;
-            }
-            if (this.passableWhenSurfaceAttached)
-            {
+
+                // Lets hide the other buttons...
                 Events["EnableSurfaceAttachable"].active = false;
-                Events["DisableSurfaceAttachable"].active = true;
-            }
-            else
-            {
-                Events["EnableSurfaceAttachable"].active = true;
                 Events["DisableSurfaceAttachable"].active = false;
-            }
-            if (this.surfaceAttachmentsPassable)
-            {
                 Events["EnableAttachableSurface"].active = false;
-                Events["DisableAttachableSurface"].active = true;
-            }
-            else
-            {
-                Events["EnableAttachableSurface"].active = true;
                 Events["DisableAttachableSurface"].active = false;
+            }
+            if (refresh)
+            {
+                CLSAddon.Instance.RebuildCLSVessel();
+                if (CLSAddon.Instance.WindowOldSelectedSpace > -1)
+                    CLSAddon.Instance.WindowOldSelectedSpace = -1;
             }
         }
 
@@ -140,60 +153,67 @@ namespace ConnectedLivingSpace
         public override string GetInfo()
         {
             String returnValue = String.Empty;
-            returnValue = "Crewable:  " + (this.part.CrewCapacity > 0 ? "Yes" : "No");
-            returnValue += "\r\nPassable:  " + (this.passable ? "Yes" : "No");
-            returnValue += "\r\nImpassable Nodes:  " + (this.impassablenodes != "" ? this.impassablenodes : (this.passable ? "None" : "All"));
-            returnValue += "\r\nPassable Nodes:  " + (this.passablenodes != "" ? this.passablenodes : (this.passable ? "All": "None"));
-            returnValue += "\r\nPass when Surface Attached:  " + (this.passableWhenSurfaceAttached ? "Yes" : "No");
-            returnValue += "\r\nSurface Attached Parts Pass:  " + (this.surfaceAttachmentsPassable ? "Yes" : "No");
+            if (this.passable)
+            {
+                returnValue += "Passable:  Yes";
+                returnValue += "\r\nCrewable:  " + (this.part.CrewCapacity > 0 ? "Yes" : "No");
+                returnValue += "\r\nImpassable Nodes:  " + (this.impassablenodes != "" ? this.impassablenodes : (this.passable ? "None" : "All"));
+                returnValue += "\r\nPassable Nodes:  " + (this.passablenodes != "" ? this.passablenodes : (this.passable ? "All": "None"));
+                returnValue += "\r\nPass when Surface Attached:  " + (this.passableWhenSurfaceAttached ? "Yes" : "No");
+                returnValue += "\r\nSurface Attached Parts Pass:  " + (this.surfaceAttachmentsPassable ? "Yes" : "No");
+            }
+            else
+            {
+                if (CLSAddon.enablePassable)
+                {
+                    returnValue += "Passable:  No";
+                    if (this.passablenodes != "")
+                        returnValue += "\r\nPassable Nodes:  " + this.passablenodes;
+                }
+            }
             return returnValue;
         }
-
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisablePassable", guiName = "CLS Passable: Yes")]
         public void DisablePassable()
         {
             this.passable = false;
-            Events["EnablePassable"].active = true;
-            Events["DisablePassable"].active = false;
+            SetButtonStates(true);
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnablePassable", guiName = "CLS Passable: No")]
         public void EnablePassable()
         {
             this.passable = true;
-            Events["EnablePassable"].active = false;
-            Events["DisablePassable"].active = true;
+            SetButtonStates(true);
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisableSurfaceAttachable", guiName = "CLS Surface Attachable: Yes")]
         public void DisableSurfaceAttachable()
         {
             this.passableWhenSurfaceAttached = false;
-            Events["EnableSurfaceAttachable"].active = true;
-            Events["DisableSurfaceAttachable"].active = false;
+            SetButtonStates(true);
         }
+
         [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnableSurfaceAttachable", guiName = "CLS Surface Attachable: No")]
         public void EnableSurfaceAttachable()
         {
             this.passableWhenSurfaceAttached = true;
-            Events["EnableSurfaceAttachable"].active = false;
-            Events["DisableSurfaceAttachable"].active = true;
+            SetButtonStates(true);
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisableAttachableSurface", guiName = "CLS Attachable Surface: Yes")]
         public void DisableAttachableSurface()
         {
             this.surfaceAttachmentsPassable = false;
-            Events["EnableAttachableSurface"].active = true;
-            Events["DisableAttachableSurface"].active = false;
+            SetButtonStates(true);
         }
+
         [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnableAttachableSurface", guiName = "CLS Attachable Surface: No")]
         public void EnableAttachableSurface()
         {
             this.surfaceAttachmentsPassable = true;
-            Events["EnableAttachableSurface"].active = false;
-            Events["DisableAttachableSurface"].active = true;
+            SetButtonStates(true);
         }
 
     }
