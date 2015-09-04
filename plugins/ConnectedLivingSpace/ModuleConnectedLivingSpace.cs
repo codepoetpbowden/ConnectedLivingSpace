@@ -140,12 +140,30 @@ namespace ConnectedLivingSpace
         public override string GetInfo()
         {
             String returnValue = String.Empty;
+<<<<<<< Updated upstream
             returnValue = "Crewable:  " + (this.part.CrewCapacity > 0 ? "Yes" : "No");
             returnValue += "\r\nPassable:  " + (this.passable ? "Yes" : "No");
             returnValue += "\r\nImpassable Nodes:  " + (this.impassablenodes != "" ? this.impassablenodes : (this.passable ? "None" : "All"));
             returnValue += "\r\nPassable Nodes:  " + (this.passablenodes != "" ? this.passablenodes : (this.passable ? "All": "None"));
             returnValue += "\r\nPass when Surface Attached:  " + (this.passableWhenSurfaceAttached ? "Yes" : "No");
             returnValue += "\r\nSurface Attached Parts Pass:  " + (this.surfaceAttachmentsPassable ? "Yes" : "No");
+=======
+            if (this.passable)
+            {
+                returnValue += "Passable:  Yes";
+                returnValue += "\r\nCrewable:  " + (this.part.CrewCapacity > 0 ? "Yes" : "No");
+                returnValue += "\r\nImpassable Nodes:  " + (this.impassablenodes != "" ? this.impassablenodes : (this.passable ? "None" : "All"));
+                returnValue += "\r\nPassable Nodes:  " + (this.passablenodes != "" ? this.passablenodes : (this.passable ? "All": "None"));
+                returnValue += "\r\nPass when Surface Attached:  " + (this.passableWhenSurfaceAttached ? "Yes" : "No");
+                returnValue += "\r\nSurface Attached Parts Pass:  " + (this.surfaceAttachmentsPassable ? "Yes" : "No");
+            }
+            else
+            {
+                returnValue += "Passable:  No";
+                if (this.passablenodes != "")
+                    returnValue += "\r\nPassable Nodes:  " + this.passablenodes;
+            }
+>>>>>>> Stashed changes
             return returnValue;
         }
 

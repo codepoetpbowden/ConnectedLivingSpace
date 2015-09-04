@@ -87,7 +87,7 @@ namespace ConnectedLivingSpace
             this.listParts.Add(newPart);
 
             // Is the part capable of allowing kerbals to pass? If it is add it to the current space, or if there is no current space, to a new space.
-            if (newPart.Navigable)
+            if (newPart.Navigable || newPart.modCLS != null)
             {
                 thisSpace = currentSpace;
 
@@ -114,35 +114,33 @@ namespace ConnectedLivingSpace
 
                 // TODO removed debugging
                 //Debug.Log("Considering the connection between " + p.partInfo.title + "(" + p.uid + ") and " + child.partInfo.title + "(" + child.uid + ")");
-                {
                     // Is the attachment on "this" part passable?
-                    if (null != node)
+                if (null != node)
+                {
+                    // The attachment is in the form of an AttachNode - use it to work out if the attachment is passable.
+                    attachmentIsPassable = IsNodeNavigable(node, p);
+                    //Debug.Log("the attachment on 'this' part is defined by attachment node " + node.id + " and had been given passable=" + attachmentIsPassable);
+                }
+                else
+                {
+                    // Could it be that we are dealing with a docked connection?
+                    dockingConnection = CheckForDockedPair(p, child);
+
+                    if (true == dockingConnection)
                     {
-                        // The attachment is in the form of an AttachNode - use it to work out if the attachment is passable.
-                        attachmentIsPassable = IsNodeNavigable(node, p);
-                        //Debug.Log("the attachment on 'this' part is defined by attachment node " + node.id + " and had been given passable=" + attachmentIsPassable);
+                        //Debug.Log("The two parts are considered to be docked together.");
+                        // The parts are docked, but we still need to have a think about if the docking port is passable.
+                        attachmentIsPassable = IsDockedDockingPortPassable(p, child);
+                        //Debug.Log("the docked attachment on 'this' part has been given passable=" + attachmentIsPassable);
                     }
                     else
                     {
-                        // Could it be that we are dealing with a docked connection?
-                        dockingConnection = CheckForDockedPair(p, child);
-
-                        if (true == dockingConnection)
+                        //Debug.Log("The two parts are NOT considered to be docked together - concluding that this part is suface attached");
+                        // It is not a AttachNode attachment, and it is not a docked connection either. The only other option is that we are dealing with a surface attachment. Does this part allow surfact attachments to be passable?
+                        if (PartHasPassableSurfaceAttachments(p))
                         {
-                            //Debug.Log("The two parts are considered to be docked together.");
-                            // The parts are docked, but we still need to have a think about if the docking port is passable.
-                            attachmentIsPassable = IsDockedDockingPortPassable(p, child);
-                            //Debug.Log("the docked attachment on 'this' part has been given passable=" + attachmentIsPassable);
-                        }
-                        else
-                        {
-                            //Debug.Log("The two parts are NOT considered to be docked together - concluding that this part is suface attached");
-                            // It is not a AttachNode attachment, and it is not a docked connection either. The only other option is that we are dealing with a surface attachment. Does this part allow surfact attachments to be passable?
-                            if (PartHasPassableSurfaceAttachments(p))
-                            {
-                                attachmentIsPassable = true;
-                                //Debug.Log("This part is surface attached and is considered to be passable");
-                            }
+                            attachmentIsPassable = true;
+                            //Debug.Log("This part is surface attached and is considered to be passable");
                         }
                     }
                 }

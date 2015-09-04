@@ -12,6 +12,10 @@ namespace ConnectedLivingSpace
     public class CLSAddon : MonoBehaviour , ICLSAddon
     {
         private static Rect windowPosition = new Rect(0,0,360,480);
+<<<<<<< Updated upstream
+=======
+        private static Rect windowOptionsPosition = new Rect(0,0,0,0);
+>>>>>>> Stashed changes
         private static GUIStyle windowStyle = null;
         private static bool allowUnrestrictedTransfers = false;
         private static bool enableBlizzyToolbar = false;
@@ -310,6 +314,15 @@ namespace ConnectedLivingSpace
                 //GUI.skin = HighLogic.Skin;
 
                 windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
+<<<<<<< Updated upstream
+=======
+                if (this.optionsVisible)
+                {
+                    if (windowOptionsPosition == new Rect(0,0,0,0))
+                        windowOptionsPosition = new Rect(windowPosition.x + windowPosition.width + 10, windowPosition.y + windowPosition.height - 115, 260, 115);
+                    windowOptionsPosition = GUILayout.Window(947696, windowOptionsPosition, OnOptionWindow, "Options", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
+                }
+>>>>>>> Stashed changes
             }
             else
             {
@@ -516,6 +529,7 @@ namespace ConnectedLivingSpace
                 }
                 GUILayout.EndVertical();
                 GUI.DragWindow();
+                RepositionWindow(ref windowPosition);
             }
             catch (Exception ex)
             {
@@ -523,6 +537,33 @@ namespace ConnectedLivingSpace
             }
         }
 
+<<<<<<< Updated upstream
+=======
+        private void OnOptionWindow(int windowID)
+        {
+            Rect rect = new Rect(windowOptionsPosition.width - 20, 4, 16, 16);
+            if (GUI.Button(rect, ""))
+            {
+                this.optionsVisible = false;
+            }
+            GUILayout.BeginVertical();
+            allowUnrestrictedTransfers = GUILayout.Toggle(allowUnrestrictedTransfers, "Allow Crew Unrestricted Transfers");
+            enablePassable = GUILayout.Toggle(enablePassable, "Enable Optional Passable Parts\r\n(Requires game restart)");
+            if (ToolbarManager.ToolbarAvailable)
+                GUI.enabled = true;
+            else
+            {
+                GUI.enabled = false;
+                enableBlizzyToolbar = false;
+            }
+            enableBlizzyToolbar = GUILayout.Toggle(enableBlizzyToolbar, "Use Blizzy's Toolbar instead of Stock");
+            GUI.enabled = true;
+            GUILayout.EndVertical();
+            GUI.DragWindow();
+            RepositionWindow(ref windowOptionsPosition);
+        }
+
+>>>>>>> Stashed changes
         public void Update()
         {
             // Debug.Log("CLSAddon:Update");
@@ -1085,8 +1126,15 @@ namespace ConnectedLivingSpace
             if (settings == null)
                 loadSettings();
             ConfigNode toolbarNode = settings.HasNode("clsSettings") ? settings.GetNode("clsSettings") : settings.AddNode("clsSettings");
+<<<<<<< Updated upstream
             if (toolbarNode.HasValue("enableBlizzyToolbar"))
                 enableBlizzyToolbar = bool.Parse(toolbarNode.GetValue("enableBlizzyToolbar"));
+=======
+            windowPosition = getRectangle(toolbarNode, "windowPosition", windowPosition);
+            windowOptionsPosition = getRectangle(toolbarNode, "windowOptionsPosition", windowOptionsPosition);
+            enableBlizzyToolbar = toolbarNode.HasValue("enableBlizzyToolbar") ? bool.Parse(toolbarNode.GetValue("enableBlizzyToolbar")) : enableBlizzyToolbar;
+            enablePassable = toolbarNode.HasValue("enablePassable") ? bool.Parse(toolbarNode.GetValue("enablePassable")) : enablePassable;
+>>>>>>> Stashed changes
         }
 
         private ConfigNode loadSettings()
@@ -1101,10 +1149,57 @@ namespace ConnectedLivingSpace
             if (settings == null)
                 settings = loadSettings();
             ConfigNode toolbarNode = settings.HasNode("clsSettings") ? settings.GetNode("clsSettings") : settings.AddNode("clsSettings");
+<<<<<<< Updated upstream
             if (toolbarNode.HasValue("enableBlizzyToolbar"))
                 toolbarNode.RemoveValue("enableBlizzyToolbar");
             toolbarNode.AddValue("enableBlizzyToolbar", enableBlizzyToolbar.ToString());
             settings.Save(SETTINGS_FILE);
         }
+=======
+            WriteRectangle(toolbarNode, "windowPosition", windowPosition);
+            WriteRectangle(toolbarNode, "windowOptionsPosition", windowOptionsPosition);
+            WriteValue(toolbarNode, "enableBlizzyToolbar", enableBlizzyToolbar);
+            WriteValue(toolbarNode, "enablePassable", enablePassable);
+            settings.Save(SETTINGS_FILE);
+        }
+
+        private static Rect getRectangle(ConfigNode WindowsNode, string RectName, Rect defaultvalue)
+        {
+            Rect thisRect = new Rect();
+            ConfigNode RectNode = WindowsNode.HasNode(RectName) ? WindowsNode.GetNode(RectName) : WindowsNode.AddNode(RectName);
+            thisRect.x = RectNode.HasValue("x") ? int.Parse(RectNode.GetValue("x")) : defaultvalue.x;
+            thisRect.y = RectNode.HasValue("y") ? int.Parse(RectNode.GetValue("y")) : defaultvalue.y;
+            thisRect.width = RectNode.HasValue("width") ? int.Parse(RectNode.GetValue("width")) : defaultvalue.width;
+            thisRect.height = RectNode.HasValue("height") ? int.Parse(RectNode.GetValue("height")) : defaultvalue.height;
+
+            return thisRect;
+        }
+
+        private static void WriteRectangle(ConfigNode WindowsNode, string RectName, Rect rectValue)
+        {
+            ConfigNode RectNode = WindowsNode.HasNode(RectName) ? WindowsNode.GetNode(RectName) : WindowsNode.AddNode(RectName);
+            WriteValue(RectNode, "x", rectValue.x);
+            WriteValue(RectNode, "y", rectValue.y);
+            WriteValue(RectNode, "width", rectValue.width);
+            WriteValue(RectNode, "height", rectValue.height);
+        }
+
+        private static void WriteValue(ConfigNode configNode, string ValueName, object value)
+        {
+            if (configNode.HasValue(ValueName))
+                configNode.RemoveValue(ValueName);
+            configNode.AddValue(ValueName, value.ToString());
+        }
+
+        internal void RepositionWindow(ref Rect windowPosition)
+        {
+            if (windowPosition.x < 0) windowPosition.x = 0;
+            if (windowPosition.y < 0) windowPosition.y = 0;
+            if (windowPosition.xMax > Screen.currentResolution.width)
+                windowPosition.x = Screen.currentResolution.width - windowPosition.width;
+            if (windowPosition.yMax > Screen.currentResolution.height)
+                windowPosition.y = Screen.currentResolution.height - windowPosition.height;
+        }
+>>>>>>> Stashed changes
     }
 }
