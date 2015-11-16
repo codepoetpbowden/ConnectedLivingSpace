@@ -55,6 +55,7 @@
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "E:\KSP\ksp-win-1-0-5\KSP_win\GameData\ConnectedLivingSpace\Plugins\"
 copy "$(TargetPath)" "E:\KSP\ksp-win-1-0-5\KSP_win\GameData\ShipManifest\Plugins\"
+copy "$(TargetPath)" "E:\KSP\Mods\PJS\Releases\ConnectedLivingSpace\Distribution\ConnectedLivingSpace\Plugins\"
 copy /Y "$(TargetPath)" "E:\KSP\Mods\PJS\Git\Source\ShipManifest\ShipManifest\Distribution\GameData\ShipManifest\Plugins\"
 copy /Y "$(TargetPath)" "E:\KSP\Mods\PJS\Git\Source\ShipManifest\ShipManifest\bin\debug\"
 </PostBuildEvent>
