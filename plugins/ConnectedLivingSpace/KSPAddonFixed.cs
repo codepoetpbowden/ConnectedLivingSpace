@@ -8,30 +8,30 @@ using System.Text;
 /// </summary>
 internal class KSPAddonFixedCLS : KSPAddon, IEquatable<KSPAddonFixedCLS>
 {
-    private readonly Type type;
+  private readonly Type type;
 
-    public KSPAddonFixedCLS(KSPAddon.Startup startup, bool once, Type type)
-        : base(startup, once)
-    {
-        this.type = type;
-    }
+  public KSPAddonFixedCLS(KSPAddon.Startup startup, bool once, Type type)
+    : base(startup, once)
+  {
+    this.type = type;
+  }
 
-    public override bool Equals(object obj)
-    {
-        if (obj.GetType() != this.GetType()) { return false; }
-        return Equals((KSPAddonFixedCLS)obj);
-    }
+  public override bool Equals(object obj)
+  {
+    if (obj.GetType() != this.GetType()) { return false; }
+    return Equals((KSPAddonFixedCLS)obj);
+  }
 
-    public bool Equals(KSPAddonFixedCLS other)
-    {
-        if (this.once != other.once) { return false; }
-        if (this.startup != other.startup) { return false; }
-        if (this.type != other.type) { return false; }
-        return true;
-    }
+  public bool Equals(KSPAddonFixedCLS other)
+  {
+    if (this.once != other.once) { return false; }
+    if (this.startup != other.startup) { return false; }
+    if (this.type != other.type) { return false; }
+    return true;
+  }
 
-    public override int GetHashCode()
-    {
-        return this.startup.GetHashCode() ^ this.once.GetHashCode() ^ this.type.GetHashCode();
-    }
+  public override int GetHashCode()
+  {
+    return this.startup.GetHashCode() ^ this.once.GetHashCode() ^ this.type.GetHashCode();
+  }
 }
