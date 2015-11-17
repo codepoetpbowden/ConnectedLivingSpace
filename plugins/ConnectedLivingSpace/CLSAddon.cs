@@ -21,6 +21,7 @@ namespace ConnectedLivingSpace
     private static bool prevEnableBlizzyToolbar = false;
     private static readonly string SETTINGS_FILE = KSPUtil.ApplicationRootPath + "GameData/cls_settings.dat";
     private ConfigNode settings = null;
+    private bool visable = false;
     private bool optionsVisible = false;
 
     private Vector2 scrollViewer = Vector2.zero;
@@ -33,7 +34,6 @@ namespace ConnectedLivingSpace
     private static ApplicationLauncherButton stockToolbarButton = null; // Stock Toolbar Button
     internal static IButton blizzyToolbarButton = null; // Blizzy Toolbar Button
 
-    private bool visable = false;
 
     private int editorPartCount = 0; // This is horrible. Because there does not seem to be an obvious callback to sink when parts are added and removed in the editor, on each fixed update we will could the parts and if it has changed then rebuild the CLSVessel. Yuk!
 
@@ -331,8 +331,8 @@ namespace ConnectedLivingSpace
         if (this.optionsVisible)
         {
           if (windowOptionsPosition == new Rect(0, 0, 0, 0))
-            windowOptionsPosition = new Rect(windowPosition.x + windowPosition.width + 10, windowPosition.y + windowPosition.height - 115, 260, 115);
-          windowOptionsPosition = GUILayout.Window(947696, windowOptionsPosition, OnOptionWindow, "Options", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
+            windowOptionsPosition = new Rect(windowPosition.x + windowPosition.width + 10, windowPosition.y, 260, 115);
+          windowOptionsPosition = GUILayout.Window(947696, windowOptionsPosition, DisplayOptionWindow, "Options", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
         }
       }
       else
@@ -519,18 +519,27 @@ namespace ConnectedLivingSpace
 
     private void OnWindow(int windowID)
     {
+      DisplayCLSWindow();
+    }
+
+    private void DisplayCLSWindow()
+    {
       try
       {
-        GUILayout.BeginVertical();
-        allowUnrestrictedTransfers = GUILayout.Toggle(allowUnrestrictedTransfers, "Allow Crew Unrestricted Transfers");
-        if (ToolbarManager.ToolbarAvailable)
-          GUI.enabled = true;
-        else
+        Rect rect = new Rect(windowPosition.width - 20, 4, 16, 16);
+        if (GUI.Button(rect, ""))
         {
-          GUI.enabled = false;
-          enableBlizzyToolbar = false;
+          OnCLSButtonToggle();
         }
-        enableBlizzyToolbar = GUILayout.Toggle(enableBlizzyToolbar, "Use Blizzy's Toolbar instead of Stock");
+        rect = new Rect(windowPosition.width - 90, 4, 70, 16);
+        GUIStyle style = new GUIStyle(GUI.skin.button);
+        if (this.optionsVisible)
+          style.onNormal.background = style.onActive.background;
+        if (GUI.Button(rect, new GUIContent("Options", "Click to view/edit options"), style))
+        {
+          this.optionsVisible = !this.optionsVisible;
+        }
+        GUILayout.BeginVertical();
         GUI.enabled = true;
 
         // Build a string descibing the contents of each of the spaces.
@@ -636,7 +645,7 @@ namespace ConnectedLivingSpace
       }
     }
 
-    private void OnOptionWindow(int windowID)
+    private void DisplayOptionWindow(int windowID)
     {
       Rect rect = new Rect(windowOptionsPosition.width - 20, 4, 16, 16);
       if (GUI.Button(rect, ""))
@@ -644,8 +653,13 @@ namespace ConnectedLivingSpace
         this.optionsVisible = false;
       }
       GUILayout.BeginVertical();
+      // Unrestricted Xfers
       allowUnrestrictedTransfers = GUILayout.Toggle(allowUnrestrictedTransfers, "Allow Crew Unrestricted Transfers");
+
+      // Optional Passable Parts
       enablePassable = GUILayout.Toggle(enablePassable, "Enable Optional Passable Parts\r\n(Requires game restart)");
+
+      // Blizzy Toolbar?
       if (ToolbarManager.ToolbarAvailable)
         GUI.enabled = true;
       else
@@ -654,6 +668,7 @@ namespace ConnectedLivingSpace
         enableBlizzyToolbar = false;
       }
       enableBlizzyToolbar = GUILayout.Toggle(enableBlizzyToolbar, "Use Blizzy's Toolbar instead of Stock");
+
       GUI.enabled = true;
       GUILayout.EndVertical();
       GUI.DragWindow();
