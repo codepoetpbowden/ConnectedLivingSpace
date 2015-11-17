@@ -1,5 +1,6 @@
-﻿################################################################################
+################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
 /plugins/CLSInterfaces/obj/Debug/CLSInterfaces.csprojResolveAssemblyReference.cache
+plugins/CLSInterfaces/obj/Debug/CLSInterfaces.csproj.FileListAbsolute.txt

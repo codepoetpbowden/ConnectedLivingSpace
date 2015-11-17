@@ -16,8 +16,8 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
-release v1.1.4.0
-* Added Editor-based tweakables to allow passability customization of a part during vessel construction.
+release v1.2.0.0
+* Added Editor-based tweakables to allow passability customization of a part during vessel construction. Off by default. (Original CLS behavior)
 * Added option to enable / disable parts not originally passable.  
 * Expand and reformat parameter info in the RMB of the editor part description dialog.
 * Added options window and moved options out of CLS window.

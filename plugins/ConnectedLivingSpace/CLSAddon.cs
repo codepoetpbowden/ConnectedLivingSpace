@@ -531,11 +531,8 @@ namespace ConnectedLivingSpace
         {
           OnCLSButtonToggle();
         }
-        rect = new Rect(windowPosition.width - 90, 4, 70, 16);
-        GUIStyle style = new GUIStyle(GUI.skin.button);
-        if (this.optionsVisible)
-          style.onNormal.background = style.onActive.background;
-        if (GUI.Button(rect, new GUIContent("Options", "Click to view/edit options"), style))
+        rect = new Rect(windowPosition.width - 90, 4, 65, 16);
+        if (GUI.Button(rect, new GUIContent("Options", "Click to view/edit options")))
         {
           this.optionsVisible = !this.optionsVisible;
         }
