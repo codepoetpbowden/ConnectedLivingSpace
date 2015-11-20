@@ -1,9 +1,7 @@
-Connected Living Space v1.1.4.0
+Connected Living Space v1.2.0.0
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
-
-If you are integrating a mod with CLS then the contents of the dev directory has all you will need - an assembly that defines the interfaces, and a suggested snippet of code for testing for and accessing CLS.
 
 Thread for discussion: http://forum.kerbalspaceprogram.com/threads/122126
 Please log bugs in github if possible: https://github.com/codepoetpbowden/ConnectedLivingSpace
