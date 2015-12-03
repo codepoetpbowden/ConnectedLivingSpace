@@ -1,4 +1,4 @@
-Connected Living Space v1.2.0.0
+Connected Living Space v1.2.0.1
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -14,6 +14,10 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.2.0.1
+* Add build deploy automation to project. 
+* Correct deploy error resulting in incorrect dll build being released.
+
 release v1.2.0.0
 * Added Editor-based tweakables to allow passability customization of a part during vessel construction. Off by default. (Original CLS behavior)
 * Added option to enable / disable parts not originally passable.  
