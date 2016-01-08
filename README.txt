@@ -1,9 +1,7 @@
-Connected Living Space v1.1.3.1
+Connected Living Space v1.2.0.1
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
-
-If you are integrating a mod with CLS then the contents of the dev directory has all you will need - an assembly that defines the interfaces, and a suggested snippet of code for testing for and accessing CLS.
 
 Thread for discussion: http://forum.kerbalspaceprogram.com/threads/122126
 Please log bugs in github if possible: https://github.com/codepoetpbowden/ConnectedLivingSpace
@@ -16,6 +14,17 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.2.0.1
+* Add build deploy automation to project. 
+* Correct deploy error resulting in incorrect dll build being released.
+
+release v1.2.0.0
+* Added Editor-based tweakables to allow passability customization of a part during vessel construction. Off by default. (Original CLS behavior)
+* Added option to enable / disable parts not originally passable.  
+* Expand and reformat parameter info in the RMB of the editor part description dialog.
+* Added options window and moved options out of CLS window.
+* Fixed bug with turning off Blizzy toolbar icon in Editor.
+
 release v1.1.3.1
 * Changed Unrestricted Crew Transfers option to be available when no vessel is loaded in VAB/SPH
 * Fixed a bug in the Use Blizzy Toolbar option to disable the option when Blizzy Toolbar is not installed.

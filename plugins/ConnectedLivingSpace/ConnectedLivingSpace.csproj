@@ -33,10 +33,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\KSPAssemblies\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\..\KSPAssemblies\Managed\1.0.4\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\..\KSPAssemblies\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>..\..\..\KSPAssemblies\Managed\1.0.4\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,7 +45,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\KSPAssemblies\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\..\..\KSPAssemblies\Managed\1.0.4\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -66,9 +66,58 @@
       <Name>CLSInterfaces</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="LocalDev\7za_dir.txt" />
+    <Content Include="LocalDev\dist_dir.txt" />
+    <Content Include="LocalDev\ksp_dir.txt" />
+    <Content Include="LocalDev\mono_exe.txt" />
+    <Content Include="LocalDev\pdb2mdb_exe.txt" />
+    <Content Include="README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ConnectedLivingSpace.version" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "E:\KSP\ksp-win-1-0-2\KSP_win\GameData\ConnectedLivingSpace\Plugins\"
+    <PostBuildEvent>echo -----------------------------
+echo $(Targetname) Post Build start
+echo ...
+echo set local build path vars...
+set /p KSP_DIR=&lt;"$(ProjectDir)LocalDev\ksp_dir.txt"
+set /p MONO_EXE_DIR=&lt;"$(ProjectDir)LocalDev\mono_exe.txt"
+set /p PDB2MDB_EXE_DIR=&lt;"$(ProjectDir)LocalDev\pdb2mdb_exe.txt"
+set /p ZA_DIR=&lt;"$(ProjectDir)LocalDev\7za_dir.txt"
+set /p DIST_DIR=&lt;"$(ProjectDir)LocalDev\dist_dir.txt"
+
+echo Copying $(Targetname) files to test env...
+copy /Y "$(TargetPath)" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
+copy /Y "$(TargetDir)$(Targetname).pdb" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
+copy /Y "$(TargetDir)CLSInterfaces.dll" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
+
+echo distributing $(Targetname) files...
+copy /Y "$(TargetPath)" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
+copy /Y "$(TargetDir)CLSInterfaces.dll" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
+copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\configs\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Config\"
+copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\assets\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\assets\"
+copy /Y "$(ProjectDir)README.txt" "%25DIST_DIR%25\Distribution\"
+copy /Y "$(ProjectDir)$(Targetname).version" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\\"
+
+echo building $(Targetname).dll.mdb file...
+cd "$(TargetDir)"
+call "%25MONO_EXE_DIR%25\cli.bat"  "%25PDB2MDB_EXE_DIR%25\pdb2mdb.exe" $(Targetname).dll
+
+copy /Y "$(TargetDir)$(Targetname).dll.mdb" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
+
+echo packaging files...
+if exist "%25DIST_DIR%25\Distribution\dev\CLSDevPack*.zip" del "%25DIST_DIR%25\Distribution\dev\CLSDevPack*.zip"
+call "%25ZA_DIR%25\7za.exe" a -tzip -r  "%25DIST_DIR%25\Distribution\dev\CLSDevPack.@(VersionNumber).zip" "%25DIST_DIR%25\CLSDevPack\*.*"
+
+
+if exist "%25KSP_DIR%25\$(Targetname)*.zip" del "%25KSP_DIR%25\$(Targetname)*.zip"
+call "%25ZA_DIR%25\7za.exe" a -tzip -r  "%25DIST_DIR%25\$(Targetname).@(VersionNumber)_%25DATE:~4,2%25%25DATE:~7,2%25%25DATE:~10,4%25.zip" "%25DIST_DIR%25\Distribution\*.*"
+
+echo ...
+echo Post Build complete!
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -78,4 +127,18 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="PostBuildMacros">
+    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+      <Output TaskParameter="Assemblies" ItemName="Targets" />
+    </GetAssemblyIdentity>
+    <ItemGroup>
+      <VersionNumber Include="@(Targets->'%(Version)')" />
+    </ItemGroup>
+  </Target>
+  <PropertyGroup>
+    <PostBuildEventDependsOn>
+    $(PostBuildEventDependsOn);
+    PostBuildMacros;
+  </PostBuildEventDependsOn>
+  </PropertyGroup>
 </Project>

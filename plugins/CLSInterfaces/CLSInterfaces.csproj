@@ -32,8 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\KSPAssemblies\Managed\Assembly-CSharp.dll</HintPath>
+    <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\KSPAssemblies\Managed\1.0.4\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -41,8 +42,9 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\..\KSPAssemblies\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\KSPAssemblies\Managed\1.0.4\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -51,9 +53,12 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "E:\KSP\ksp-win-1-0-2\KSP_win\GameData\ConnectedLivingSpace\Plugins\"
-copy "$(TargetPath)" "E:\KSP\ksp-win-1-0-2\KSP_win\GameData\ShipManifest\Plugins\"
+    <PostBuildEvent>copy /Y "$(TargetPath)" "E:\KSP\ksp-win-1-0-5\KSP_win\GameData\ConnectedLivingSpace\Plugins\"
+copy /Y "$(TargetPath)" "E:\KSP\ksp-win-1-0-5\KSP_win\GameData\ShipManifest\Plugins\"
+copy /Y "$(TargetPath)" "E:\KSP\Mods\PJS\Releases\ConnectedLivingSpace\Build\CLSDevPack\"
 copy /Y "$(TargetPath)" "E:\KSP\Mods\PJS\Git\Source\ShipManifest\ShipManifest\Distribution\GameData\ShipManifest\Plugins\"
+copy /Y "$(TargetPath)" "E:\KSP\Mods\PJS\Git\Source\ShipManifest\ShipManifest\bin\debug\"
+copy /Y "$(ProjectDir)CLSClient.cs" "E:\KSP\Mods\PJS\Releases\ConnectedLivingSpace\Build\CLSDevPack\"
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

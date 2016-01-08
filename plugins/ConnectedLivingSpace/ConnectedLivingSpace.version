@@ -1,0 +1,16 @@
+{
+  "NAME": "Connected Living Space",
+  "URL":"http://ksp-avc.cybutek.net/version.php?id=158",
+  "DOWNLOAD":"http://kerbalstuff.com/mod/11/Connected_Living_Space",
+  "VERSION": {
+    "MAJOR": 1,
+    "MINOR": 2,
+    "PATCH": 0,
+	  "BUILD": 1
+  },
+  "KSP_VERSION": {
+    "MAJOR": 1,
+    "MINOR": 0,
+    "PATCH": 5
+  }
+}
