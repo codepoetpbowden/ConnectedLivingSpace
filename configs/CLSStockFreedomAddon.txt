@@ -1,0 +1,81 @@
+@PART[probeStackLarge]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[asasmodule1-2]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[decoupler1-2]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[stackDecoupler]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[stackSeparatorBig]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[stackSeparator]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[adapterLargeSmallTri]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[adapterLargeSmallBi]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[adapterLargeSmallQuad]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
