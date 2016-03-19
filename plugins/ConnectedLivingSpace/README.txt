@@ -16,6 +16,12 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.2.0.2
+* New:  Added Changes to configurations based on conversations in forums and a Pull Requests by Technologicat, khr15714n &  Kerbas-ad-astra.
+* Fixed:  Issue with CLS aborted crew swaps.  Sometimes a kerbal ends up missing (bad.)
+* Fixed:  Correct build deploy automation to project (missing icons for blizzy). 
+* Fixed:  CLS tweakables incorrectly visible when custom passability is disabled.
+
 release v1.2.0.1
 * Add build deploy automation to project. 
 * Correct deploy error resulting in incorrect dll build being released.
