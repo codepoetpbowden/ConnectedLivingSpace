@@ -1,4 +1,4 @@
-Connected Living Space v1.2.0.1
+Connected Living Space v1.2.0.2
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -18,7 +18,6 @@ changelog:
 ----------
 release v1.2.0.2
 * New:  Added Changes to configurations based on conversations in forums and a Pull Requests by Technologicat, khr15714n &  Kerbas-ad-astra.
-* Fixed:  Issue with CLS aborted crew swaps.  Sometimes a kerbal ends up missing (bad.)
 * Fixed:  Correct build deploy automation to project (missing icons for blizzy). 
 * Fixed:  CLS tweakables incorrectly visible when custom passability is disabled.
 
