@@ -12,7 +12,7 @@ namespace ConnectedLivingSpace
     internal CLSPart clsPart; // reference back to the CLS Part that refers to the part that this is a module on. Tghis value might well be null, but the CLSPart will attempt to set it when the CLS part is created.
 
     [KSPField(isPersistant = true)]
-    public bool passable = false;
+    public bool passable;
     [KSPField(isPersistant = true)]
     public bool passableWhenSurfaceAttached = false;
     [KSPField(isPersistant = true)]
@@ -94,6 +94,15 @@ namespace ConnectedLivingSpace
 
     private void SetEventState()
     {
+      Events["EnablePassable"].guiActiveEditor = 
+      Events["DisablePassable"].guiActiveEditor = 
+      Events["EnableSurfaceAttachable"].guiActiveEditor = 
+      Events["DisableSurfaceAttachable"].guiActiveEditor = 
+      Events["EnableAttachableSurface"].guiActiveEditor = 
+      Events["DisableAttachableSurface"].guiActiveEditor = CLSAddon.enablePassable;
+
+      if (!CLSAddon.enablePassable) return;
+
       if (this.passable)
       {
         Events["EnablePassable"].active = false;
@@ -136,24 +145,24 @@ namespace ConnectedLivingSpace
       return null;
     }
 
-    // Method to provide extra infomation about the part on response to the RMB
+    // Method to provide extra infomation about the part on response to the RMBof the part gallery
     public override string GetInfo()
     {
-      String returnValue = String.Empty;
-      if (this.passable)
+      var returnValue = string.Empty;
+      if (passable)
       {
         returnValue += "Passable:  Yes";
-        returnValue += "\r\nCrewable:  " + (this.part.CrewCapacity > 0 ? "Yes" : "No");
-        returnValue += "\r\nImpassable Nodes:  " + (this.impassablenodes != "" ? this.impassablenodes : (this.passable ? "None" : "All"));
-        returnValue += "\r\nPassable Nodes:  " + (this.passablenodes != "" ? this.passablenodes : (this.passable ? "All" : "None"));
-        returnValue += "\r\nPass when Surface Attached:  " + (this.passableWhenSurfaceAttached ? "Yes" : "No");
-        returnValue += "\r\nSurface Attached Parts Pass:  " + (this.surfaceAttachmentsPassable ? "Yes" : "No");
+        returnValue += "\r\nCrewable:  " + (part.CrewCapacity > 0 ? "Yes" : "No");
+        returnValue += "\r\nImpassable Nodes:  " + (impassablenodes != "" ? impassablenodes : (passable ? "None" : "All"));
+        returnValue += "\r\nPassable Nodes:  " + (passablenodes != "" ? passablenodes : (passable ? "All" : "None"));
+        returnValue += "\r\nPass when Surface Attached:  " + (passableWhenSurfaceAttached ? "Yes" : "No");
+        returnValue += "\r\nSurface Attached Parts Pass:  " + (surfaceAttachmentsPassable ? "Yes" : "No");
       }
       else
       {
         returnValue += "Passable:  No";
-        if (this.passablenodes != "")
-          returnValue += "\r\nPassable Nodes:  " + this.passablenodes;
+        if (passablenodes != "")
+          returnValue += "\r\nPassable Nodes:  " + passablenodes;
       }
       return returnValue;
     }

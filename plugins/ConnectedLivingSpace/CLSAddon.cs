@@ -15,9 +15,9 @@ namespace ConnectedLivingSpace
     private static Rect windowPosition = new Rect(0, 0, 360, 480);
     private static Rect windowOptionsPosition = new Rect(0, 0, 0, 0);
     private static GUIStyle windowStyle = null;
-    private static bool allowUnrestrictedTransfers = false;
-    private static bool enableBlizzyToolbar = false;
-    private static bool enablePassable = false;
+    public static bool allowUnrestrictedTransfers = false;
+    public static bool enableBlizzyToolbar = false;
+    public static bool enablePassable = false;
     private static bool prevEnableBlizzyToolbar = false;
     private static readonly string SETTINGS_FILE = KSPUtil.ApplicationRootPath + "GameData/cls_settings.dat";
     private ConfigNode settings = null;
