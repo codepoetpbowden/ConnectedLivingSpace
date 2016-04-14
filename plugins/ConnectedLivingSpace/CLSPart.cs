@@ -41,17 +41,15 @@ namespace ConnectedLivingSpace
         else
         {
           // Do not bother logging warnings about EVAs not being configured for CLS!
-          if (this.part.Modules.OfType<KerbalEVA>().Count() == 0)
+          if (this.part.Modules.OfType<KerbalEVA>().Count() != 0) return;
+          // This part does not have a CLSModule. If it is habitable or navigable then it will not be possible to persist the name of the space in the savefile. Log a warning.
+          if (this.habitable)
           {
-            // This part does not have a CLSModule. If it is habitable or navigable then it will not be possible to persist the name of the space in the savefile. Log a warning.
-            if (this.habitable)
-            {
-              Debug.LogWarning("Part " + this.part.partInfo.title + " is habitable but does not have ModuleConnectedLivingSpace defined in the config. It would be better if it did as some infomation used by CLS will not be saved in the savefile.");
-            }
-            else if (this.navigable)
-            {
-              Debug.LogWarning("Part " + this.part.partInfo.title + " is passable but does not have ModuleConnectedLivingSpace defined in the config. It would be better if it did as some infomation used by CLS will not be saved in the savefile.");
-            }
+            Debug.LogWarning("Part " + this.part.partInfo.title + " is habitable but does not have ModuleConnectedLivingSpace defined in the config. It would be better if it did as some infomation used by CLS will not be saved in the savefile.");
+          }
+          else if (this.navigable)
+          {
+            Debug.LogWarning("Part " + this.part.partInfo.title + " is passable but does not have ModuleConnectedLivingSpace defined in the config. It would be better if it did as some infomation used by CLS will not be saved in the savefile.");
           }
         }
       }

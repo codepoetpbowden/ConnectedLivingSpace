@@ -32,11 +32,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\KSPAssemblies\Managed\1.0.4\Assembly-CSharp.dll</HintPath>
+    <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\KSPAssemblies\Managed\1.1\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\..\KSPAssemblies\Managed\1.0.4\Assembly-CSharp-firstpass.dll</HintPath>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\KSPAssemblies\Managed\1.1\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="KSPUtil">
+      <HintPath>..\..\..\KSPAssemblies\Managed\1.1\KSPUtil.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -44,8 +49,12 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\..\KSPAssemblies\Managed\1.0.4\UnityEngine.dll</HintPath>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\KSPAssemblies\Managed\1.1\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\..\KSPAssemblies\Managed\1.1\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +102,8 @@ echo Copying $(Targetname) files to test env...
 copy /Y "$(TargetPath)" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
 copy /Y "$(TargetDir)$(Targetname).pdb" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
 copy /Y "$(TargetDir)CLSInterfaces.dll" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
+copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\configs\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\Config\"
+copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\assets\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\assets\"
 
 echo distributing $(Targetname) files...
 copy /Y "$(TargetPath)" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"

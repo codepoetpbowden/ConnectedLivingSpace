@@ -118,11 +118,11 @@ namespace ConnectedLivingSpace
 
     public override void OnLoad(ConfigNode node)
     {
-      //Debug.Log("ModuleDockingHatch::OnLoad");
-      //Debug.Log("this.docNodeAttachmentNodeName: " + this.docNodeAttachmentNodeName);
-      //Debug.Log("this.docNodeTransformName: " + this.docNodeTransformName);
-      //Debug.Log("node.GetValue(docNodeTransformName): " + node.GetValue("docNodeTransformName"));
-      //Debug.Log("node.GetValue(docNodeAttachmentNodeName): " + node.GetValue("docNodeAttachmentNodeName"));
+      //Debug.Log("[CLS]:  ModuleDockingHatch::OnLoad");
+      //Debug.Log("[CLS]:  this.docNodeAttachmentNodeName: " + this.docNodeAttachmentNodeName);
+      //Debug.Log("[CLS]:  this.docNodeTransformName: " + this.docNodeTransformName);
+      //Debug.Log("[CLS]:  node.GetValue(docNodeTransformName): " + node.GetValue("docNodeTransformName"));
+      //Debug.Log("[CLS]:  node.GetValue(docNodeAttachmentNodeName): " + node.GetValue("docNodeAttachmentNodeName"));
 
       // The Loader with have set hatchOpen, but not via the Property HatchOpen, so we need to re-do it to ensure that hatchStatus gets properly set.
       this.HatchOpen = this.hatchOpen;
@@ -186,7 +186,7 @@ namespace ConnectedLivingSpace
               // We are not docked or attached to a docking port - close up the hatch if it is open!
               if (this.HatchOpen)
               {
-                Debug.Log("Closing a hatch because its corresponding docking port is in state: " + this.modDockNode.state);
+                Debug.Log("[CLS]:  Closing a hatch because its corresponding docking port is in state: " + this.modDockNode.state);
 
                 this.HatchOpen = false;
                 this.Events["CloseHatch"].active = false;

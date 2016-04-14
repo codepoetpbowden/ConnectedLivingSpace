@@ -81,7 +81,7 @@ namespace ConnectedLivingSpace
       CLSSpace thisSpace = null;
       CLSPart newPart = new CLSPart(p);
 
-      //Debug.Log("Processing part: " + p.name + " Navigable:"+newPart.Navigable + " Habitable:" + newPart.Habitable);
+      //Debug.Log("[CLS]:  Processing part: " + p.name + " Navigable:"+newPart.Navigable + " Habitable:" + newPart.Habitable);
 
       // First add this part to the list of all parts for the vessel.
       this.listParts.Add(newPart);
@@ -113,13 +113,13 @@ namespace ConnectedLivingSpace
         CLSSpace spaceForChild = thisSpace;
 
         // TODO removed debugging
-        //Debug.Log("Considering the connection between " + p.partInfo.title + "(" + p.uid + ") and " + child.partInfo.title + "(" + child.uid + ")");
+        //Debug.Log("[CLS]:  Considering the connection between " + p.partInfo.title + "(" + p.uid + ") and " + child.partInfo.title + "(" + child.uid + ")");
         // Is the attachment on "this" part passable?
         if (null != node)
         {
           // The attachment is in the form of an AttachNode - use it to work out if the attachment is passable.
           attachmentIsPassable = IsNodeNavigable(node, p);
-          //Debug.Log("the attachment on 'this' part is defined by attachment node " + node.id + " and had been given passable=" + attachmentIsPassable);
+          //Debug.Log("[CLS]:  the attachment on 'this' part is defined by attachment node " + node.id + " and had been given passable=" + attachmentIsPassable);
         }
         else
         {
@@ -128,19 +128,19 @@ namespace ConnectedLivingSpace
 
           if (true == dockingConnection)
           {
-            //Debug.Log("The two parts are considered to be docked together.");
+            //Debug.Log("[CLS]:  The two parts are considered to be docked together.");
             // The parts are docked, but we still need to have a think about if the docking port is passable.
             attachmentIsPassable = IsDockedDockingPortPassable(p, child);
-            //Debug.Log("the docked attachment on 'this' part has been given passable=" + attachmentIsPassable);
+            //Debug.Log("[CLS]:  the docked attachment on 'this' part has been given passable=" + attachmentIsPassable);
           }
           else
           {
-            //Debug.Log("The two parts are NOT considered to be docked together - concluding that this part is suface attached");
+            //Debug.Log("[CLS]:  The two parts are NOT considered to be docked together - concluding that this part is suface attached");
             // It is not a AttachNode attachment, and it is not a docked connection either. The only other option is that we are dealing with a surface attachment. Does this part allow surfact attachments to be passable?
             if (PartHasPassableSurfaceAttachments(p))
             {
               attachmentIsPassable = true;
-              //Debug.Log("This part is surface attached and is considered to be passable");
+              //Debug.Log("[CLS]:  This part is surface attached and is considered to be passable");
             }
           }
         }
@@ -152,25 +152,25 @@ namespace ConnectedLivingSpace
           {
             // The attachment is in the form of an AttachNode - use it to work out if the attachment is passable.
             childAttachmentIsPassable = IsNodeNavigable(childNode, child);
-            //Debug.Log("the attachment on the child part is defined by attachment node " + childNode.id + " and had been given passable=" + attachmentIsPassable);
+            //Debug.Log("[CLS]:  the attachment on the child part is defined by attachment node " + childNode.id + " and had been given passable=" + attachmentIsPassable);
           }
           else
           {
             if (true == dockingConnection)
             {
-              //Debug.Log("The two parts are considered to be docked together.");
+              //Debug.Log("[CLS]:  The two parts are considered to be docked together.");
               // The parts are docked, but we still need to have a think about if the docking port is passable.
               childAttachmentIsPassable = IsDockedDockingPortPassable(child, p);
-              //Debug.Log("the docked attachment on the child part has been given passable=" + attachmentIsPassable);
+              //Debug.Log("[CLS]:  the docked attachment on the child part has been given passable=" + attachmentIsPassable);
             }
             else
             {
-              //Debug.Log("The two parts are NOT considered to be docked together - concluding that the child part is suface attached");
+              //Debug.Log("[CLS]:  The two parts are NOT considered to be docked together - concluding that the child part is suface attached");
               // It is not a AttachNode attachment, and it is not a docked connection either. The only other option is that we are dealing with a surface attachment. Does this part allow surfact attachments to be passable?
               if (PartHasPassableSurfaceAttachments(child))
               {
                 childAttachmentIsPassable = true;
-                //Debug.Log("The child part is surface attached and is considered to be passable");
+                //Debug.Log("[CLS]:  The child part is surface attached and is considered to be passable");
               }
             }
           }
@@ -180,13 +180,13 @@ namespace ConnectedLivingSpace
         if (attachmentIsPassable && childAttachmentIsPassable)
         {
           // It is possible to pass between this part and the child part - so the child needs to be in the same space as this part.
-          //Debug.Log("The connection between 'this' part and the child part s passable in both directions, so the child part will be added to the same space as this part.");
+          //Debug.Log("[CLS]:  The connection between 'this' part and the child part s passable in both directions, so the child part will be added to the same space as this part.");
           spaceForChild = thisSpace;
         }
         else
         {
           // it is not possible to get into the child part from this part - it will need to be in a new space.
-          //Debug.Log("The connection between 'this' part and the child part is NOT passable in both directions, so the child part will be added to a new space.");
+          //Debug.Log("[CLS]:  The connection between 'this' part and the child part is NOT passable in both directions, so the child part will be added to a new space.");
           spaceForChild = null;
         }
 
@@ -253,7 +253,7 @@ namespace ConnectedLivingSpace
       ModuleConnectedLivingSpace clsModThis = (ModuleConnectedLivingSpace)thisPart;
       if (null == clsModThis)
       {
-        //Debug.Log("Part " + thisPart.partInfo.title + "(" + thisPart.uid + ") does not seem to support CLS. Setting it as impassable.");
+        //Debug.Log("[CLS]:  Part " + thisPart.partInfo.title + "(" + thisPart.uid + ") does not seem to support CLS. Setting it as impassable.");
         return false;
       }
       else
@@ -268,12 +268,12 @@ namespace ConnectedLivingSpace
         if (CheckForNodeDockedToPart(docNode, otherPart))
         {
           // We have found the ModuleDockingNode that represents the docking connection on this part.
-          //Debug.Log("Found docking node that represents the docking connection to the 'other' part");
+          //Debug.Log("[CLS]:  Found docking node that represents the docking connection to the 'other' part");
 
           // First consider if this docked connection has an accompanying AttachNode may be defined as (im)passable by CLS. 
           if (docNode.referenceAttachNode != string.Empty)
           {
-            //Debug.Log("docking node uses a referenceAttachNode called: " + docNode.referenceAttachNode + " In the meantime, passablenodes: " + clsModThis.passablenodes + " impassablenodes: " + clsModThis.impassablenodes);
+            //Debug.Log("[CLS]:  docking node uses a referenceAttachNode called: " + docNode.referenceAttachNode + " In the meantime, passablenodes: " + clsModThis.passablenodes + " impassablenodes: " + clsModThis.impassablenodes);
             if (clsModThis.passablenodes.Contains(docNode.referenceAttachNode))
             {
               retVal = true;
@@ -287,7 +287,7 @@ namespace ConnectedLivingSpace
           // Second, if there is no AttachNode, what about the type / size of the docking port
           else
           {
-            //Debug.Log("docking node does not use referenceAttachNode, instead considering the nodeType: " + docNode.nodeType + " In the meantime, impassableDockingNodeTypes:" + clsModThis.impassableDockingNodeTypes + " passableDockingNodeTypes:" + clsModThis.passableDockingNodeTypes);
+            //Debug.Log("[CLS]:  docking node does not use referenceAttachNode, instead considering the nodeType: " + docNode.nodeType + " In the meantime, impassableDockingNodeTypes:" + clsModThis.impassableDockingNodeTypes + " passableDockingNodeTypes:" + clsModThis.passableDockingNodeTypes);
             if (clsModThis.impassableDockingNodeTypes.Contains(docNode.nodeType))
             {
               retVal = false; // Docking node is of an impassable type.
@@ -306,7 +306,7 @@ namespace ConnectedLivingSpace
               // The dockingNode is actually a DockingNodeHatch :)
               if (!docHatch.HatchOpen)
               {
-                //Debug.Log("DockingNodeHatch is closed and so can not be passed through");
+                //Debug.Log("[CLS]:  DockingNodeHatch is closed and so can not be passed through");
                 retVal = false; // Hatch in the docking node is closed, so it is impassable
               }
             }
@@ -314,7 +314,7 @@ namespace ConnectedLivingSpace
           break;
         }
       }
-      //Debug.Log("returning " + retVal);
+      //Debug.Log("[CLS]:  returning " + retVal);
       return retVal;
     }
 
@@ -335,20 +335,20 @@ namespace ConnectedLivingSpace
       bool retVal = false;
 
       // TODO remove debugging
-      //Debug.Log("thisNode.dockedPartUId=" + thisNode.dockedPartUId + " otherPart.flightID=" + otherPart.flightID + " thisNode.state:" + thisNode.state);
+      //Debug.Log("[CLS]:  thisNode.dockedPartUId=" + thisNode.dockedPartUId + " otherPart.flightID=" + otherPart.flightID + " thisNode.state:" + thisNode.state);
 
       // if (otherPart == thisNode.part.vessel[thisNode.dockedPartUId])
       if (thisNode.dockedPartUId == otherPart.flightID)
       {
-        //Debug.Log("IDs match");
+        //Debug.Log("[CLS]:  IDs match");
         if (thisNode.state == "Docked (dockee)")
         {
-          //Debug.Log("this module is docked (dockee) to the other part");
+          //Debug.Log("[CLS]:  this module is docked (dockee) to the other part");
           retVal = true;
         }
         else if (thisNode.state == "Docked (docker)")
         {
-          //Debug.Log("this module is docked (docker) to the other part");
+          //Debug.Log("[CLS]:  this module is docked (docker) to the other part");
           retVal = true;
         }
         else if (thisNode.state == "Acquire")
@@ -404,7 +404,7 @@ namespace ConnectedLivingSpace
 
       if (node.nodeType == AttachNode.NodeType.Surface)
       {
-        //Debug.Log("node is a surface attachment node. Considering if the part is configured to allow passing when it is surface attached. - " + passableWhenSurfaceAttached);
+        //Debug.Log("[CLS]:  node is a surface attachment node. Considering if the part is configured to allow passing when it is surface attached. - " + passableWhenSurfaceAttached);
         retVal = passableWhenSurfaceAttached;
       }
       else
@@ -442,7 +442,7 @@ namespace ConnectedLivingSpace
 
     CLSSpace AddPartToSpace(CLSPart p, CLSSpace space)
     {
-      //Debug.Log("AddPartToSpace " + ((Part)p).name);
+      //Debug.Log("[CLS]:  AddPartToSpace " + ((Part)p).name);
 
       if (null != space)
       {
