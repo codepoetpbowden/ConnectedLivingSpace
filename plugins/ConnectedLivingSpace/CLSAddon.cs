@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using KSP.UI.Screens;
 using UnityEngine;
 
 namespace ConnectedLivingSpace
@@ -1075,7 +1076,7 @@ namespace ConnectedLivingSpace
           data.from.AddCrewmember(data.host);
 
           var message = new ScreenMessage(string.Empty, 15f, ScreenMessageStyle.UPPER_CENTER);
-          ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", data.host.name, data.to.partInfo.title), message, true);
+          ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", 15f, ScreenMessageStyle.UPPER_CENTER));
 
           // Now try to remove the sucessful transfer message
           // that stock displayed. 
@@ -1083,11 +1084,13 @@ namespace ConnectedLivingSpace
 
           if (messages != null)
           {
-            var messagesToRemove = messages.activeMessages.Where(x => x.startTime == message.startTime && x.style == ScreenMessageStyle.LOWER_CENTER).ToList();
-            foreach (var m in messagesToRemove)
-            {
+            var smessagesToRemove =
+              messages.ActiveMessages.Where(
+                x =>
+                  Math.Abs(x.startTime - message.startTime) < .00001 &&
+                  x.style == ScreenMessageStyle.LOWER_CENTER).ToList();
+            foreach (var m in smessagesToRemove)
               ScreenMessages.RemoveMessage(m);
-            }
           }
         }
 
