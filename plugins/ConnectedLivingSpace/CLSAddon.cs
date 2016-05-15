@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Reflection;
 using KSP.UI.Screens;
 using UnityEngine;
@@ -22,7 +20,7 @@ namespace ConnectedLivingSpace
     private static bool prevEnableBlizzyToolbar = false;
     private static readonly string SETTINGS_FILE = KSPUtil.ApplicationRootPath + "GameData/cls_settings.dat";
     private ConfigNode settings = null;
-    private bool visable = false;
+    private static bool windowVisable = false;
     private bool optionsVisible = false;
 
     private Vector2 scrollViewer = Vector2.zero;
@@ -98,22 +96,11 @@ namespace ConnectedLivingSpace
 
       windowStyle = new GUIStyle(HighLogic.Skin.window);
 
-      try
-      {
-        RenderingManager.RemoveFromPostDrawQueue(0, OnDraw);
-      }
-      catch
-      {
-        // This is generally not a problem - do not log it.
-        // Debug.LogException(ex);
-      }
-
       // load toolbar selection setting
       ApplySettings();
 
       if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
       {
-        RenderingManager.AddToPostDrawQueue(0, OnDraw);
         GameEvents.onPartAttach.Add(OnPartAttach);
         GameEvents.onPartCouple.Add(OnPartCouple);
         GameEvents.onPartDie.Add(OnPartDie);
@@ -133,10 +120,10 @@ namespace ConnectedLivingSpace
         GameEvents.onCrewTransferred.Add(CrewTransfered);
 
 
-        //KSP 1.0 has an issue with GameEvents.onGUIAppLauncherReady.  It does not fire as expected.  This code line accounts for it.
-        // Reference:  http://forum.kerbalspaceprogram.com/threads/86682-Appilcation-Launcher-and-Mods?p=1871124&viewfull=1#post1871124
-        if (!enableBlizzyToolbar && ApplicationLauncher.Ready)
-          OnGUIAppLauncherReady();
+        ////KSP 1.0 has an issue with GameEvents.onGUIAppLauncherReady.  It does not fire as expected.  This code line accounts for it.
+        //// Reference:  http://forum.kerbalspaceprogram.com/threads/86682-Appilcation-Launcher-and-Mods?p=1871124&viewfull=1#post1871124
+        //if (!enableBlizzyToolbar && ApplicationLauncher.Ready)
+        //  OnGUIAppLauncherReady();
       }
 
       // Add the CLSModule to all parts that can house crew (and do not already have it).
@@ -265,7 +252,7 @@ namespace ConnectedLivingSpace
       }
       stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
 
-      this.visable = false;
+      windowVisable = false;
     }
 
     void DummyVoid() { }
@@ -310,20 +297,20 @@ namespace ConnectedLivingSpace
     internal void OnCLSButtonToggle()
     {
       //Debug.Log("CLSAddon::OnCLSButtonToggle");
-      this.visable = !this.visable;
+      windowVisable = !windowVisable;
 
-      if (!this.visable && null != this.vessel)
+      if (!windowVisable && null != vessel)
         vessel.Highlight(false);
 
       if (enableBlizzyToolbar)
-        blizzyToolbarButton.TexturePath = this.visable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
+        blizzyToolbarButton.TexturePath = windowVisable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
       else
-        stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture(this.visable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
+        stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture(windowVisable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
     }
 
-    private void OnDraw()
+    private void OnGUI()
     {
-      if (this.visable)
+      if (windowVisable)
       {
         //Set the GUI Skin
         //GUI.skin = HighLogic.Skin;
