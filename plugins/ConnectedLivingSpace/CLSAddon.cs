@@ -1034,21 +1034,16 @@ namespace ConnectedLivingSpace
     {
       try
       {
-        if (allowUnrestrictedTransfers)
-        {
-          // If transfers are not restricted then we have got nothing to do here.
-          return;
-        }
+        // If transfers are not restricted then we have got nothing to do here.
+        if (allowUnrestrictedTransfers) return;
 
+        // "Transfers" to/from EVA are always permitted.
+        // Trying to step them results in really bad things happening, and would be out of
+        // scope for this plugin anyway.
         if (data.from.Modules.Cast<PartModule>().Any(x => x is KerbalEVA) ||
-            data.to.Modules.Cast<PartModule>().Any(x => x is KerbalEVA))
-        {
-          // "Transfers" to/from EVA are always permitted.
-          // Trying to step them results in really bad things happening, and would be out of
-          // scope for this plugin anyway.
-          return;
-        }
+            data.to.Modules.Cast<PartModule>().Any(x => x is KerbalEVA)) return;
 
+        // Ok, override is active, so let's remove the old message and revert the move.
         if (null == Instance.Vessel)
         {
           Instance.RebuildCLSVessel();
@@ -1061,26 +1056,10 @@ namespace ConnectedLivingSpace
         {
           data.to.RemoveCrewmember(data.host);
           data.from.AddCrewmember(data.host);
-
-          var message = new ScreenMessage(string.Empty, 15f, ScreenMessageStyle.UPPER_CENTER);
-          ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", 15f, ScreenMessageStyle.UPPER_CENTER));
-
-          // Now try to remove the sucessful transfer message
-          // that stock displayed. 
-          var messages = FindObjectOfType<ScreenMessages>();
-
-          if (messages != null)
-          {
-            var smessagesToRemove =
-              messages.ActiveMessages.Where(
-                x =>
-                  Math.Abs(x.startTime - message.startTime) < .00001 &&
-                  x.style == ScreenMessageStyle.LOWER_CENTER).ToList();
-            foreach (var m in smessagesToRemove)
-              ScreenMessages.RemoveMessage(m);
-          }
+          string oldMessage = string.Format("<color=orange>{0} moved to {1}.</color>", data.host.name, clsTo.Part.partInfo.title);
+          DeleteScreenMessages("oldMessage", "UC");
+          ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", data.host.name, clsTo.Part.partInfo.title));
         }
-
 
         // Whatever happened it seems like a good idea to rebuild the CLS data as the kerbals may now in different places.
         Instance.RebuildCLSVessel();
@@ -1201,6 +1180,56 @@ namespace ConnectedLivingSpace
         windowPosition.x = Screen.currentResolution.width - windowPosition.width;
       if (windowPosition.yMax > Screen.currentResolution.height)
         windowPosition.y = Screen.currentResolution.height - windowPosition.height;
+    }
+    /// <summary>
+    ///Will delete Screen Messages. If you pass in messagetext it will only delete messages that contain that text string.
+    ///If you pass in a messagearea it will only delete messages in that area. Values are: UC,UL,UR,LC,ALL
+    /// </summary>
+    /// <param name="messagetext">Specify a string that is part of a message that you want to remove, or pass in empty string to delete all messages</param>
+    /// <param name="messagearea">Specify a string representing the message area of the screen that you want messages removed from, 
+    /// or pass in "ALL" string to delete from all message areas. 
+    /// messagearea accepts the values of "UC" - UpperCenter, "UL" - UpperLeft, "UR" - UpperRight, "LC" - LowerCenter, "ALL" - All Message Areas</param>
+    internal static void DeleteScreenMessages(string messagetext, string messagearea)
+    {
+      //Get the ScreenMessages Instance
+      var messages = ScreenMessages.Instance;
+      List<ScreenMessagesText> messagetexts = new List<ScreenMessagesText>();
+      //Get the message Area messages based on the value of messagearea parameter.
+      switch (messagearea)
+      {
+        case "UC":
+          messagetexts = messages.upperCenter.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "UL":
+          messagetexts = messages.upperLeft.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "UR":
+          messagetexts = messages.upperRight.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "LC":
+          messagetexts = messages.lowerCenter.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "ALL":
+          messagetexts = messages.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+      }
+      //Loop through all the mesages we found.
+      var list = messagetexts.GetEnumerator();
+      while  (list.MoveNext())
+      {
+        //If the user specified text to search for only delete messages that contain that text.
+        if (messagetext != "")
+        {
+          if (list.Current != null && list.Current.text.text.Contains(messagetext))
+          {
+            UnityEngine.Object.Destroy(list.Current.gameObject);
+          }
+        }
+        else  //If the user did not specific a message text to search for we DELETE ALL messages!!
+        {
+          UnityEngine.Object.Destroy(list.Current.gameObject);
+        }
+      }
     }
     #endregion Support/action methods
   }
