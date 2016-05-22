@@ -117,7 +117,7 @@ namespace ConnectedLivingSpace
         GameEvents.onVesselTerminated.Add(OnVesselTerminated);
         GameEvents.onFlightReady.Add(OnFlightReady);
 
-        GameEvents.onCrewTransferred.Add(CrewTransfered);
+        GameEvents.onCrewTransferred.Add(OnCrewTransfered);
 
 
         ////KSP 1.0 has an issue with GameEvents.onGUIAppLauncherReady.  It does not fire as expected.  This code line accounts for it.
@@ -219,7 +219,7 @@ namespace ConnectedLivingSpace
         ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
       }
 
-      GameEvents.onCrewTransferred.Remove(CrewTransfered);
+      GameEvents.onCrewTransferred.Remove(OnCrewTransfered);
     }
 
     void OnGUIAppLauncherReady()
@@ -466,20 +466,22 @@ namespace ConnectedLivingSpace
         {
           try
           {
-            foreach (CLSSpace space in vessel.Spaces)
+            var spaces = vessel.Spaces.GetEnumerator();
+            while (spaces.MoveNext())
             {
-              foreach (CLSPart p in space.Parts)
+              var parts = spaces.Current.Parts.GetEnumerator();
+              while (parts.MoveNext())
               {
-                Part part = (Part)p;
+                Part part = parts.Current.Part;
                 if (flightID != part.flightID)
                 {
                   flightID = part.flightID;
                   //Debug.Log("Part : "+ part.flightID + " found." ) ;
                 }
-                if (p.highlighted)
+                if (((CLSPart)parts.Current).highlighted)
                 {
-                  listHighlightedParts.Add(p);
-                  p.Highlight(false);
+                  listHighlightedParts.Add((CLSPart)parts.Current);
+                  ((CLSPart)parts.Current).Highlight(false);
                 }
               }
             }
@@ -531,20 +533,21 @@ namespace ConnectedLivingSpace
         if (null != this.vessel)
         {
 
-          String[] spaceNames = new String[vessel.Spaces.Count];
+          string[] spaceNames = new string[vessel.Spaces.Count];
           int counter = 0;
           int newSelectedSpace = -1;
 
-          String partsList = "";
-          foreach (CLSSpace space in vessel.Spaces)
+          string partsList = "";
+          var spaces = vessel.Spaces.GetEnumerator();
+          while (spaces.MoveNext())
           {
-            if (space.Name == "")
+            if (spaces.Current.Name == "")
             {
               spaceNames[counter] = "Living Space " + (counter + 1).ToString();
             }
             else
             {
-              spaceNames[counter] = space.Name;
+              spaceNames[counter] = spaces.Current.Name;
             }
             counter++;
           }
@@ -577,10 +580,10 @@ namespace ConnectedLivingSpace
             }
 
             // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
-            foreach (CLSPart p in vessel.Spaces[this.WindowSelectedSpace].Parts)
+            var parts = vessel.Spaces[this.WindowSelectedSpace].Parts.GetEnumerator();
+            while (parts.MoveNext())
             {
-              Part part = (Part)p;
-              partsList += part.partInfo.title + "\n";
+              partsList += (parts.Current.Part).partInfo.title + "\n";
             }
 
             // Display the text box that allows the space name to be changed
@@ -602,9 +605,10 @@ namespace ConnectedLivingSpace
             // And list the crew names
             String crewList = "Crew Info:\n";
 
-            foreach (CLSKerbal crewMember in vessel.Spaces[this.WindowSelectedSpace].Crew)
+            var crewmembers = vessel.Spaces[this.WindowSelectedSpace].Crew.GetEnumerator();
+            while (crewmembers.MoveNext())
             {
-              crewList += ((ProtoCrewMember)crewMember).name + "\n";
+              crewList += (crewmembers.Current.Kerbal).name + "\n";
             }
             GUILayout.Label(crewList);
 
@@ -1030,7 +1034,7 @@ namespace ConnectedLivingSpace
     }
 
     // Method to optionally abort an attempt to use the stock crew transfer mechanism
-    private void CrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
+    private void OnCrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
     {
       try
       {
@@ -1043,7 +1047,6 @@ namespace ConnectedLivingSpace
         if (data.from.Modules.Cast<PartModule>().Any(x => x is KerbalEVA) ||
             data.to.Modules.Cast<PartModule>().Any(x => x is KerbalEVA)) return;
 
-        // Ok, override is active, so let's remove the old message and revert the move.
         if (null == Instance.Vessel)
         {
           Instance.RebuildCLSVessel();
@@ -1054,11 +1057,14 @@ namespace ConnectedLivingSpace
 
         if (clsFrom == null || clsTo == null || clsFrom.Space != clsTo.Space)
         {
+          // Ok, override is active, so let's remove the old message and revert the move.
+          string oldMessage = string.Format("{0} moved to {1}", data.host.name, clsTo.Part.partInfo.title);
+          DeleteScreenMessages(oldMessage, "UC");
+
           data.to.RemoveCrewmember(data.host);
           data.from.AddCrewmember(data.host);
-          string oldMessage = string.Format("<color=orange>{0} moved to {1}.</color>", data.host.name, clsTo.Part.partInfo.title);
-          DeleteScreenMessages("oldMessage", "UC");
-          ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", data.host.name, clsTo.Part.partInfo.title));
+
+          ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", data.host.name, clsTo.Part.partInfo.title),10f);
         }
 
         // Whatever happened it seems like a good idea to rebuild the CLS data as the kerbals may now in different places.
