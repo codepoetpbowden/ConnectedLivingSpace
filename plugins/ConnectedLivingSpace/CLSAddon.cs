@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Reflection;
+using KSP.UI.Screens;
 using UnityEngine;
 
 namespace ConnectedLivingSpace
@@ -21,7 +20,7 @@ namespace ConnectedLivingSpace
     private static bool prevEnableBlizzyToolbar = false;
     private static readonly string SETTINGS_FILE = KSPUtil.ApplicationRootPath + "GameData/cls_settings.dat";
     private ConfigNode settings = null;
-    private bool visable = false;
+    private static bool windowVisable = false;
     private bool optionsVisible = false;
 
     private Vector2 scrollViewer = Vector2.zero;
@@ -97,22 +96,11 @@ namespace ConnectedLivingSpace
 
       windowStyle = new GUIStyle(HighLogic.Skin.window);
 
-      try
-      {
-        RenderingManager.RemoveFromPostDrawQueue(0, OnDraw);
-      }
-      catch
-      {
-        // This is generally not a problem - do not log it.
-        // Debug.LogException(ex);
-      }
-
       // load toolbar selection setting
       ApplySettings();
 
       if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
       {
-        RenderingManager.AddToPostDrawQueue(0, OnDraw);
         GameEvents.onPartAttach.Add(OnPartAttach);
         GameEvents.onPartCouple.Add(OnPartCouple);
         GameEvents.onPartDie.Add(OnPartDie);
@@ -129,13 +117,13 @@ namespace ConnectedLivingSpace
         GameEvents.onVesselTerminated.Add(OnVesselTerminated);
         GameEvents.onFlightReady.Add(OnFlightReady);
 
-        GameEvents.onCrewTransferred.Add(CrewTransfered);
+        GameEvents.onCrewTransferred.Add(OnCrewTransfered);
 
 
-        //KSP 1.0 has an issue with GameEvents.onGUIAppLauncherReady.  It does not fire as expected.  This code line accounts for it.
-        // Reference:  http://forum.kerbalspaceprogram.com/threads/86682-Appilcation-Launcher-and-Mods?p=1871124&viewfull=1#post1871124
-        if (!enableBlizzyToolbar && ApplicationLauncher.Ready)
-          OnGUIAppLauncherReady();
+        ////KSP 1.0 has an issue with GameEvents.onGUIAppLauncherReady.  It does not fire as expected.  This code line accounts for it.
+        //// Reference:  http://forum.kerbalspaceprogram.com/threads/86682-Appilcation-Launcher-and-Mods?p=1871124&viewfull=1#post1871124
+        //if (!enableBlizzyToolbar && ApplicationLauncher.Ready)
+        //  OnGUIAppLauncherReady();
       }
 
       // Add the CLSModule to all parts that can house crew (and do not already have it).
@@ -231,7 +219,7 @@ namespace ConnectedLivingSpace
         ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
       }
 
-      GameEvents.onCrewTransferred.Remove(CrewTransfered);
+      GameEvents.onCrewTransferred.Remove(OnCrewTransfered);
     }
 
     void OnGUIAppLauncherReady()
@@ -264,7 +252,7 @@ namespace ConnectedLivingSpace
       }
       stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
 
-      this.visable = false;
+      windowVisable = false;
     }
 
     void DummyVoid() { }
@@ -309,20 +297,20 @@ namespace ConnectedLivingSpace
     internal void OnCLSButtonToggle()
     {
       //Debug.Log("CLSAddon::OnCLSButtonToggle");
-      this.visable = !this.visable;
+      windowVisable = !windowVisable;
 
-      if (!this.visable && null != this.vessel)
+      if (!windowVisable && null != vessel)
         vessel.Highlight(false);
 
       if (enableBlizzyToolbar)
-        blizzyToolbarButton.TexturePath = this.visable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
+        blizzyToolbarButton.TexturePath = windowVisable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
       else
-        stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture(this.visable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
+        stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture(windowVisable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
     }
 
-    private void OnDraw()
+    private void OnGUI()
     {
-      if (this.visable)
+      if (windowVisable)
       {
         //Set the GUI Skin
         //GUI.skin = HighLogic.Skin;
@@ -478,20 +466,22 @@ namespace ConnectedLivingSpace
         {
           try
           {
-            foreach (CLSSpace space in vessel.Spaces)
+            var spaces = vessel.Spaces.GetEnumerator();
+            while (spaces.MoveNext())
             {
-              foreach (CLSPart p in space.Parts)
+              var parts = spaces.Current.Parts.GetEnumerator();
+              while (parts.MoveNext())
               {
-                Part part = (Part)p;
+                Part part = parts.Current.Part;
                 if (flightID != part.flightID)
                 {
                   flightID = part.flightID;
                   //Debug.Log("Part : "+ part.flightID + " found." ) ;
                 }
-                if (p.highlighted)
+                if (((CLSPart)parts.Current).highlighted)
                 {
-                  listHighlightedParts.Add(p);
-                  p.Highlight(false);
+                  listHighlightedParts.Add((CLSPart)parts.Current);
+                  ((CLSPart)parts.Current).Highlight(false);
                 }
               }
             }
@@ -543,20 +533,21 @@ namespace ConnectedLivingSpace
         if (null != this.vessel)
         {
 
-          String[] spaceNames = new String[vessel.Spaces.Count];
+          string[] spaceNames = new string[vessel.Spaces.Count];
           int counter = 0;
           int newSelectedSpace = -1;
 
-          String partsList = "";
-          foreach (CLSSpace space in vessel.Spaces)
+          string partsList = "";
+          var spaces = vessel.Spaces.GetEnumerator();
+          while (spaces.MoveNext())
           {
-            if (space.Name == "")
+            if (spaces.Current.Name == "")
             {
               spaceNames[counter] = "Living Space " + (counter + 1).ToString();
             }
             else
             {
-              spaceNames[counter] = space.Name;
+              spaceNames[counter] = spaces.Current.Name;
             }
             counter++;
           }
@@ -589,10 +580,10 @@ namespace ConnectedLivingSpace
             }
 
             // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
-            foreach (CLSPart p in vessel.Spaces[this.WindowSelectedSpace].Parts)
+            var parts = vessel.Spaces[this.WindowSelectedSpace].Parts.GetEnumerator();
+            while (parts.MoveNext())
             {
-              Part part = (Part)p;
-              partsList += part.partInfo.title + "\n";
+              partsList += (parts.Current.Part).partInfo.title + "\n";
             }
 
             // Display the text box that allows the space name to be changed
@@ -614,9 +605,10 @@ namespace ConnectedLivingSpace
             // And list the crew names
             String crewList = "Crew Info:\n";
 
-            foreach (CLSKerbal crewMember in vessel.Spaces[this.WindowSelectedSpace].Crew)
+            var crewmembers = vessel.Spaces[this.WindowSelectedSpace].Crew.GetEnumerator();
+            while (crewmembers.MoveNext())
             {
-              crewList += ((ProtoCrewMember)crewMember).name + "\n";
+              crewList += (crewmembers.Current.Kerbal).name + "\n";
             }
             GUILayout.Label(crewList);
 
@@ -1042,24 +1034,18 @@ namespace ConnectedLivingSpace
     }
 
     // Method to optionally abort an attempt to use the stock crew transfer mechanism
-    private void CrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
+    private void OnCrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
     {
       try
       {
-        if (allowUnrestrictedTransfers)
-        {
-          // If transfers are not restricted then we have got nothing to do here.
-          return;
-        }
+        // If transfers are not restricted then we have got nothing to do here.
+        if (allowUnrestrictedTransfers) return;
 
+        // "Transfers" to/from EVA are always permitted.
+        // Trying to step them results in really bad things happening, and would be out of
+        // scope for this plugin anyway.
         if (data.from.Modules.Cast<PartModule>().Any(x => x is KerbalEVA) ||
-            data.to.Modules.Cast<PartModule>().Any(x => x is KerbalEVA))
-        {
-          // "Transfers" to/from EVA are always permitted.
-          // Trying to step them results in really bad things happening, and would be out of
-          // scope for this plugin anyway.
-          return;
-        }
+            data.to.Modules.Cast<PartModule>().Any(x => x is KerbalEVA)) return;
 
         if (null == Instance.Vessel)
         {
@@ -1071,26 +1057,15 @@ namespace ConnectedLivingSpace
 
         if (clsFrom == null || clsTo == null || clsFrom.Space != clsTo.Space)
         {
+          // Ok, override is active, so let's remove the old message and revert the move.
+          string oldMessage = string.Format("{0} moved to {1}", data.host.name, clsTo.Part.partInfo.title);
+          DeleteScreenMessages(oldMessage, "UC");
+
           data.to.RemoveCrewmember(data.host);
           data.from.AddCrewmember(data.host);
 
-          var message = new ScreenMessage(string.Empty, 15f, ScreenMessageStyle.UPPER_CENTER);
-          ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", data.host.name, data.to.partInfo.title), message, true);
-
-          // Now try to remove the sucessful transfer message
-          // that stock displayed. 
-          var messages = FindObjectOfType<ScreenMessages>();
-
-          if (messages != null)
-          {
-            var messagesToRemove = messages.activeMessages.Where(x => x.startTime == message.startTime && x.style == ScreenMessageStyle.LOWER_CENTER).ToList();
-            foreach (var m in messagesToRemove)
-            {
-              ScreenMessages.RemoveMessage(m);
-            }
-          }
+          ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", data.host.name, clsTo.Part.partInfo.title),10f);
         }
-
 
         // Whatever happened it seems like a good idea to rebuild the CLS data as the kerbals may now in different places.
         Instance.RebuildCLSVessel();
@@ -1211,6 +1186,56 @@ namespace ConnectedLivingSpace
         windowPosition.x = Screen.currentResolution.width - windowPosition.width;
       if (windowPosition.yMax > Screen.currentResolution.height)
         windowPosition.y = Screen.currentResolution.height - windowPosition.height;
+    }
+    /// <summary>
+    ///Will delete Screen Messages. If you pass in messagetext it will only delete messages that contain that text string.
+    ///If you pass in a messagearea it will only delete messages in that area. Values are: UC,UL,UR,LC,ALL
+    /// </summary>
+    /// <param name="messagetext">Specify a string that is part of a message that you want to remove, or pass in empty string to delete all messages</param>
+    /// <param name="messagearea">Specify a string representing the message area of the screen that you want messages removed from, 
+    /// or pass in "ALL" string to delete from all message areas. 
+    /// messagearea accepts the values of "UC" - UpperCenter, "UL" - UpperLeft, "UR" - UpperRight, "LC" - LowerCenter, "ALL" - All Message Areas</param>
+    internal static void DeleteScreenMessages(string messagetext, string messagearea)
+    {
+      //Get the ScreenMessages Instance
+      var messages = ScreenMessages.Instance;
+      List<ScreenMessagesText> messagetexts = new List<ScreenMessagesText>();
+      //Get the message Area messages based on the value of messagearea parameter.
+      switch (messagearea)
+      {
+        case "UC":
+          messagetexts = messages.upperCenter.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "UL":
+          messagetexts = messages.upperLeft.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "UR":
+          messagetexts = messages.upperRight.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "LC":
+          messagetexts = messages.lowerCenter.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "ALL":
+          messagetexts = messages.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+      }
+      //Loop through all the mesages we found.
+      var list = messagetexts.GetEnumerator();
+      while  (list.MoveNext())
+      {
+        //If the user specified text to search for only delete messages that contain that text.
+        if (messagetext != "")
+        {
+          if (list.Current != null && list.Current.text.text.Contains(messagetext))
+          {
+            UnityEngine.Object.Destroy(list.Current.gameObject);
+          }
+        }
+        else  //If the user did not specific a message text to search for we DELETE ALL messages!!
+        {
+          UnityEngine.Object.Destroy(list.Current.gameObject);
+        }
+      }
     }
     #endregion Support/action methods
   }
