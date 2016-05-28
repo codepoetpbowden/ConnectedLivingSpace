@@ -1,4 +1,4 @@
-Connected Living Space v1.2.1.2
+Connected Living Space v1.2.1.3
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
