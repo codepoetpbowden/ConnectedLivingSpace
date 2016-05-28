@@ -1,4 +1,4 @@
-Connected Living Space v1.2.0.9
+Connected Living Space v1.2.1.2
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,11 +16,22 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
-release v1.2.0.9
-* New:  Updated code to suppport KSP 1.1.  Is PreRelease, so use at your own risk.
-* New:  Modified screenmessages to account for object model changes. Stock Screen Messages should now be properly deleted when CLS Overrides. This is a WIP. 
-* Fixed:  Removed extra zip included (oblolete) in distribution.
-* Fixed:  Corrected a window display issue.  Toggle the CLS Icon and no window appeared.
+release v 1.2.1.2
+* Fixed:  WHen a Stock Crew transfer is overridden, the override message is not properly dislayed.
+* Fixed:  WHen a Stock Crew transfer is overridden, the original move message is not properly removed.
+
+release v 1.2.1.1
+* Fixed:  Null reference errors.
+* Fixed:  Window would not open
+
+release v 1.2.1.0
+* New:  Updated mod for KSP 1.1.2 compatability.
+
+prerelease v 1.2.0.9
+* New:  Updated mod for KSP 1.1 compatability.
+* New:  Corrected Stock Screen Messages so that they are properly removed when CLS overrides a Stock Crew Transfer.
+* Fixed:  CLS would not display a window when the stock Icon was clicked.
+* Fixed:  CLS should now only display 1 icon in Editor or flight.  Removed redundant icon call in Start, now that stock buttons now behave as intended.
 
 release v1.2.0.2
 * New:  Added Changes to configurations based on conversations in forums and a Pull Requests by Technologicat, khr15714n &  Kerbas-ad-astra.

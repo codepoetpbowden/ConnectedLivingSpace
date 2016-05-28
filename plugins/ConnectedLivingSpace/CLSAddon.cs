@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Reflection;
 using KSP.UI.Screens;
 using UnityEngine;
@@ -22,7 +20,7 @@ namespace ConnectedLivingSpace
     private static bool prevEnableBlizzyToolbar = false;
     private static readonly string SETTINGS_FILE = KSPUtil.ApplicationRootPath + "GameData/cls_settings.dat";
     private ConfigNode settings = null;
-    private bool visible = false;
+    private static bool windowVisable = false;
     private bool optionsVisible = false;
 
     private Vector2 scrollViewer = Vector2.zero;
@@ -69,16 +67,16 @@ namespace ConnectedLivingSpace
     #region Event handlers (in use)
     public void Awake()
     {
-      //Debug.Log("[CLS]:  CLSAddon:Awake");
+      //Debug.Log("CLSAddon:Awake");
       // Added support for Blizzy Toolbar and hot switching between Stock and Blizzy
       if (enableBlizzyToolbar)
       {
         // Let't try to use Blizzy's toolbar
-        //Debug.Log("[CLS]:  CLSAddon.Awake - Blizzy Toolbar Selected.");
+        //Debug.Log("CLSAddon.Awake - Blizzy Toolbar Selected.");
         if (!ActivateBlizzyToolBar())
         {
           // We failed to activate the toolbar, so revert to stock
-          //Debug.Log("[CLS]:  CLSAddon.Awake - Stock Toolbar Selected.");
+          //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
           GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
           GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
         }
@@ -86,7 +84,7 @@ namespace ConnectedLivingSpace
       else
       {
         // Use stock Toolbar
-        //Debug.Log("[CLS]:  CLSAddon.Awake - Stock Toolbar Selected.");
+        //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
         GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
         GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
       }
@@ -94,26 +92,15 @@ namespace ConnectedLivingSpace
 
     public void Start()
     {
-      // Debug.Log("[CLS]:  CLSAddon:Start");
+      // Debug.Log("CLSAddon:Start");
 
       windowStyle = new GUIStyle(HighLogic.Skin.window);
-
-      //try
-      //{
-      //  RenderingManager.RemoveFromPostDrawQueue(0, OnDraw);
-      //}
-      //catch
-      //{
-      //  // This is generally not a problem - do not log it.
-      //  // Debug.LogException(ex);
-      //}
 
       // load toolbar selection setting
       ApplySettings();
 
       if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
       {
-        //RenderingManager.AddToPostDrawQueue(0, OnDraw);
         GameEvents.onPartAttach.Add(OnPartAttach);
         GameEvents.onPartCouple.Add(OnPartCouple);
         GameEvents.onPartDie.Add(OnPartDie);
@@ -130,11 +117,11 @@ namespace ConnectedLivingSpace
         GameEvents.onVesselTerminated.Add(OnVesselTerminated);
         GameEvents.onFlightReady.Add(OnFlightReady);
 
-        GameEvents.onCrewTransferred.Add(CrewTransfered);
+        GameEvents.onCrewTransferred.Add(OnCrewTransfered);
 
 
-        //KSP 1.0 has an issue with GameEvents.onGUIAppLauncherReady.  It does not fire as expected.  This code line accounts for it.
-        // Reference:  http://forum.kerbalspaceprogram.com/threads/86682-Appilcation-Launcher-and-Mods?p=1871124&viewfull=1#post1871124
+        ////KSP 1.0 has an issue with GameEvents.onGUIAppLauncherReady.  It does not fire as expected.  This code line accounts for it.
+        //// Reference:  http://forum.kerbalspaceprogram.com/threads/86682-Appilcation-Launcher-and-Mods?p=1871124&viewfull=1#post1871124
         //if (!enableBlizzyToolbar && ApplicationLauncher.Ready)
         //  OnGUIAppLauncherReady();
       }
@@ -148,7 +135,7 @@ namespace ConnectedLivingSpace
 
     public void Update()
     {
-      // Debug.Log("[CLS]:  CLSAddon:Update");
+      // Debug.Log("CLSAddon:Update");
       CheckForToolbarTypeToggle();
     }
 
@@ -156,7 +143,7 @@ namespace ConnectedLivingSpace
     {
       try
       {
-        //Debug.Log("[CLS]:  CLSAddon:FixedUpdate");
+        //Debug.Log("CLSAddon:FixedUpdate");
 
         // Although hatches have been added to the docking port prefabs, for some reason that is not fully understood when the prefab is used to instantiate an actual part the hatch module has not been properly setup. This is not a problem where the craft is being loaded, as the act of loading it will overwrite all the persisted KSPFields with the saved values. However in the VAB/SPH we end up with a ModuleDockingHatch that has not its docNodeTransformName or docNodeAttahcmentNodeName set properly. The solution is to check for this state in the editor, and patch it up. In flight the part will get loaded so it is not an issue.
         if (HighLogic.LoadedSceneIsEditor)
@@ -188,7 +175,7 @@ namespace ConnectedLivingSpace
 
           if (currentPartCount != this.editorPartCount)
           {
-            //Debug.Log("[CLS]:  Calling RebuildCLSVessel as the part count has changed in the editor");
+            //Debug.Log("Calling RebuildCLSVessel as the part count has changed in the editor");
 
             this.RebuildCLSVessel();
             this.editorPartCount = currentPartCount;
@@ -203,7 +190,7 @@ namespace ConnectedLivingSpace
 
     public void OnDestroy()
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnDestroy");
+      //Debug.Log("CLSAddon::OnDestroy");
 
       saveSettings();
 
@@ -232,7 +219,7 @@ namespace ConnectedLivingSpace
         ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
       }
 
-      GameEvents.onCrewTransferred.Remove(CrewTransfered);
+      GameEvents.onCrewTransferred.Remove(OnCrewTransfered);
     }
 
     void OnGUIAppLauncherReady()
@@ -265,25 +252,25 @@ namespace ConnectedLivingSpace
       }
       stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
 
-      this.visible = false;
+      windowVisable = false;
     }
 
     void DummyVoid() { }
 
     private void OnFlightReady()
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnFlightReady");          
+      //Debug.Log("CLSAddon::OnFlightReady");          
 
       // Now scan the vessel
-      //Debug.Log("[CLS]:  Calling RebuildCLSVessel from onFlightReady");
+      //Debug.Log("Calling RebuildCLSVessel from onFlightReady");
       this.RebuildCLSVessel();
     }
 
     private void OnVesselLoaded(Vessel data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnVesselLoaded");
+      //Debug.Log("CLSAddon::OnVesselLoaded");
 
-      //Debug.Log("[CLS]:  Calling RebuildCLSVessel from OnVesselLoaded");
+      //Debug.Log("Calling RebuildCLSVessel from OnVesselLoaded");
       //  This check is needed to differentiate from nearby debris, as event is fired for every object within range
       if (data.Equals(FlightGlobals.ActiveVessel))
         RebuildCLSVessel(data);
@@ -291,9 +278,9 @@ namespace ConnectedLivingSpace
 
     private void OnVesselWasModified(Vessel data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnVesselWasModified");
+      //Debug.Log("CLSAddon::OnVesselWasModified");
 
-      //Debug.Log("[CLS]:  Calling RebuildCLSVessel from OnVesselWasModified");
+      //Debug.Log("Calling RebuildCLSVessel from OnVesselWasModified");
 
       RebuildCLSVessel(data);
     }
@@ -301,38 +288,40 @@ namespace ConnectedLivingSpace
     // This event is fired when the vessel is changed. If this happens we need to throw away all of our thoiughts about the previous vessel, and analyse the new one.
     private void OnVesselChange(Vessel data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnVesselChange");
+      //Debug.Log("CLSAddon::OnVesselChange");
 
-      //Debug.Log("[CLS]:  Calling RebuildCLSVessel from OnVesselChange");
+      //Debug.Log("Calling RebuildCLSVessel from OnVesselChange");
       RebuildCLSVessel(data);
     }
 
     internal void OnCLSButtonToggle()
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnCLSButtonToggle");
-      visible = !visible;
+      //Debug.Log("CLSAddon::OnCLSButtonToggle");
+      windowVisable = !windowVisable;
 
-      if (!visible && null != vessel)
+      if (!windowVisable && null != vessel)
         vessel.Highlight(false);
 
       if (enableBlizzyToolbar)
-        blizzyToolbarButton.TexturePath = visible ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
+        blizzyToolbarButton.TexturePath = windowVisable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
       else
-        stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture(visible ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
+        stockToolbarButton.SetTexture((Texture)GameDatabase.Instance.GetTexture(windowVisable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
     }
 
     private void OnGUI()
     {
-      if (visible)
+      if (windowVisable)
       {
         //Set the GUI Skin
         //GUI.skin = HighLogic.Skin;
+
         windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
-        if (!optionsVisible) return;
-        // Show options window
-        if (windowOptionsPosition == new Rect(0, 0, 0, 0))
-          windowOptionsPosition = new Rect(windowPosition.x + windowPosition.width + 10, windowPosition.y, 260, 115);
-        windowOptionsPosition = GUILayout.Window(947696, windowOptionsPosition, DisplayOptionWindow, "Options", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
+        if (this.optionsVisible)
+        {
+          if (windowOptionsPosition == new Rect(0, 0, 0, 0))
+            windowOptionsPosition = new Rect(windowPosition.x + windowPosition.width + 10, windowPosition.y, 260, 115);
+          windowOptionsPosition = GUILayout.Window(947696, windowOptionsPosition, DisplayOptionWindow, "Options", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
+        }
       }
       else
       {
@@ -350,47 +339,47 @@ namespace ConnectedLivingSpace
     #region Event Handlers (not in use)
     private void OnVesselTerminated(ProtoVessel data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnVesselTerminated");
+      //Debug.Log("CLSAddon::OnVesselTerminated");
     }
     private void OnPartAttach(GameEvents.HostTargetAction<Part, Part> data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnPartAttach"); 
+      //Debug.Log("CLSAddon::OnPartAttach"); 
     }
     private void OnPartCouple(GameEvents.FromToAction<Part, Part> data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnPartCouple");
+      //Debug.Log("CLSAddon::OnPartCouple");
     }
     private void OnPartDie(Part data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnPartDie");
+      //Debug.Log("CLSAddon::OnPartDie");
     }
     private void OnPartExplode(GameEvents.ExplosionReaction data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnPartExplode");
+      //Debug.Log("CLSAddon::OnPartExplode");
     }
     private void OnPartRemove(GameEvents.HostTargetAction<Part, Part> data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnPartRemove");
+      //Debug.Log("CLSAddon::OnPartRemove");
     }
     private void OnPartUndock(Part data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnPartUndock");
+      //Debug.Log("CLSAddon::OnPartUndock");
     }
     private void OnStageSeparation(EventReport eventReport)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnStageSeparation");
+      //Debug.Log("CLSAddon::OnStageSeparation");
     }
     private void OnUndock(EventReport eventReport)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnUndock");
+      //Debug.Log("CLSAddon::OnUndock");
     }
     private void OnVesselDestroy(Vessel data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnVesselDestroy");
+      //Debug.Log("CLSAddon::OnVesselDestroy");
     }
     private void OnVesselCreate(Vessel data)
     {
-      //Debug.Log("[CLS]:  CLSAddon::OnVesselCreate");
+      //Debug.Log("CLSAddon::OnVesselCreate");
     }
 
     #endregion Event Handlers (not in use)
@@ -466,7 +455,7 @@ namespace ConnectedLivingSpace
     {
       try
       {
-        //Debug.Log("[CLS]:  RebuildCLSVessel");
+        //Debug.Log("RebuildCLSVessel");
         // Before we rebuild the vessel, we need to take some steps to tidy up the highlighting. 
         // We will make a list of all the parts that are currently highlighted. We will also unhighlight parts that are highlighted. 
         // Once the rebuild is complete we will then highlight any parts that are still in the list we created.
@@ -477,29 +466,31 @@ namespace ConnectedLivingSpace
         {
           try
           {
-            foreach (CLSSpace space in vessel.Spaces)
+            var spaces = vessel.Spaces.GetEnumerator();
+            while (spaces.MoveNext())
             {
-              foreach (CLSPart p in space.Parts)
+              var parts = spaces.Current.Parts.GetEnumerator();
+              while (parts.MoveNext())
               {
-                Part part = (Part)p;
+                Part part = parts.Current.Part;
                 if (flightID != part.flightID)
                 {
                   flightID = part.flightID;
-                  //Debug.Log("[CLS]:  Part : "+ part.flightID + " found." ) ;
+                  //Debug.Log("Part : "+ part.flightID + " found." ) ;
                 }
-                if (p.highlighted)
+                if (((CLSPart)parts.Current).highlighted)
                 {
-                  listHighlightedParts.Add(p);
-                  p.Highlight(false);
+                  listHighlightedParts.Add((CLSPart)parts.Current);
+                  ((CLSPart)parts.Current).Highlight(false);
                 }
               }
             }
           }
           catch (Exception ex)
           {
-            Debug.Log("[CLS]:  CLS highlighted parts gathering Error:  " + ex.ToString());
+            Debug.Log("CLS highlighted parts gathering Error:  " + ex.ToString());
           }
-          //Debug.Log("[CLS]:  Old selected vessel had "+ listHighlightedParts.Count + " parts in it.");
+          //Debug.Log("Old selected vessel had "+ listHighlightedParts.Count + " parts in it.");
           vessel.Clear();
         }
 
@@ -512,7 +503,7 @@ namespace ConnectedLivingSpace
       }
       catch (Exception ex)
       {
-        Debug.Log("[CLS]:  CLS rebuild Vessel Error:  " + ex.ToString());
+        Debug.Log("CLS rebuild Vessel Error:  " + ex.ToString());
       }
     }
 
@@ -542,20 +533,21 @@ namespace ConnectedLivingSpace
         if (null != this.vessel)
         {
 
-          String[] spaceNames = new String[vessel.Spaces.Count];
+          string[] spaceNames = new string[vessel.Spaces.Count];
           int counter = 0;
           int newSelectedSpace = -1;
 
-          String partsList = "";
-          foreach (CLSSpace space in vessel.Spaces)
+          string partsList = "";
+          var spaces = vessel.Spaces.GetEnumerator();
+          while (spaces.MoveNext())
           {
-            if (space.Name == "")
+            if (spaces.Current.Name == "")
             {
               spaceNames[counter] = "Living Space " + (counter + 1).ToString();
             }
             else
             {
-              spaceNames[counter] = space.Name;
+              spaceNames[counter] = spaces.Current.Name;
             }
             counter++;
           }
@@ -588,10 +580,10 @@ namespace ConnectedLivingSpace
             }
 
             // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
-            foreach (CLSPart p in vessel.Spaces[this.WindowSelectedSpace].Parts)
+            var parts = vessel.Spaces[this.WindowSelectedSpace].Parts.GetEnumerator();
+            while (parts.MoveNext())
             {
-              Part part = (Part)p;
-              partsList += part.partInfo.title + "\n";
+              partsList += (parts.Current.Part).partInfo.title + "\n";
             }
 
             // Display the text box that allows the space name to be changed
@@ -613,9 +605,10 @@ namespace ConnectedLivingSpace
             // And list the crew names
             String crewList = "Crew Info:\n";
 
-            foreach (CLSKerbal crewMember in vessel.Spaces[this.WindowSelectedSpace].Crew)
+            var crewmembers = vessel.Spaces[this.WindowSelectedSpace].Crew.GetEnumerator();
+            while (crewmembers.MoveNext())
             {
-              crewList += ((ProtoCrewMember)crewMember).name + "\n";
+              crewList += (crewmembers.Current.Kerbal).name + "\n";
             }
             GUILayout.Label(crewList);
 
@@ -681,17 +674,17 @@ namespace ConnectedLivingSpace
         {
           if (part.name.Equals("kerbalEVA"))
           {
-            // Debug.Log("[CLS]:  No CLS required for KerbalEVA!");
+            // Debug.Log("No CLS required for KerbalEVA!");
           }
           else
           {
             Part prefabPart = part.partPrefab;
 
-            //Debug.Log("[CLS]:  Adding ConnectedLivingSpace Support to " + part.name + "/" + prefabPart.partInfo.title);
+            //Debug.Log("Adding ConnectedLivingSpace Support to " + part.name + "/" + prefabPart.partInfo.title);
 
             if (!prefabPart.Modules.Contains("ModuleConnectedLivingSpace"))
             {
-              //Debug.Log("[CLS]:  The ModuleConnectedLivingSpace is missing!");
+              //Debug.Log("The ModuleConnectedLivingSpace is missing!");
 
               ConfigNode node = new ConfigNode("MODULE");
               node.AddValue("name", "ModuleConnectedLivingSpace");
@@ -706,7 +699,7 @@ namespace ConnectedLivingSpace
             }
             else
             {
-              // Debug.Log("[CLS]:  The ModuleConnectedLivingSpace is already there.");
+              // Debug.Log("The ModuleConnectedLivingSpace is already there.");
             }
           }
         }
@@ -767,14 +760,14 @@ namespace ConnectedLivingSpace
 
             if (dockNode.referenceAttachNode != string.Empty)
             {
-              Debug.Log("[CLS]:  Adding ModuleDockingHatch to part " + part.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
+              Debug.Log("Adding ModuleDockingHatch to part " + part.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
               node.AddValue("docNodeAttachmentNodeName", dockNode.referenceAttachNode);
             }
             else
             {
               if (dockNode.nodeTransformName != string.Empty)
               {
-                Debug.Log("[CLS]:  Adding ModuleDockingHatch to part " + part.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
+                Debug.Log("Adding ModuleDockingHatch to part " + part.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
                 node.AddValue("docNodeTransformName", dockNode.nodeTransformName);
               }
             }
@@ -784,7 +777,7 @@ namespace ConnectedLivingSpace
               PartModule pm = partPrefab.AddModule("ModuleDockingHatch");
               if (Awaken(pm))
               {
-                Debug.Log("[CLS]:  Loading the ModuleDockingHatch config");
+                Debug.Log("Loading the ModuleDockingHatch config");
                 pm.Load(node);
               }
               else
@@ -828,22 +821,22 @@ namespace ConnectedLivingSpace
           // I know we are making  abit of a meal of this. It is unclear to me what the unset vakues will be, and this way we are catching every possibility. It seems that open (3) is the open that gets called, but I will leave this as is for now.
           if ("" == dockHatch.docNodeAttachmentNodeName && "" == dockHatch.docNodeTransformName)
           {
-            Debug.Log("[CLS]:  Found a hatch that does not reference a docking node. Removing it from the part.(1)");
+            Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(1)");
             part.RemoveModule(dockHatch);
           }
           else if (string.Empty == dockHatch.docNodeAttachmentNodeName && string.Empty == dockHatch.docNodeTransformName)
           {
-            Debug.Log("[CLS]:  Found a hatch that does not reference a docking node. Removing it from the part.(2)");
+            Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(2)");
             part.RemoveModule(dockHatch);
           }
           else if (null == dockHatch.docNodeAttachmentNodeName && null == dockHatch.docNodeTransformName)
           {
-            Debug.Log("[CLS]:  Found a hatch that does not reference a docking node. Removing it from the part.(3)");
+            Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(3)");
             part.RemoveModule(dockHatch);
           }
           else if ((null == dockHatch.docNodeAttachmentNodeName || string.Empty == dockHatch.docNodeAttachmentNodeName || "" == dockHatch.docNodeAttachmentNodeName) && ("" == dockHatch.docNodeTransformName || string.Empty == dockHatch.docNodeTransformName || null == dockHatch.docNodeTransformName))
           {
-            Debug.Log("[CLS]:  Found a hatch that does not reference a docking node. Removing it from the part.(4)");
+            Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(4)");
             part.RemoveModule(dockHatch);
           }
         }
@@ -877,14 +870,14 @@ namespace ConnectedLivingSpace
 
             if (dockNode.referenceAttachNode != string.Empty)
             {
-              // Debug.Log("[CLS]:  Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
+              // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
               node.AddValue("docNodeAttachmentNodeName", dockNode.referenceAttachNode);
             }
             else
             {
               if (dockNode.nodeTransformName != string.Empty)
               {
-                // Debug.Log("[CLS]:  Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
+                // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
                 node.AddValue("docNodeTransformName", dockNode.nodeTransformName);
               }
             }
@@ -894,7 +887,7 @@ namespace ConnectedLivingSpace
               PartModule pm = part.AddModule("ModuleDockingHatch");
               if (Awaken(pm))
               {
-                // Debug.Log("[CLS]:  Loading the ModuleDockingHatch config");
+                // Debug.Log("Loading the ModuleDockingHatch config");
                 pm.Load(node);
               }
               else
@@ -988,14 +981,14 @@ namespace ConnectedLivingSpace
 
               if (dockNode.referenceAttachNode != string.Empty)
               {
-                //Debug.Log("[CLS]:  Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
+                //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
                 node.AddValue("docNodeAttachmentNodeName", dockNode.referenceAttachNode);
               }
               else
               {
                 if (dockNode.nodeTransformName != string.Empty)
                 {
-                  //Debug.Log("[CLS]:  Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
+                  //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
                   node.AddValue("docNodeTransformName", dockNode.nodeTransformName);
                 }
               }
@@ -1005,7 +998,7 @@ namespace ConnectedLivingSpace
                 PartModule pm = part.AddModule("ModuleDockingHatch");
                 if (Awaken(pm))
                 {
-                  //Debug.Log("[CLS]:  Loading the ModuleDockingHatch config");
+                  //Debug.Log("Loading the ModuleDockingHatch config");
                   pm.Load(node);
                 }
                 else
@@ -1041,24 +1034,18 @@ namespace ConnectedLivingSpace
     }
 
     // Method to optionally abort an attempt to use the stock crew transfer mechanism
-    private void CrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
+    private void OnCrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
     {
       try
       {
-        if (allowUnrestrictedTransfers)
-        {
-          // If transfers are not restricted then we have got nothing to do here.
-          return;
-        }
+        // If transfers are not restricted then we have got nothing to do here.
+        if (allowUnrestrictedTransfers) return;
 
+        // "Transfers" to/from EVA are always permitted.
+        // Trying to step them results in really bad things happening, and would be out of
+        // scope for this plugin anyway.
         if (data.from.Modules.Cast<PartModule>().Any(x => x is KerbalEVA) ||
-            data.to.Modules.Cast<PartModule>().Any(x => x is KerbalEVA))
-        {
-          // "Transfers" to/from EVA are always permitted.
-          // Trying to step them results in really bad things happening, and would be out of
-          // scope for this plugin anyway.
-          return;
-        }
+            data.to.Modules.Cast<PartModule>().Any(x => x is KerbalEVA)) return;
 
         if (null == Instance.Vessel)
         {
@@ -1070,20 +1057,15 @@ namespace ConnectedLivingSpace
 
         if (clsFrom == null || clsTo == null || clsFrom.Space != clsTo.Space)
         {
+          // Ok, override is active, so let's remove the old message and revert the move.
+          string oldMessage = string.Format("{0} moved to {1}", data.host.name, clsTo.Part.partInfo.title);
+          DeleteScreenMessages(oldMessage, "UC");
+
           data.to.RemoveCrewmember(data.host);
           data.from.AddCrewmember(data.host);
 
-          // Now try to remove the sucessful transfer message
-          // that stock displayed. 
-
-          // TODO:  Refactor for changes to ksp messages... wip
-          DeleteScreenMessages(data.host.name, "UC");
-
-          var message = new ScreenMessage(string.Format("<color=orange>(CLS) - {0} is unable to reach {1}.</color>", data.host.name, data.to.partInfo.title), 15f, ScreenMessageStyle.UPPER_CENTER);
-          ScreenMessages.PostScreenMessage(message);
-
+          ScreenMessages.PostScreenMessage(string.Format("<color=orange>{0} is unable to reach {1}.</color>", data.host.name, clsTo.Part.partInfo.title),10f);
         }
-
 
         // Whatever happened it seems like a good idea to rebuild the CLS data as the kerbals may now in different places.
         Instance.RebuildCLSVessel();
@@ -1094,56 +1076,6 @@ namespace ConnectedLivingSpace
       }
     }
 
-    /// <summary>
-    ///Will delete Screen Messages. If you pass in messagetext it will only delete messages that contain that text string.
-    ///If you pass in a messagearea it will only delete messages in that area. Values are: UC,UL,UR,LC,ALL
-    /// </summary>
-    /// <param name="messagetext">Specify a string that is part of a message that you want to remove, or pass in empty string to delete all messages</param>
-    /// <param name="messagearea">Specify a string representing the message area of the screen that you want messages removed from, 
-    /// or pass in "ALL" string to delete from all message areas. 
-    /// messagearea accepts the values of "UC" - UpperCenter, "UL" - UpperLeft, "UR" - UpperRight, "LC" - LowerCenter, "ALL" - All Message Areas</param>
-    internal static void DeleteScreenMessages(string messagetext, string messagearea)
-    {
-      //Get the ScreenMessages Instance
-      var messages = ScreenMessages.Instance;
-      List<ScreenMessagesText> messagetexts = new List<ScreenMessagesText>();
-      //Get the message Area messages based on the value of messagearea parameter.
-      switch (messagearea)
-      {
-        case "UC":
-          messagetexts = messages.upperCenter.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
-          break;
-        case "UL":
-          messagetexts = messages.upperLeft.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
-          break;
-        case "UR":
-          messagetexts = messages.upperRight.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
-          break;
-        case "LC":
-          messagetexts = messages.lowerCenter.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
-          break;
-        case "ALL":
-          messagetexts = messages.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
-          break;
-      }
-      //Loop through all the mesages we found.
-      foreach (var msgtext in messagetexts)
-      {
-        //If the user specified text to search for only delete messages that contain that text.
-        if (messagetext != "")
-        {
-          if (msgtext != null && msgtext.text.text.Contains(messagetext))
-          {
-            UnityEngine.Object.Destroy(msgtext.gameObject);
-          }
-        }
-        else  //If the user did not specific a message text to search for we DELETE ALL messages!!
-        {
-          UnityEngine.Object.Destroy(msgtext.gameObject);
-        }
-      }
-    }
-    
     internal bool ActivateBlizzyToolBar()
     {
       if (enableBlizzyToolbar)
@@ -1254,6 +1186,56 @@ namespace ConnectedLivingSpace
         windowPosition.x = Screen.currentResolution.width - windowPosition.width;
       if (windowPosition.yMax > Screen.currentResolution.height)
         windowPosition.y = Screen.currentResolution.height - windowPosition.height;
+    }
+    /// <summary>
+    ///Will delete Screen Messages. If you pass in messagetext it will only delete messages that contain that text string.
+    ///If you pass in a messagearea it will only delete messages in that area. Values are: UC,UL,UR,LC,ALL
+    /// </summary>
+    /// <param name="messagetext">Specify a string that is part of a message that you want to remove, or pass in empty string to delete all messages</param>
+    /// <param name="messagearea">Specify a string representing the message area of the screen that you want messages removed from, 
+    /// or pass in "ALL" string to delete from all message areas. 
+    /// messagearea accepts the values of "UC" - UpperCenter, "UL" - UpperLeft, "UR" - UpperRight, "LC" - LowerCenter, "ALL" - All Message Areas</param>
+    internal static void DeleteScreenMessages(string messagetext, string messagearea)
+    {
+      //Get the ScreenMessages Instance
+      var messages = ScreenMessages.Instance;
+      List<ScreenMessagesText> messagetexts = new List<ScreenMessagesText>();
+      //Get the message Area messages based on the value of messagearea parameter.
+      switch (messagearea)
+      {
+        case "UC":
+          messagetexts = messages.upperCenter.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "UL":
+          messagetexts = messages.upperLeft.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "UR":
+          messagetexts = messages.upperRight.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "LC":
+          messagetexts = messages.lowerCenter.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+        case "ALL":
+          messagetexts = messages.gameObject.GetComponentsInChildren<ScreenMessagesText>().ToList();
+          break;
+      }
+      //Loop through all the mesages we found.
+      var list = messagetexts.GetEnumerator();
+      while  (list.MoveNext())
+      {
+        //If the user specified text to search for only delete messages that contain that text.
+        if (messagetext != "")
+        {
+          if (list.Current != null && list.Current.text.text.Contains(messagetext))
+          {
+            UnityEngine.Object.Destroy(list.Current.gameObject);
+          }
+        }
+        else  //If the user did not specific a message text to search for we DELETE ALL messages!!
+        {
+          UnityEngine.Object.Destroy(list.Current.gameObject);
+        }
+      }
     }
     #endregion Support/action methods
   }
