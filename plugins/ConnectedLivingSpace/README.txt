@@ -16,6 +16,12 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v 1.2.1.3
+* New:  Changed behavior of CLSClient.cs (API wrapper class) to prevent additional assembly scans when called. Ref Git Issue #72.
+* New:  Added new configs for Taurus HCV.  Git Issue #71
+* New:  Added config changes for KOSMOS SSPP  Git Issue #69
+* New:  Refactoring for KSP 1.1.2 (WIP)
+
 release v 1.2.1.2
 * Fixed:  WHen a Stock Crew transfer is overridden, the override message is not properly dislayed.
 * Fixed:  WHen a Stock Crew transfer is overridden, the original move message is not properly removed.
