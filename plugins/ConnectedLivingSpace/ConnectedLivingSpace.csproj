@@ -99,7 +99,8 @@ set /p PDB2MDB_EXE_DIR=&lt;"$(ProjectDir)LocalDev\pdb2mdb_exe.txt"
 set /p ZA_DIR=&lt;"$(ProjectDir)LocalDev\7za_dir.txt"
 set /p DIST_DIR=&lt;"$(ProjectDir)LocalDev\dist_dir.txt"
 
-echo Copying $(Targetname) files to test env:  %25KSP_DIR%25\GameData\$(Targetname)\Plugins\...
+echo Copying $(Targetname) files to test env:  %25KSP_DIR%25\GameData\$(Targetname)\...
+copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\configs\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\Configs\"
 copy /Y "$(TargetPath)" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
 copy /Y "$(TargetDir)$(Targetname).pdb" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
 copy /Y "$(TargetDir)CLSInterfaces.dll" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
@@ -107,7 +108,7 @@ copy /Y "$(TargetDir)CLSInterfaces.dll" "%25KSP_DIR%25\GameData\$(Targetname)\Pl
 echo distributing $(Targetname) files...
 copy /Y "$(TargetPath)" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
 copy /Y "$(TargetDir)CLSInterfaces.dll" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
-copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\configs\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Config\"
+copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\configs\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Configs\"
 copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\assets\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\assets\"
 copy /Y "$(ProjectDir)README.txt" "%25DIST_DIR%25\Distribution\"
 copy /Y "$(ProjectDir)$(Targetname).version" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\\"

@@ -18,7 +18,7 @@ namespace ConnectedLivingSpace
     public static bool enableBlizzyToolbar = false;
     public static bool enablePassable = false;
     private static bool prevEnableBlizzyToolbar = false;
-    private static readonly string SETTINGS_FILE = KSPUtil.ApplicationRootPath + "GameData/cls_settings.dat";
+    private static readonly string SETTINGS_FILE = KSPUtil.ApplicationRootPath + "GameData/ConnectedLivingSpace/Plugins/PluginData/cls_settings.dat";
     private ConfigNode settings = null;
     private static bool windowVisable = false;
     private bool optionsVisible = false;
@@ -118,12 +118,6 @@ namespace ConnectedLivingSpace
         GameEvents.onFlightReady.Add(OnFlightReady);
 
         GameEvents.onCrewTransferred.Add(OnCrewTransfered);
-
-
-        ////KSP 1.0 has an issue with GameEvents.onGUIAppLauncherReady.  It does not fire as expected.  This code line accounts for it.
-        //// Reference:  http://forum.kerbalspaceprogram.com/threads/86682-Appilcation-Launcher-and-Mods?p=1871124&viewfull=1#post1871124
-        //if (!enableBlizzyToolbar && ApplicationLauncher.Ready)
-        //  OnGUIAppLauncherReady();
       }
 
       // Add the CLSModule to all parts that can house crew (and do not already have it).
@@ -460,36 +454,37 @@ namespace ConnectedLivingSpace
         // We will make a list of all the parts that are currently highlighted. We will also unhighlight parts that are highlighted. 
         // Once the rebuild is complete we will then highlight any parts that are still in the list we created.
 
-        uint flightID = 0;
-        List<CLSPart> listHighlightedParts = new List<CLSPart>();
+        uint flightId = 0;
         if (null != this.vessel)
         {
-          try
-          {
-            var spaces = vessel.Spaces.GetEnumerator();
-            while (spaces.MoveNext())
-            {
-              var parts = spaces.Current.Parts.GetEnumerator();
-              while (parts.MoveNext())
-              {
-                Part part = parts.Current.Part;
-                if (flightID != part.flightID)
-                {
-                  flightID = part.flightID;
-                  //Debug.Log("Part : "+ part.flightID + " found." ) ;
-                }
-                if (((CLSPart)parts.Current).highlighted)
-                {
-                  listHighlightedParts.Add((CLSPart)parts.Current);
-                  ((CLSPart)parts.Current).Highlight(false);
-                }
-              }
-            }
-          }
-          catch (Exception ex)
-          {
-            Debug.Log("CLS highlighted parts gathering Error:  " + ex.ToString());
-          }
+          //try
+          //{
+          //  var spaces = vessel.Spaces.GetEnumerator();
+          //  while (spaces.MoveNext())
+          //  {
+          //    if (spaces.Current == null) continue;
+          //    var parts = spaces.Current.Parts.GetEnumerator();
+          //    while (parts.MoveNext())
+          //    {
+          //      if (parts.Current == null) continue;
+          //      Part part = parts.Current.Part;
+          //      if (flightId != part.flightID)
+          //      {
+          //        flightId = part.flightID;
+          //        //Debug.Log("Part : "+ part.flightID + " found." ) ;
+          //      }
+          //      if (((CLSPart)parts.Current).highlighted)
+          //      {
+          //        //listHighlightedParts.Add((CLSPart)parts.Current);
+          //        ((CLSPart)parts.Current).Highlight(false);
+          //      }
+          //    }
+          //  }
+          //}
+          //catch (Exception ex)
+          //{
+          //  Debug.Log("CLS highlighted parts gathering Error:  " + ex.ToString());
+          //}
           //Debug.Log("Old selected vessel had "+ listHighlightedParts.Count + " parts in it.");
           vessel.Clear();
         }
@@ -541,6 +536,7 @@ namespace ConnectedLivingSpace
           var spaces = vessel.Spaces.GetEnumerator();
           while (spaces.MoveNext())
           {
+            if (spaces.Current == null) continue;
             if (spaces.Current.Name == "")
             {
               spaceNames[counter] = "Living Space " + (counter + 1).ToString();
@@ -583,6 +579,7 @@ namespace ConnectedLivingSpace
             var parts = vessel.Spaces[this.WindowSelectedSpace].Parts.GetEnumerator();
             while (parts.MoveNext())
             {
+              if (parts.Current == null) continue;
               partsList += (parts.Current.Part).partInfo.title + "\n";
             }
 
@@ -608,6 +605,7 @@ namespace ConnectedLivingSpace
             var crewmembers = vessel.Spaces[this.WindowSelectedSpace].Crew.GetEnumerator();
             while (crewmembers.MoveNext())
             {
+              if (crewmembers.Current == null) continue;
               crewList += (crewmembers.Current.Kerbal).name + "\n";
             }
             GUILayout.Label(crewList);
@@ -1228,12 +1226,13 @@ namespace ConnectedLivingSpace
         {
           if (list.Current != null && list.Current.text.text.Contains(messagetext))
           {
-            UnityEngine.Object.Destroy(list.Current.gameObject);
+            Destroy(list.Current.gameObject);
           }
         }
         else  //If the user did not specific a message text to search for we DELETE ALL messages!!
         {
-          UnityEngine.Object.Destroy(list.Current.gameObject);
+          if (list.Current == null) continue;
+          Destroy(list.Current.gameObject);
         }
       }
     }

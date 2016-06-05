@@ -1,4 +1,4 @@
-Connected Living Space v1.2.1.3
+Connected Living Space v1.2.1.4
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,10 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v 1.2.1.4
+* Fixed:  NullRef exceptions when RemoteTech is installed.
+* New:  Moved configuration file from GameData root folder to GameData\ConnectedLivingSpace\Plugins\PluginData folder to comply with KSP folder standards for mods.
+
 release v 1.2.1.3
 * New:  Changed behavior of CLSClient.cs (API wrapper class) to prevent additional assembly scans when called. Ref Git Issue #72.
 * New:  Added new configs for Taurus HCV.  Git Issue #71
