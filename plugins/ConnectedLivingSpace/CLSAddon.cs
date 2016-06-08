@@ -442,6 +442,7 @@ namespace ConnectedLivingSpace
 
     private void RebuildCLSVessel(Vessel newVessel)
     {
+      if (newVessel?.rootPart == null) return;
       RebuildCLSVessel(newVessel.rootPart);
     }
 
@@ -450,47 +451,12 @@ namespace ConnectedLivingSpace
       try
       {
         //Debug.Log("RebuildCLSVessel");
-        // Before we rebuild the vessel, we need to take some steps to tidy up the highlighting. 
-        // We will make a list of all the parts that are currently highlighted. We will also unhighlight parts that are highlighted. 
-        // Once the rebuild is complete we will then highlight any parts that are still in the list we created.
-
-        uint flightId = 0;
         if (null != this.vessel)
         {
-          //try
-          //{
-          //  var spaces = vessel.Spaces.GetEnumerator();
-          //  while (spaces.MoveNext())
-          //  {
-          //    if (spaces.Current == null) continue;
-          //    var parts = spaces.Current.Parts.GetEnumerator();
-          //    while (parts.MoveNext())
-          //    {
-          //      if (parts.Current == null) continue;
-          //      Part part = parts.Current.Part;
-          //      if (flightId != part.flightID)
-          //      {
-          //        flightId = part.flightID;
-          //        //Debug.Log("Part : "+ part.flightID + " found." ) ;
-          //      }
-          //      if (((CLSPart)parts.Current).highlighted)
-          //      {
-          //        //listHighlightedParts.Add((CLSPart)parts.Current);
-          //        ((CLSPart)parts.Current).Highlight(false);
-          //      }
-          //    }
-          //  }
-          //}
-          //catch (Exception ex)
-          //{
-          //  Debug.Log("CLS highlighted parts gathering Error:  " + ex.ToString());
-          //}
-          //Debug.Log("Old selected vessel had "+ listHighlightedParts.Count + " parts in it.");
+          // Tidy up the old vessel information
           vessel.Clear();
+          this.vessel = null;
         }
-
-        // Tidy up the old vessel information
-        this.vessel = null;
 
         // Build new vessel information
         this.vessel = new CLSVessel();
