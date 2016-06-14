@@ -31,3 +31,4 @@ E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\plugins\ConnectedLivingSpace\bin
 E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\plugins\ConnectedLivingSpace\bin\Debug\KSPAssets.dll
 E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\plugins\ConnectedLivingSpace\bin\Debug\Vectrosity.dll
 E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\plugins\ConnectedLivingSpace\bin\Debug\UnityEngine.xml
+E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\plugins\ConnectedLivingSpace\bin\Debug\Distribution\GameData\ConnectedLivingSpace\Plugins\ConnectedLivingSpace.dll.mdb

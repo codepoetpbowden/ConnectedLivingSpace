@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using KSP.UI.Screens;
@@ -18,10 +19,11 @@ namespace ConnectedLivingSpace
     public static bool enableBlizzyToolbar = false;
     public static bool enablePassable = false;
     private static bool prevEnableBlizzyToolbar = false;
-    private static readonly string SETTINGS_FILE = KSPUtil.ApplicationRootPath + "GameData/ConnectedLivingSpace/Plugins/PluginData/cls_settings.dat";
     private ConfigNode settings = null;
     private static bool windowVisable = false;
     private bool optionsVisible = false;
+    private static readonly string SettingsPath = string.Format("{0}GameData/ConnectedLivingSpace/Plugins/PluginData", KSPUtil.ApplicationRootPath);
+    private static readonly string SettingsFile = string.Format("{0}/cls_settings.dat", SettingsPath);
 
     private Vector2 scrollViewer = Vector2.zero;
 
@@ -1095,7 +1097,7 @@ namespace ConnectedLivingSpace
     private ConfigNode loadSettings()
     {
       if (settings == null)
-        settings = ConfigNode.Load(SETTINGS_FILE) ?? new ConfigNode();
+        settings = ConfigNode.Load(SettingsFile) ?? new ConfigNode();
       return settings;
     }
 
@@ -1111,7 +1113,9 @@ namespace ConnectedLivingSpace
       WriteRectangle(toolbarNode, "windowOptionsPosition", windowOptionsPosition);
       WriteValue(toolbarNode, "enableBlizzyToolbar", enableBlizzyToolbar);
       WriteValue(toolbarNode, "enablePassable", enablePassable);
-      settings.Save(SETTINGS_FILE);
+      if (!Directory.Exists(SettingsPath))
+        Directory.CreateDirectory(SettingsPath);
+      settings.Save(SettingsFile);
     }
 
     private static Rect getRectangle(ConfigNode WindowsNode, string RectName, Rect defaultvalue)

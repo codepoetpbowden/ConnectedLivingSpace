@@ -78,16 +78,59 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\assets\cls_b_icon_off.png" />
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\assets\cls_b_icon_on.png" />
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\assets\cls_icon_off.png" />
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\assets\cls_icon_on.png" />
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLS Config HOWTO.txt" />
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSStockFreedomAddon.txt" />
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\Configs\README.txt" />
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\Plugins\CLSInterfaces.dll" />
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\Plugins\ConnectedLivingSpace.dll" />
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\Plugins\ConnectedLivingSpace.dll.mdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Distribution\GameData\ConnectedLivingSpace\Plugins\ConnectedLivingSpace.pdb" />
     <Content Include="LocalDev\7za_dir.txt" />
     <Content Include="LocalDev\dist_dir.txt" />
     <Content Include="LocalDev\ksp_dir.txt" />
     <Content Include="LocalDev\mono_exe.txt" />
     <Content Include="LocalDev\pdb2mdb_exe.txt" />
-    <Content Include="README.txt" />
+    <Content Include="Distribution\README.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ConnectedLivingSpace.version" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\ConnectedLivingSpace.version" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\ASETStackableInlineLights.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSB9.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSBetterScience.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSCoffeeInd.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSDefaultPart.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSExtraplanetryLaunchpads.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSFASA.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSFireSpitter.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSFSPX.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSHawkspeedAirstairs.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSHomeGrownRockets.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSIXSStock.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSKAX.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSKIS.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSKosmos.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSKSOS.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSKSPX.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSKWRocketry.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSLSSC.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSmk3Nazari.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSNovaPunch.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSOrbitalMaterialScience.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSSH_Mods.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSStationScience.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSStock.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSTT.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSUniversalStorage.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\TaurusHCV.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Plugins\PluginData\cls_settings.dat" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>echo -----------------------------
@@ -99,19 +142,24 @@ set /p PDB2MDB_EXE_DIR=&lt;"$(ProjectDir)LocalDev\pdb2mdb_exe.txt"
 set /p ZA_DIR=&lt;"$(ProjectDir)LocalDev\7za_dir.txt"
 set /p DIST_DIR=&lt;"$(ProjectDir)LocalDev\dist_dir.txt"
 
+echo distributing $(Targetname) files...
+copy /Y "$(TargetPath)" "$(ProjectDir)Distribution\GameData\$(Targetname)\Plugins\"
+copy /Y "$(TargetDir)CLSInterfaces.dll" "$(ProjectDir)Distribution\GameData\$(Targetname)\Plugins\"
+
 echo Copying $(Targetname) files to test env:  %25KSP_DIR%25\GameData\$(Targetname)\...
-copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\configs\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\Configs\"
+copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\assets\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\assets\"
+copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\configs\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\Configs\"
 copy /Y "$(TargetPath)" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
 copy /Y "$(TargetDir)$(Targetname).pdb" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
 copy /Y "$(TargetDir)CLSInterfaces.dll" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
 
 echo distributing $(Targetname) files...
 copy /Y "$(TargetPath)" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
-copy /Y "$(TargetDir)CLSInterfaces.dll" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
-copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\configs\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Configs\"
-copy /Y "E:\KSP\Mods\PJS\Git\Source\ConnectedLivingSpace\assets\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\assets\"
-copy /Y "$(ProjectDir)README.txt" "%25DIST_DIR%25\Distribution\"
-copy /Y "$(ProjectDir)$(Targetname).version" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\\"
+copy /Y "$(TargetDir)\CLSInterfaces.dll" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
+copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\assets\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\assets\"
+copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\configs\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Configs\"
+copy /Y "$(ProjectDir)\Distribution\README.txt" "%25DIST_DIR%25\Distribution\"
+copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\$(Targetname).version" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\"
 
 echo building $(Targetname).dll.mdb file...
 cd "$(TargetDir)"
