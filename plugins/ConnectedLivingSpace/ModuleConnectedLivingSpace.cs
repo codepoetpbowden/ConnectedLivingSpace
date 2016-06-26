@@ -149,18 +149,20 @@ namespace ConnectedLivingSpace
     public override string GetInfo()
     {
       var returnValue = string.Empty;
+      var yes = "<color=Lime>Yes</color>";
+      var no = "<color=Red>No</color>";
       if (passable)
       {
-        returnValue += "Passable:  Yes";
-        returnValue += "\r\nCrewable:  " + (part.CrewCapacity > 0 ? "Yes" : "No");
+        returnValue += "Passable:  <color=Lime>Yes</color>";
+        returnValue += "\r\nCrewable:  " + (part.CrewCapacity > 0 ? yes : no);
         returnValue += "\r\nImpassable Nodes:  " + (impassablenodes != "" ? impassablenodes : (passable ? "None" : "All"));
         returnValue += "\r\nPassable Nodes:  " + (passablenodes != "" ? passablenodes : (passable ? "All" : "None"));
-        returnValue += "\r\nPass when Surface Attached:  " + (passableWhenSurfaceAttached ? "Yes" : "No");
-        returnValue += "\r\nSurface Attached Parts Pass:  " + (surfaceAttachmentsPassable ? "Yes" : "No");
+        returnValue += "\r\nPass when Surface Attached:  " + (passableWhenSurfaceAttached ? yes : no);
+        returnValue += "\r\nSurface Attached Parts Pass:  " + (surfaceAttachmentsPassable ? yes : no);
       }
       else
       {
-        returnValue += "Passable:  No";
+        returnValue += "Passable:  <color=Red>No</color>";
         if (passablenodes != "")
           returnValue += "\r\nPassable Nodes:  " + passablenodes;
       }

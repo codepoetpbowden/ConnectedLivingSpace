@@ -1,0 +1,67 @@
+HOWTO write configuration files for CLS
+---------------------------------------
+
+version 1 - 1 May 2014
+
+Introduction
+------------
+
+Connected Living Space (CLS) creates an understanding of your vessels that considers which parts are connected to each other internally in such a way that a kerbal can move between parts without leaving a pressurised space. These spaces are refered to as "living spaces". In order to be able to create such an understanding, CLS needs to know extra information about each ot the parts, so that it can distinguish between a crew pod and a girder. This extra information can be provided in one of two ways:
+
+1) By the part mod author including this extra configuration in their mod. This is ultimately the prefered method as it allows the part mod author to configure CLS to treat the part as the author intended, and allows the author to make changes as changes are made to the part.
+2) By users who want to make a part compatible with CLS. It is great when players do this as it expands the range of mods that CLS can work with. If you write a CLS config fir for a particular mod, be sure to share it with the community by posting tot he CLS thread on the forums. Most likely your work will be included in a future release of CLS which benefits everyone, or may even be adopted by the part mod author.
+
+Use of Module Manager
+---------------------
+
+All the examples show below show what the configration for a part should look like. However in practice config for CLS is usually shipped as a config file for Module Manager that patches the config for a part. Read the documentation on module manager, and look at the examples that ship with CLS to see how this works.
+
+Configuration
+-------------
+
+configuration for CLS is added by adding a ModuleConnectedLivingSpace to the part that you want to provide configuration for in its .cfg file. Lets consider an example:
+
+PART
+{
+	// Fuselage Fuel Tank
+
+	// --- general parameters ---
+	name = Mk1FuselageStructural
+
+	// --- node definitions ---
+	node_stack_top = 0.0, 75.0, 0.0, 0.0, 1.0, 0.0
+	node_stack_bottom = 0.0, -76.0, 0.0, 0.0, 1.0, 0.0
+	node_attach = 0.0, 0.0, -51.0, 0.0, 0.0, 1.0, 1
+
+	MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+		surfaceAttachmentsPassable = true
+	}
+}
+
+In this example the part that has been added is a MODULE section which adds the ModuleConnectedLivingSpace to the part. All parts that are understood by CLS need to have a ModuleConnectedLivingSpace added to them. However any part that can house a kerbal (ie has a crew capacity greater than 0) will automatically get CLS support added to it which works for most scenerios - it would be better if they were explicitly configured though.
+* The name value is required to indicate which Module to add to the part - for our purposes this will always be ModuleConnectedLivingSpace
+* The passable value indicates if the part can generally be passed through. If this is set to true then it will be assumed that a kerbal can enter / exit the part via any of its attachement nodes.
+* the Mk1 Structural Fuselage part has a special value set, which is surfaceAttachmentsPassable. This means that if another part is attached to the  surface of the structural fuselage, CLS will allow kerbals to pass into it via that connection. If this is not set it is false by default.
+
+There are several other values that can be set:
+
+* impassablenodes
+* passablenodes
+These two values allow a list of attachment node names to be specified where the passablity of those nodes is different from the passable for the whole part. This allows parts to be entered via some nodes by not others. The names of the nodes are the names specified in the Node Definitions section of the .cfg file, but without the "node_stack_" prefix. In the example above there are two node that are defined "top" and "bottom". (note that node_attach is used to surface attach the part and can not be specified). It is possible to set more than one node to be passable or impassable by seperating them with a comma - for example impassablenode=top,side
+
+* passableDockingNodeTypes
+* impassableDockingNodeTypes
+Some Docking Nodes in a part are specified by reference to a transform in the 3D model, rather than an attachment node in the .cfg file. In order to override if these docking nodes are to be passable, you can specify a list of passable or impassable docking node types. These values ned to match up with "nodeType" specified in the ModuleDockingNode for the part.
+
+*surfaceAttachmentsPassable
+Setting surfaceAttachmentsPassable to true (as shown in the example above) means that kerbals can pass into a part that has been attached to the surface of this part. It is false by default, and its use is discouraged as using it for a part with an internal model will not make sense visually.
+
+* passableWhenSurfaceAttached
+Setting passableWhenSurfaceAttached to be true means that it is possible for a kerbal to pass into another part that this part has been surface attached to. Effectively it allows kerbals to pass through the "node_attach" node. Be aware that a kerbal can only pass through a surface connection is both passableWhenSurfaceAttached and surfaceAttachmentsPassable are set to be true for the respective parts.
+
+In practice setting passable=true is all that is required for most parts forthem to work with CLS, however the config does allow for more subtle configurations.
+
+
