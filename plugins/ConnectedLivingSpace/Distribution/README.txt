@@ -17,7 +17,7 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 changelog:
 ----------
 release v 1.2.2.0
-* New:  Refactored Stock Crew Transfer Handler to use new KSP events to preempt the transfer if disallowd by CLS.
+* New:  Refactored Stock Crew Transfer Handler to use new KSP 1.1.3 events to pre-empt the transfer if disallowd by CLS.
 
 release v 1.2.1.5
 * Fixed:  Finally squashed NullRef exceptions when RemoteTech is installed.
