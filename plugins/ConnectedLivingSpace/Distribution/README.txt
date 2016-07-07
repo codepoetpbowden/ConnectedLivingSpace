@@ -1,4 +1,4 @@
-Connected Living Space v1.2.1.5
+Connected Living Space v1.2.2.0
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,9 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v 1.2.2.0
+* New:  Refactored Stock Crew Transfer Handler to use new KSP events to preempt the transfer if disallowd by CLS.
+
 release v 1.2.1.5
 * Fixed:  Finally squashed NullRef exceptions when RemoteTech is installed.
 * New:  Added Distribution folder to project for ease in locating binaries from Git.

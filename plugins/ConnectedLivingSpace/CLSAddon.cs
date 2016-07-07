@@ -119,7 +119,8 @@ namespace ConnectedLivingSpace
         GameEvents.onVesselTerminated.Add(OnVesselTerminated);
         GameEvents.onFlightReady.Add(OnFlightReady);
 
-        GameEvents.onCrewTransferred.Add(OnCrewTransfered);
+        GameEvents.onCrewTransferSelected.Add(OnCrewTransferSelected);
+        //GameEvents.onCrewTransferred.Add(OnCrewTransfered);
       }
 
       // Add the CLSModule to all parts that can house crew (and do not already have it).
@@ -215,7 +216,8 @@ namespace ConnectedLivingSpace
         ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
       }
 
-      GameEvents.onCrewTransferred.Remove(OnCrewTransfered);
+      GameEvents.onCrewTransferSelected.Remove(OnCrewTransferSelected);
+      //GameEvents.onCrewTransferred.Remove(OnCrewTransfered);
     }
 
     void OnGUIAppLauncherReady()
@@ -1000,13 +1002,20 @@ namespace ConnectedLivingSpace
     }
 
     // Method to optionally abort an attempt to use the stock crew transfer mechanism
+    private void OnCrewTransferSelected(CrewTransfer.CrewTransferData crewTransferData)
+    {
+      // If transfers are not restricted then we have got nothing to do here.
+      if (allowUnrestrictedTransfers) return;
+      crewTransferData.canTransfer = false;
+      ScreenMessages.PostScreenMessage(string.Format("<color=orange>CLS has prevented {0} from moving.   {1} is not in the same living space.</color>", crewTransferData.crewMember.name, crewTransferData.destPart.partInfo.title), 10f);
+
+    }
+
+    // Method to optionally abort an attempt to use the stock crew transfer mechanism
     private void OnCrewTransfered(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
     {
       try
       {
-        // If transfers are not restricted then we have got nothing to do here.
-        if (allowUnrestrictedTransfers) return;
-
         // "Transfers" to/from EVA are always permitted.
         // Trying to step them results in really bad things happening, and would be out of
         // scope for this plugin anyway.
