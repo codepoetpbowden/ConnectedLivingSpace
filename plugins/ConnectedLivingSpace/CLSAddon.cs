@@ -1006,9 +1006,18 @@ namespace ConnectedLivingSpace
     {
       // If transfers are not restricted then we have got nothing to do here.
       if (allowUnrestrictedTransfers) return;
-      crewTransferData.canTransfer = false;
-      ScreenMessages.PostScreenMessage(string.Format("<color=orange>CLS has prevented {0} from moving.   {1} is not in the same living space.</color>", crewTransferData.crewMember.name, crewTransferData.destPart.partInfo.title), 10f);
+      ICLSPart clsFrom = Instance.Vessel.Parts.Find(x => x.Part == crewTransferData.sourcePart);
+      ICLSPart clsTo = Instance.Vessel.Parts.Find(x => x.Part == crewTransferData.destPart);
 
+      // If in same space, ignore
+      if (clsFrom != null && clsTo != null && clsFrom.Space == clsTo.Space) return;
+      
+      // Okay, houston, we have a problem.   Prevent transfer.
+      crewTransferData.canTransfer = false;
+      ScreenMessages.PostScreenMessage(
+        string.Format(
+          "<color=orange>CLS has prevented {0} from moving.   {1} and {2} are not in the same living space.</color>",
+          crewTransferData.crewMember.name, crewTransferData.sourcePart.partInfo.title, crewTransferData.destPart.partInfo.title), 10f);
     }
 
     // Method to optionally abort an attempt to use the stock crew transfer mechanism

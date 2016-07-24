@@ -16,6 +16,9 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v 1.2.2.1
+* Fixed:  Stock Crew Transfer fails for "not in same space" even when the 2 parts are in the same space.
+
 release v 1.2.2.0
 * New:  Refactored Stock Crew Transfer Handler to use new KSP 1.1.3 events to pre-empt the transfer if disallowd by CLS.
 
