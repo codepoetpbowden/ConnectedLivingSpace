@@ -23,20 +23,20 @@ namespace ConnectedLivingSpace
     {
       get
       {
-        return this.hatchOpen;
+        return hatchOpen;
       }
 
       set
       {
-        this.hatchOpen = value;
+        hatchOpen = value;
 
         if (value)
         {
-          this.hatchStatus = "Open";
+          hatchStatus = "Open";
         }
         else
         {
-          this.hatchStatus = "Closed";
+          hatchStatus = "Closed";
         }
       }
     }
@@ -45,7 +45,7 @@ namespace ConnectedLivingSpace
     {
       get
       {
-        return this.hatchStatus;
+        return hatchStatus;
       }
     }
 
@@ -61,7 +61,7 @@ namespace ConnectedLivingSpace
     {
       get
       {
-        return this.Events;
+        return Events;
       }
     }
 
@@ -69,7 +69,7 @@ namespace ConnectedLivingSpace
     {
       get
       {
-        return this.modDockNode;
+        return modDockNode;
       }
     }
 
@@ -79,16 +79,16 @@ namespace ConnectedLivingSpace
     [KSPEvent(active = true, guiActive = true, guiName = "Open Hatch")]
     private void OpenHatch()
     {
-      this.Events["OpenHatch"].active = false;
+      Events["OpenHatch"].active = false;
       if (isInDockedState() || isAttachedToDockingPort())
       {
-        this.HatchOpen = true;
-        this.Events["CloseHatch"].active = true;
+        HatchOpen = true;
+        Events["CloseHatch"].active = true;
       }
       else
       {
-        this.HatchOpen = false;
-        this.Events["CloseHatch"].active = false;
+        HatchOpen = false;
+        Events["CloseHatch"].active = false;
       }
 
       // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVEssel is only available in flight, but then it should only be possible to open and close hatches in flight so we should be OK.
@@ -100,16 +100,16 @@ namespace ConnectedLivingSpace
     {
       bool docked = isInDockedState();
 
-      this.HatchOpen = false;
+      HatchOpen = false;
 
-      this.Events["CloseHatch"].active = false;
+      Events["CloseHatch"].active = false;
       if (isInDockedState() || isAttachedToDockingPort())
       {
-        this.Events["OpenHatch"].active = true;
+        Events["OpenHatch"].active = true;
       }
       else
       {
-        this.Events["OpenHatch"].active = false;
+        Events["OpenHatch"].active = false;
       }
 
       // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVEssel is only available in flight, but then it should only be possible to open and close hatches in flight so we should be OK.
@@ -125,26 +125,26 @@ namespace ConnectedLivingSpace
       //Debug.Log("node.GetValue(docNodeAttachmentNodeName): " + node.GetValue("docNodeAttachmentNodeName"));
 
       // The Loader with have set hatchOpen, but not via the Property HatchOpen, so we need to re-do it to ensure that hatchStatus gets properly set.
-      this.HatchOpen = this.hatchOpen;
+      HatchOpen = hatchOpen;
 
       // Set the GUI state of the open/close hatch events as appropriate
       if (isInDockedState() || isAttachedToDockingPort())
       {
-        if (this.HatchOpen)
+        if (HatchOpen)
         {
-          this.Events["CloseHatch"].active = true;
-          this.Events["OpenHatch"].active = false;
+          Events["CloseHatch"].active = true;
+          Events["OpenHatch"].active = false;
         }
         else
         {
-          this.Events["CloseHatch"].active = false;
-          this.Events["OpenHatch"].active = true;
+          Events["CloseHatch"].active = false;
+          Events["OpenHatch"].active = true;
         }
       }
       else
       {
-        this.Events["CloseHatch"].active = false;
-        this.Events["OpenHatch"].active = false;
+        Events["CloseHatch"].active = false;
+        Events["OpenHatch"].active = false;
       }
     }
 
@@ -157,40 +157,40 @@ namespace ConnectedLivingSpace
         {
           if (isInDockedState())
           {
-            if (!this.HatchOpen)
+            if (!HatchOpen)
             {
               // We are docked, but the hatch is closed. Make sure that it is possible to open the hatch
-              this.Events["CloseHatch"].active = false;
-              this.Events["OpenHatch"].active = true;
+              Events["CloseHatch"].active = false;
+              Events["OpenHatch"].active = true;
             }
           }
           else
           {
             if (isAttachedToDockingPort())
             {
-              if (!this.HatchOpen)
+              if (!HatchOpen)
               {
                 // We are not docked, but attached to a docking port, and the hatch is closed. Make sure that it is possible to open the hatch
-                this.Events["CloseHatch"].active = false;
-                this.Events["OpenHatch"].active = true;
+                Events["CloseHatch"].active = false;
+                Events["OpenHatch"].active = true;
               }
               else
               {
                 // We are not docked, but attached to a docking port, and the hatch is open. Make sure that it is possible to close the hatch
-                this.Events["CloseHatch"].active = true;
-                this.Events["OpenHatch"].active = false;
+                Events["CloseHatch"].active = true;
+                Events["OpenHatch"].active = false;
               }
             }
             else
             {
               // We are not docked or attached to a docking port - close up the hatch if it is open!
-              if (this.HatchOpen)
+              if (HatchOpen)
               {
-                Debug.Log("Closing a hatch because its corresponding docking port is in state: " + this.modDockNode.state);
+                Debug.Log("Closing a hatch because its corresponding docking port is in state: " + modDockNode.state);
 
-                this.HatchOpen = false;
-                this.Events["CloseHatch"].active = false;
-                this.Events["OpenHatch"].active = false;
+                HatchOpen = false;
+                Events["CloseHatch"].active = false;
+                Events["OpenHatch"].active = false;
               }
             }
           }
@@ -201,7 +201,7 @@ namespace ConnectedLivingSpace
         // In the editor force the hatches open for attached docking ports so it is possible to see the living spaces at design time.
         if (isAttachedToDockingPort())
         {
-          this.HatchOpen = true;
+          HatchOpen = true;
         }
       }
 
@@ -209,14 +209,16 @@ namespace ConnectedLivingSpace
 
     private bool CheckModuleDockingNode()
     {
-      if (null == this.modDockNode)
+      if (null == modDockNode)
       {
         // We do not know which ModuleDockingNode we are attached to yet. Try to find one.
-        foreach (ModuleDockingNode dockNode in this.part.Modules.OfType<ModuleDockingNode>())
+        IEnumerator<ModuleDockingNode> eNodes = part.Modules.OfType<ModuleDockingNode>().GetEnumerator();
+        while (eNodes.MoveNext())
         {
-          if (IsRelatedDockingNode(dockNode))
+          if (eNodes.Current == null) continue;
+          if (IsRelatedDockingNode(eNodes.Current))
           {
-            this.modDockNode = dockNode;
+            modDockNode = eNodes.Current;
             return true;
           }
         }
@@ -231,14 +233,14 @@ namespace ConnectedLivingSpace
     // This method allows us to check if a specified ModuleDockingNode is one that this hatch is attached to
     internal bool IsRelatedDockingNode(ModuleDockingNode dockNode)
     {
-      if (dockNode.nodeTransformName == this.docNodeTransformName)
+      if (dockNode.nodeTransformName == docNodeTransformName)
       {
-        this.modDockNode = dockNode;
+        modDockNode = dockNode;
         return true;
       }
-      if (dockNode.referenceAttachNode == this.docNodeAttachmentNodeName)
+      if (dockNode.referenceAttachNode == docNodeAttachmentNodeName)
       {
-        this.modDockNode = dockNode;
+        modDockNode = dockNode;
         return true;
       }
       return false;
@@ -250,7 +252,7 @@ namespace ConnectedLivingSpace
       // First ensure that we know which ModuleDockingNode we are referring to.
       if (CheckModuleDockingNode())
       {
-        if (this.modDockNode.state == "Docked (dockee)" || this.modDockNode.state == "Docked (docker)")
+        if (modDockNode.state == "Docked (dockee)" || modDockNode.state == "Docked (docker)")
         {
           return true;
         }
@@ -258,7 +260,7 @@ namespace ConnectedLivingSpace
       else
       {
         // This is bad - it means there is a hatch that we can not match to a docking node. This should not happen. We will log an error but it will likely spam the log.
-        Debug.LogError(" Error - Docking port hatch can not find its ModuleDockingNode docNodeTransformName:" + this.docNodeTransformName + " docNodeAttachmentNodeName " + this.docNodeAttachmentNodeName);
+        Debug.LogError(" Error - Docking port hatch can not find its ModuleDockingNode docNodeTransformName:" + docNodeTransformName + " docNodeAttachmentNodeName " + docNodeAttachmentNodeName);
       }
 
       return false;
@@ -268,22 +270,24 @@ namespace ConnectedLivingSpace
     private bool isAttachedToDockingPort()
     {
       // First - this is only possible if we have an reference attachmentNode
-      if (this.docNodeAttachmentNodeName != null && this.docNodeAttachmentNodeName != "" && docNodeAttachmentNodeName != string.Empty)
+      if (docNodeAttachmentNodeName != null && docNodeAttachmentNodeName != "" && docNodeAttachmentNodeName != string.Empty)
       {
-        AttachNode thisNode = this.part.attachNodes.Find(x => x.id == this.docNodeAttachmentNodeName);
+        AttachNode thisNode = part.attachNodes.Find(x => x.id == docNodeAttachmentNodeName);
         if (null != thisNode)
         {
           Part attachedPart = thisNode.attachedPart;
           if (null != attachedPart)
           {
             // What is the attachNode in the attachedPart that links back to us?
-            AttachNode reverseNode = attachedPart.findAttachNodeByPart(this.part);
+            AttachNode reverseNode = attachedPart.findAttachNodeByPart(part);
             if (null != reverseNode)
             {
               // Now the big question - is the attached part a docking node that is centred on the reverseNode?
-              foreach (ModuleDockingNode n in attachedPart.Modules.OfType<ModuleDockingNode>())
+              IEnumerator<ModuleDockingNode> eNodes = attachedPart.Modules.OfType<ModuleDockingNode>().GetEnumerator();
+              while (eNodes.MoveNext())
               {
-                if (n.referenceAttachNode == reverseNode.id)
+                if (eNodes.Current == null) continue;
+                if (eNodes.Current.referenceAttachNode == reverseNode.id)
                 {
                   // The part has a docking node that references the attachnode that connects back to our part - this is what we have been looking for!
                   return true;
@@ -300,10 +304,10 @@ namespace ConnectedLivingSpace
     // Method that can be used to set up the ModuleDockingNode that this ModuleDockingHatch refers to.
     public void AttachModuleDockingNode(ModuleDockingNode _modDocNode)
     {
-      this.modDockNode = _modDocNode;
+      modDockNode = _modDocNode;
 
-      this.docNodeTransformName = _modDocNode.nodeTransformName;
-      this.docNodeAttachmentNodeName = _modDocNode.referenceAttachNode;
+      docNodeTransformName = _modDocNode.nodeTransformName;
+      docNodeAttachmentNodeName = _modDocNode.referenceAttachNode;
     }
   }
 }

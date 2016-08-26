@@ -18,20 +18,20 @@ internal class KSPAddonFixedCLS : KSPAddon, IEquatable<KSPAddonFixedCLS>
 
   public override bool Equals(object obj)
   {
-    if (obj.GetType() != this.GetType()) { return false; }
+    if (obj.GetType() != GetType()) { return false; }
     return Equals((KSPAddonFixedCLS)obj);
   }
 
   public bool Equals(KSPAddonFixedCLS other)
   {
-    if (this.once != other.once) { return false; }
-    if (this.startup != other.startup) { return false; }
-    if (this.type != other.type) { return false; }
+    if (once != other.once) { return false; }
+    if (startup != other.startup) { return false; }
+    if (type != other.type) { return false; }
     return true;
   }
 
   public override int GetHashCode()
   {
-    return this.startup.GetHashCode() ^ this.once.GetHashCode() ^ this.type.GetHashCode();
+    return startup.GetHashCode() ^ once.GetHashCode() ^ type.GetHashCode();
   }
 }

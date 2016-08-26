@@ -10,8 +10,8 @@ namespace ConnectedLivingSpace
     List<ICLSPart> parts;
     List<ICLSKerbal> crew;
     String name;
-    int maxCrew = 0;
-    CLSVessel vessel = null;
+    int maxCrew;
+    CLSVessel vessel;
 
     public List<ICLSPart> Parts
     {
@@ -33,15 +33,17 @@ namespace ConnectedLivingSpace
     {
       get
       {
-        return this.name;
+        return name;
       }
       set
       {
-        this.name = value;
+        name = value;
         // If we change the name of the space, we need to also change the spaceName of all the parts that make it up.
-        foreach (CLSPart p in this.parts)
+        IEnumerator<ICLSPart> eParts = parts.GetEnumerator();
+        while (eParts.MoveNext())
         {
-          ModuleConnectedLivingSpace modCLS = (ModuleConnectedLivingSpace)p;
+          if (eParts.Current == null) continue;
+          ModuleConnectedLivingSpace modCLS = (ModuleConnectedLivingSpace)((CLSPart)eParts.Current);
           if (modCLS)
           {
             modCLS.spaceName = value;
@@ -54,7 +56,7 @@ namespace ConnectedLivingSpace
     {
       get
       {
-        return this.vessel;
+        return vessel;
       }
     }
 
@@ -68,18 +70,20 @@ namespace ConnectedLivingSpace
 
     public CLSSpace(CLSVessel v)
     {
-      this.parts = new List<ICLSPart>();
-      this.crew = new List<ICLSKerbal>();
-      this.name = "";
-      this.vessel = v;
+      parts = new List<ICLSPart>();
+      crew = new List<ICLSKerbal>();
+      name = "";
+      vessel = v;
     }
 
     public void Highlight(bool val)
     {
       // Iterate through each CLSPart in this space and turn highlighting on or off.
-      foreach (CLSPart p in this.parts)
+      IEnumerator<ICLSPart> eParts = parts.GetEnumerator();
+      while (eParts.MoveNext())
       {
-        p.Highlight(val);
+        if (eParts.Current == null) continue;
+        ((CLSPart)eParts.Current).Highlight(val);
       }
     }
 
@@ -89,35 +93,39 @@ namespace ConnectedLivingSpace
       p.Space = this;
 
       // If this space does not have a name, take the name from the part we just added.
-      if ("" == this.name)
+      if ("" == name)
       {
         ModuleConnectedLivingSpace modCLS = (ModuleConnectedLivingSpace)p;
 
         if (null != modCLS)
         {
-          this.name = modCLS.spaceName;
+          name = modCLS.spaceName;
         }
       }
 
-      this.parts.Add(p);
+      parts.Add(p);
 
-      this.maxCrew += ((Part)p).CrewCapacity;
+      maxCrew += ((Part)p).CrewCapacity;
 
-      foreach (CLSKerbal crewMember in p.Crew)
+      IEnumerator<ICLSKerbal> eCrew = p.Crew.GetEnumerator();
+      while (eCrew.MoveNext())
       {
-        this.crew.Add(crewMember);
+        if (eCrew.Current == null) continue;
+        crew.Add((CLSKerbal)eCrew.Current);
       }
     }
 
     // A function to throw away all the parts references, and so break the circular reference. This should be called before throwing a CLSSpace away.
     internal void Clear()
     {
-      foreach (CLSPart p in this.parts)
+      IEnumerator<ICLSPart> eParts = parts.GetEnumerator();
+      while (eParts.MoveNext())
       {
-        p.Clear();
+        if (eParts.Current == null) continue;
+        ((CLSPart)eParts.Current).Clear();
       }
-      this.parts.Clear();
-      this.vessel = null;
+      parts.Clear();
+      vessel = null;
     }
 
   }

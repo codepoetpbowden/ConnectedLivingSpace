@@ -543,7 +543,7 @@ namespace ConnectedLivingSpace
 
   public partial class ToolbarManager : IToolbarManager
   {
-    private static bool? toolbarAvailable = null;
+    private static bool? toolbarAvailable;
     private static IToolbarManager instance_;
 
     private object realToolbarManager;
