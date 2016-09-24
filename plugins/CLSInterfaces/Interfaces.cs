@@ -51,6 +51,8 @@ namespace ConnectedLivingSpace
     public interface ICLSAddon
     {
         ICLSVessel Vessel { get; }
+
+        bool AllowUnrestrictedTransfers { get; set; }
     }
 
 

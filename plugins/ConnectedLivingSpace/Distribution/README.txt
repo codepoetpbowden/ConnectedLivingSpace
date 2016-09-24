@@ -1,4 +1,4 @@
-Connected Living Space v1.2.1.5
+Connected Living Space v1.2.3.0
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,20 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v 1.2.3.0
+* New:  Added support for intercepting Parts selection list during stock Transfer target part selection.  A part not in the same space will be unselectable and is highlighted orange like full parts.
+* New:  Added support for overriding the "Allow unrestricted Crew Transfers"in CLSInterfaces.dll setting via other Mods to prevent "competition" between mods when handling stock crew transfers.
+* New:  Updated config for Docking Port Jr.  Squad now says that a kerbal can squeeze thru.
+* New:  Refactored code to improve performance, recuce garbage collection, & use Explicit typing.
+* Fixed: CLS windows now properly close when changing scenes.
+* Fixed: In the Editor, part highlighting does not work correctly when adding new crewable parts.
+
+release v 1.2.2.1
+* Fixed:  Stock Crew Transfer fails for "not in same space" even when the 2 parts are in the same space.
+
+release v 1.2.2.0
+* New:  Refactored Stock Crew Transfer Handler to use new KSP 1.1.3 events to pre-empt the transfer if disallowd by CLS.
+
 release v 1.2.1.5
 * Fixed:  Finally squashed NullRef exceptions when RemoteTech is installed.
 * New:  Added Distribution folder to project for ease in locating binaries from Git.

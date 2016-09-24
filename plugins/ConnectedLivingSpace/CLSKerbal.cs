@@ -12,8 +12,8 @@ namespace ConnectedLivingSpace
 
     public CLSKerbal(ProtoCrewMember k, CLSPart p)
     {
-      this.kerbal = k;
-      this.part = p;
+      kerbal = k;
+      part = p;
     }
 
     // Allow a CLSKerbal to be cast into a ProtoCrewMember
@@ -26,7 +26,7 @@ namespace ConnectedLivingSpace
     {
       get
       {
-        return this.part;
+        return part;
       }
     }
 
@@ -34,14 +34,14 @@ namespace ConnectedLivingSpace
     {
       get
       {
-        return this.kerbal;
+        return kerbal;
       }
     }
 
     internal void Clear()
     {
-      this.kerbal = null;
-      this.part = null;
+      kerbal = null;
+      part = null;
     }
   }
 }

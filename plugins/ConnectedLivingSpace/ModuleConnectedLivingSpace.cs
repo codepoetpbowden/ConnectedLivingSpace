@@ -14,9 +14,9 @@ namespace ConnectedLivingSpace
     [KSPField(isPersistant = true)]
     public bool passable;
     [KSPField(isPersistant = true)]
-    public bool passableWhenSurfaceAttached = false;
+    public bool passableWhenSurfaceAttached;
     [KSPField(isPersistant = true)]
-    public bool surfaceAttachmentsPassable = false;
+    public bool surfaceAttachmentsPassable;
     [KSPField(isPersistant = true)]
     public string passablenodes = "";
     [KSPField(isPersistant = true)]
@@ -51,13 +51,13 @@ namespace ConnectedLivingSpace
       try
       {
         // If the CLS Space name for this part is not set or empty, then set it to the title of this part.
-        if (null == this.spaceName)
+        if (null == spaceName)
         {
-          this.spaceName = this.part.partInfo.title;
+          spaceName = part.partInfo.title;
         }
-        else if ("" == this.spaceName)
+        else if ("" == spaceName)
         {
-          this.spaceName = this.part.partInfo.title;
+          spaceName = part.partInfo.title;
         }
         SetEventState();
       }
@@ -103,7 +103,7 @@ namespace ConnectedLivingSpace
 
       if (!CLSAddon.enablePassable) return;
 
-      if (this.passable)
+      if (passable)
       {
         Events["EnablePassable"].active = false;
         Events["DisablePassable"].active = true;
@@ -113,7 +113,7 @@ namespace ConnectedLivingSpace
         Events["EnablePassable"].active = true;
         Events["DisablePassable"].active = false;
       }
-      if (this.passableWhenSurfaceAttached)
+      if (passableWhenSurfaceAttached)
       {
         Events["EnableSurfaceAttachable"].active = false;
         Events["DisableSurfaceAttachable"].active = true;
@@ -123,7 +123,7 @@ namespace ConnectedLivingSpace
         Events["EnableSurfaceAttachable"].active = true;
         Events["DisableSurfaceAttachable"].active = false;
       }
-      if (this.surfaceAttachmentsPassable)
+      if (surfaceAttachmentsPassable)
       {
         Events["EnableAttachableSurface"].active = false;
         Events["DisableAttachableSurface"].active = true;
@@ -138,9 +138,11 @@ namespace ConnectedLivingSpace
     // Allow a CLSPart to be cast into a ModuleConnectedLivingSpace. Note that this might fail, if the part in question does not have the CLS module configured.
     public static implicit operator ModuleConnectedLivingSpace(Part _p)
     {
-      foreach (ModuleConnectedLivingSpace modcls in _p.Modules.OfType<ModuleConnectedLivingSpace>())
+      IEnumerator<ModuleConnectedLivingSpace> eModules = _p.Modules.OfType<ModuleConnectedLivingSpace>().GetEnumerator();
+      while (eModules.MoveNext())
       {
-        return (modcls);
+        if (eModules.Current == null) continue;
+        return (eModules.Current);
       }
       return null;
     }
@@ -148,9 +150,9 @@ namespace ConnectedLivingSpace
     // Method to provide extra infomation about the part on response to the RMBof the part gallery
     public override string GetInfo()
     {
-      var returnValue = string.Empty;
-      var yes = "<color=Lime>Yes</color>";
-      var no = "<color=Red>No</color>";
+      string returnValue = string.Empty;
+      string yes = "<color=Lime>Yes</color>";
+      string no = "<color=Red>No</color>";
       if (passable)
       {
         returnValue += "Passable:  <color=Lime>Yes</color>";
@@ -173,7 +175,7 @@ namespace ConnectedLivingSpace
     [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisablePassable", guiName = "CLS Passable: Yes")]
     public void DisablePassable()
     {
-      this.passable = false;
+      passable = false;
       Events["EnablePassable"].active = true;
       Events["DisablePassable"].active = false;
     }
@@ -181,7 +183,7 @@ namespace ConnectedLivingSpace
     [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnablePassable", guiName = "CLS Passable: No")]
     public void EnablePassable()
     {
-      this.passable = true;
+      passable = true;
       Events["EnablePassable"].active = false;
       Events["DisablePassable"].active = true;
     }
@@ -189,14 +191,14 @@ namespace ConnectedLivingSpace
     [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisableSurfaceAttachable", guiName = "CLS Surface Attachable: Yes")]
     public void DisableSurfaceAttachable()
     {
-      this.passableWhenSurfaceAttached = false;
+      passableWhenSurfaceAttached = false;
       Events["EnableSurfaceAttachable"].active = true;
       Events["DisableSurfaceAttachable"].active = false;
     }
     [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnableSurfaceAttachable", guiName = "CLS Surface Attachable: No")]
     public void EnableSurfaceAttachable()
     {
-      this.passableWhenSurfaceAttached = true;
+      passableWhenSurfaceAttached = true;
       Events["EnableSurfaceAttachable"].active = false;
       Events["DisableSurfaceAttachable"].active = true;
     }
@@ -204,14 +206,14 @@ namespace ConnectedLivingSpace
     [KSPEvent(guiActive = false, guiActiveEditor = true, name = "DisableAttachableSurface", guiName = "CLS Attachable Surface: Yes")]
     public void DisableAttachableSurface()
     {
-      this.surfaceAttachmentsPassable = false;
+      surfaceAttachmentsPassable = false;
       Events["EnableAttachableSurface"].active = true;
       Events["DisableAttachableSurface"].active = false;
     }
     [KSPEvent(guiActive = false, guiActiveEditor = true, name = "EnableAttachableSurface", guiName = "CLS Attachable Surface: No")]
     public void EnableAttachableSurface()
     {
-      this.surfaceAttachmentsPassable = true;
+      surfaceAttachmentsPassable = true;
       Events["EnableAttachableSurface"].active = false;
       Events["DisableAttachableSurface"].active = true;
     }

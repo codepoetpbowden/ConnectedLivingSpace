@@ -43,8 +43,8 @@ namespace ConnectedLivingSpace
     internal void Populate(Part rootPart)
     {
       // Discard any currently held data.
-      this.listParts.Clear();
-      this.listSpaces.Clear();
+      listParts.Clear();
+      listSpaces.Clear();
 
       // Check that there is a root part, as if this was called in the EditorContext, the Editor.startPod will have been passed in, and that can be null.
       if (null != rootPart)
@@ -58,19 +58,22 @@ namespace ConnectedLivingSpace
     private void TidySpaces()
     {
       List<CLSSpace> listSpacesToRemove = new List<CLSSpace>();
-
-      foreach (CLSSpace space in this.listSpaces)
+      IEnumerator<ICLSSpace> eSpaces = listSpaces.GetEnumerator();
+      while (eSpaces.MoveNext())
       {
-        if (space.MaxCrew == 0)
+        if (eSpaces.Current == null) continue;
+        if (((CLSSpace)eSpaces.Current).MaxCrew == 0)
         {
-          listSpacesToRemove.Add(space);
+          listSpacesToRemove.Add((CLSSpace)eSpaces.Current);
         }
       }
 
-      foreach (CLSSpace spaceToRemove in listSpacesToRemove)
+      IEnumerator<CLSSpace> eSpacesR = listSpacesToRemove.GetEnumerator();
+      while (eSpacesR.MoveNext())
       {
-        spaceToRemove.Clear();
-        listSpaces.Remove(spaceToRemove);
+        if (eSpacesR.Current == null) continue;
+        eSpacesR.Current.Clear();
+        listSpaces.Remove(eSpacesR.Current);
       }
 
     }
@@ -84,7 +87,7 @@ namespace ConnectedLivingSpace
       //Debug.Log("Processing part: " + p.name + " Navigable:"+newPart.Navigable + " Habitable:" + newPart.Habitable);
 
       // First add this part to the list of all parts for the vessel.
-      this.listParts.Add(newPart);
+      listParts.Add(newPart);
 
       // Is the part capable of allowing kerbals to pass? If it is add it to the current space, or if there is no current space, to a new space.
       if (newPart.Navigable || newPart.modCLS != null)
@@ -102,11 +105,13 @@ namespace ConnectedLivingSpace
       }
 
       // Now loop through each of the part's children, consider if there is a navigable connection between them, and then make a recursive call.
-      foreach (Part child in p.children)
+      IEnumerator<Part> eChildren = p.children.GetEnumerator();
+      while (eChildren.MoveNext())
       {
+        if (eChildren.Current == null) continue;
         // Get the attachment nodes
-        AttachNode node = p.findAttachNodeByPart(child);
-        AttachNode childNode = child.findAttachNodeByPart(p);
+        AttachNode node = p.findAttachNodeByPart(eChildren.Current);
+        AttachNode childNode = eChildren.Current.findAttachNodeByPart(p);
         bool attachmentIsPassable = false;
         bool childAttachmentIsPassable = false;
         bool dockingConnection = false;
@@ -124,13 +129,13 @@ namespace ConnectedLivingSpace
         else
         {
           // Could it be that we are dealing with a docked connection?
-          dockingConnection = CheckForDockedPair(p, child);
+          dockingConnection = CheckForDockedPair(p, eChildren.Current);
 
           if (true == dockingConnection)
           {
             //Debug.Log("The two parts are considered to be docked together.");
             // The parts are docked, but we still need to have a think about if the docking port is passable.
-            attachmentIsPassable = IsDockedDockingPortPassable(p, child);
+            attachmentIsPassable = IsDockedDockingPortPassable(p, eChildren.Current);
             //Debug.Log("the docked attachment on 'this' part has been given passable=" + attachmentIsPassable);
           }
           else
@@ -151,7 +156,7 @@ namespace ConnectedLivingSpace
           if (null != childNode)
           {
             // The attachment is in the form of an AttachNode - use it to work out if the attachment is passable.
-            childAttachmentIsPassable = IsNodeNavigable(childNode, child);
+            childAttachmentIsPassable = IsNodeNavigable(childNode, eChildren.Current);
             //Debug.Log("the attachment on the child part is defined by attachment node " + childNode.id + " and had been given passable=" + attachmentIsPassable);
           }
           else
@@ -160,14 +165,14 @@ namespace ConnectedLivingSpace
             {
               //Debug.Log("The two parts are considered to be docked together.");
               // The parts are docked, but we still need to have a think about if the docking port is passable.
-              childAttachmentIsPassable = IsDockedDockingPortPassable(child, p);
+              childAttachmentIsPassable = IsDockedDockingPortPassable(eChildren.Current, p);
               //Debug.Log("the docked attachment on the child part has been given passable=" + attachmentIsPassable);
             }
             else
             {
               //Debug.Log("The two parts are NOT considered to be docked together - concluding that the child part is suface attached");
               // It is not a AttachNode attachment, and it is not a docked connection either. The only other option is that we are dealing with a surface attachment. Does this part allow surfact attachments to be passable?
-              if (PartHasPassableSurfaceAttachments(child))
+              if (PartHasPassableSurfaceAttachments(eChildren.Current))
               {
                 childAttachmentIsPassable = true;
                 //Debug.Log("The child part is surface attached and is considered to be passable");
@@ -191,7 +196,7 @@ namespace ConnectedLivingSpace
         }
 
         // Having work out all the variables, make the recursive call
-        ProcessPart(child, spaceForChild, dockingConnection);
+        ProcessPart(eChildren.Current, spaceForChild, dockingConnection);
 
         // Was the connection a docking connection - if so we ought to mark the relevant CLSParts
         if (dockingConnection || dockedToParent)
@@ -222,9 +227,11 @@ namespace ConnectedLivingSpace
       bool otherDockedToThis = false;
 
       // Loop through all the ModuleDockingNodes for this part and check if any are docked to the other part.
-      foreach (ModuleDockingNode docNode in thisPart.Modules.OfType<ModuleDockingNode>())
+      IEnumerator<ModuleDockingNode> epNodes = thisPart.Modules.OfType<ModuleDockingNode>().GetEnumerator();
+      while (epNodes.MoveNext())
       {
-        if (CheckForNodeDockedToPart(docNode, otherPart))
+        if (epNodes.Current == null) continue;
+        if (CheckForNodeDockedToPart(epNodes.Current, otherPart))
         {
           thisDockedToOther = true;
           break;
@@ -232,9 +239,11 @@ namespace ConnectedLivingSpace
       }
 
       // Loop through all the ModuleDockingNodes for the other part and check if any are docked to this part.
-      foreach (ModuleDockingNode docNode in otherPart.Modules.OfType<ModuleDockingNode>())
+      IEnumerator<ModuleDockingNode> epNodes2 = thisPart.Modules.OfType<ModuleDockingNode>().GetEnumerator();
+      while (epNodes2.MoveNext())
       {
-        if (CheckForNodeDockedToPart(docNode, thisPart))
+        if (epNodes2.Current == null) continue;
+        if (CheckForNodeDockedToPart(epNodes2.Current, thisPart))
         {
           otherDockedToThis = true;
           break;
@@ -263,23 +272,25 @@ namespace ConnectedLivingSpace
       }
 
       // Loop through all the ModuleDockingNodes for this part and check if any are docked to the other part.
-      foreach (ModuleDockingNode docNode in thisPart.Modules.OfType<ModuleDockingNode>())
+      IEnumerator<ModuleDockingNode> epNodes = thisPart.Modules.OfType<ModuleDockingNode>().GetEnumerator();
+      while (epNodes.MoveNext())
       {
-        if (CheckForNodeDockedToPart(docNode, otherPart))
+        if (epNodes.Current == null) continue;
+        if (CheckForNodeDockedToPart(epNodes.Current, otherPart))
         {
           // We have found the ModuleDockingNode that represents the docking connection on this part.
           //Debug.Log("Found docking node that represents the docking connection to the 'other' part");
 
           // First consider if this docked connection has an accompanying AttachNode may be defined as (im)passable by CLS. 
-          if (docNode.referenceAttachNode != string.Empty)
+          if (epNodes.Current.referenceAttachNode != string.Empty)
           {
             //Debug.Log("docking node uses a referenceAttachNode called: " + docNode.referenceAttachNode + " In the meantime, passablenodes: " + clsModThis.passablenodes + " impassablenodes: " + clsModThis.impassablenodes);
-            if (clsModThis.passablenodes.Contains(docNode.referenceAttachNode))
+            if (clsModThis.passablenodes.Contains(epNodes.Current.referenceAttachNode))
             {
               retVal = true;
             }
 
-            if (clsModThis.impassablenodes.Contains(docNode.referenceAttachNode))
+            if (clsModThis.impassablenodes.Contains(epNodes.Current.referenceAttachNode))
             {
               retVal = false;
             }
@@ -288,11 +299,11 @@ namespace ConnectedLivingSpace
           else
           {
             //Debug.Log("docking node does not use referenceAttachNode, instead considering the nodeType: " + docNode.nodeType + " In the meantime, impassableDockingNodeTypes:" + clsModThis.impassableDockingNodeTypes + " passableDockingNodeTypes:" + clsModThis.passableDockingNodeTypes);
-            if (clsModThis.impassableDockingNodeTypes.Contains(docNode.nodeType))
+            if (clsModThis.impassableDockingNodeTypes.Contains(epNodes.Current.nodeType))
             {
               retVal = false; // Docking node is of an impassable type.
             }
-            if (clsModThis.passableDockingNodeTypes.Contains(docNode.nodeType))
+            if (clsModThis.passableDockingNodeTypes.Contains(epNodes.Current.nodeType))
             {
               retVal = true; // Docking node is of a passable type.
             }
@@ -300,7 +311,7 @@ namespace ConnectedLivingSpace
 
           // third, consider if there is an open / closed hatch
           {
-            ModuleDockingHatch docHatch = GetHatchForDockingNode(docNode);
+            ModuleDockingHatch docHatch = GetHatchForDockingNode(epNodes.Current);
             if (docHatch != null)
             {
               // The dockingNode is actually a DockingNodeHatch :)
@@ -320,11 +331,13 @@ namespace ConnectedLivingSpace
 
     private ModuleDockingHatch GetHatchForDockingNode(ModuleDockingNode dockNode)
     {
-      foreach (ModuleDockingHatch dockHatch in dockNode.part.Modules.OfType<ModuleDockingHatch>())
+      IEnumerator<ModuleDockingHatch> epHatches = dockNode.part.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
+      while (epHatches.MoveNext())
       {
-        if (dockHatch.modDockNode == dockNode)
+        if (epHatches.Current == null) continue;
+        if (epHatches.Current.modDockNode == dockNode)
         {
-          return dockHatch;
+          return epHatches.Current;
         }
       }
       return null;
@@ -363,37 +376,35 @@ namespace ConnectedLivingSpace
     // Decides is an attachment node on a part could allow a kerbal to pass through it.
     private bool IsNodeNavigable(AttachNode node, Part p)
     {
-      String passablenodes = "";
-      String impassablenodes = "";
+      string passablenodes = "";
+      string impassablenodes = "";
       bool passableWhenSurfaceAttached = false;
       bool closedHatch = false;
-      bool retVal = false;
-
-      // First off - does the part has a crew capacity? If so then start by assuming that all its nods are navigable. This might get overridden  later by the passable config if it is supplied.
-      if (p.CrewCapacity > 0)
-      {
-        retVal = true;
-      }
+      bool retVal = p.CrewCapacity > 0;
 
       // Get the config for this part
-      foreach (ModuleConnectedLivingSpace CLSMod in p.Modules.OfType<ModuleConnectedLivingSpace>())
+      IEnumerator<ModuleConnectedLivingSpace> eModules = p.Modules.OfType<ModuleConnectedLivingSpace>().GetEnumerator();
+      while (eModules.MoveNext())
       {
+        if (eModules.Current == null) continue;
         // This part does have a CLSmodule
-        passablenodes = CLSMod.passablenodes;
-        impassablenodes = CLSMod.impassablenodes;
-        passableWhenSurfaceAttached = CLSMod.passableWhenSurfaceAttached;
-        retVal = CLSMod.passable;
+        passablenodes = eModules.Current.passablenodes;
+        impassablenodes = eModules.Current.impassablenodes;
+        passableWhenSurfaceAttached = eModules.Current.passableWhenSurfaceAttached;
+        retVal = eModules.Current.passable;
         break;
       }
 
       // Is there a DockingHatch that relates to this node? This would occur in a situation where a docking node was assembled onto another part in the VAB.
-      foreach (ModuleDockingHatch hatchMod in p.Modules.OfType<ModuleDockingHatch>())
+      IEnumerator<ModuleDockingHatch> epHatches = p.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
+      while (epHatches.MoveNext())
       {
+        if (epHatches.Current == null) continue;
         // This part does have a Docking Hatch - (it might have several) Consider if this hatch relates to the attachment node in question
-        if (hatchMod.docNodeAttachmentNodeName == node.id)
+        if (epHatches.Current.docNodeAttachmentNodeName == node.id)
         {
           // This hatch relates to this attachment node
-          if (!hatchMod.HatchOpen)
+          if (!epHatches.Current.HatchOpen)
           {
             closedHatch = true;
           }
@@ -433,7 +444,7 @@ namespace ConnectedLivingSpace
     {
       CLSSpace newSpace = new CLSSpace(this);
 
-      this.listSpaces.Add(newSpace);
+      listSpaces.Add(newSpace);
 
       newSpace.AddPart(p);
 
@@ -459,9 +470,11 @@ namespace ConnectedLivingSpace
     // Method to throw away potential circular references before the object is disposed of
     public void Clear()
     {
-      foreach (CLSSpace s in this.listSpaces)
+      IEnumerator<ICLSSpace> eSpaces = listSpaces.GetEnumerator();
+      while (eSpaces.MoveNext())
       {
-        s.Clear();
+        if (eSpaces.Current == null) continue;
+        ((CLSSpace)eSpaces.Current).Clear();
       }
       listSpaces.Clear();
     }
@@ -469,9 +482,11 @@ namespace ConnectedLivingSpace
     // Method to highlight on unhighlight all the habitable spaces in this vessel
     public void Highlight(bool arg)
     {
-      foreach (CLSSpace space in this.listSpaces)
+      IEnumerator<ICLSSpace> eSpaces = listSpaces.GetEnumerator();
+      while (eSpaces.MoveNext())
       {
-        space.Highlight(arg);
+        if (eSpaces.Current == null) continue;
+        ((CLSSpace)eSpaces.Current).Highlight(arg);
       }
     }
   }
