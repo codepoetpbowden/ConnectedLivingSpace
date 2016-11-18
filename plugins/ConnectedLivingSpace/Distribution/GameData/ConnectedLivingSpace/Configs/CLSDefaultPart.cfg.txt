@@ -1,0 +1,8 @@
+@PART[*]:HAS[!MODULE[ModuleConnectedLivingSpace],!MODULE[ModuleEngines*],~category[Engine],~category[FuelTank],~category[Propulsion],~stagingIcon[],~name[K?S_*],#node_stack_top[*],#node_stack_bottom[*],~bulkheadProfiles[size0*],#bulkheadProfiles[size*]]:Final
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = false
+	}
+}

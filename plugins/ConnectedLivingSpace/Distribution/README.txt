@@ -16,6 +16,12 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v 1.2.3.1
+* New:  Refactored to support KSP 1.2.
+* Fixed: NRE generated during Vessel load. The addition of a female kerbal broke the CLS Module attachment code when a vessel is loaded at Flight. 
+         (This was a old undetected bug, that may explain some parts not showing as passble)
+* Fixed: Spammed Index out of range error during space changes while CLS Window is opened.
+
 release v 1.2.3.0
 * New:  Added support for intercepting Parts selection list during stock Transfer target part selection.  A part not in the same space will be unselectable and is highlighted orange like full parts.
 * New:  Added support for overriding the "Allow unrestricted Crew Transfers"in CLSInterfaces.dll setting via other Mods to prevent "competition" between mods when handling stock crew transfers.

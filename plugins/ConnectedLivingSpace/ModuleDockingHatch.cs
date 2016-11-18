@@ -28,16 +28,12 @@ namespace ConnectedLivingSpace
 
       set
       {
-        hatchOpen = value;
-
-        if (value)
+        if (hatchOpen != value)
         {
-          hatchStatus = "Open";
+          if (value) OpenHatch();
+          else CloseHatch();
         }
-        else
-        {
-          hatchStatus = "Closed";
-        }
+        hatchStatus = value ? "Open" : "Closed";
       }
     }
 
@@ -91,7 +87,8 @@ namespace ConnectedLivingSpace
         Events["CloseHatch"].active = false;
       }
 
-      // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVEssel is only available in flight, but then it should only be possible to open and close hatches in flight so we should be OK.
+      // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVessel is only available in flight. 
+      // However, it should only be possible to open and close hatches in flight, so we should be OK.
       GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
     }
 
@@ -279,7 +276,7 @@ namespace ConnectedLivingSpace
           if (null != attachedPart)
           {
             // What is the attachNode in the attachedPart that links back to us?
-            AttachNode reverseNode = attachedPart.findAttachNodeByPart(part);
+            AttachNode reverseNode = attachedPart.FindAttachNodeByPart(part);
             if (null != reverseNode)
             {
               // Now the big question - is the attached part a docking node that is centred on the reverseNode?

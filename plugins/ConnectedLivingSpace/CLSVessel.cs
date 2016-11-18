@@ -72,10 +72,14 @@ namespace ConnectedLivingSpace
       while (eSpacesR.MoveNext())
       {
         if (eSpacesR.Current == null) continue;
+        eSpacesR.Current.Highlight(false);
         eSpacesR.Current.Clear();
         listSpaces.Remove(eSpacesR.Current);
       }
 
+      // Now let's clean up any space display issues...
+      if (!CLSAddon.WindowVisable || CLSAddon.WindowSelectedSpace < listSpaces.Count) return;
+      CLSAddon.WindowSelectedSpace = listSpaces.Count - 1;
     }
 
     // A method that is called recursively to walk the part tree, and allocate parts to habitable spaces
@@ -110,8 +114,8 @@ namespace ConnectedLivingSpace
       {
         if (eChildren.Current == null) continue;
         // Get the attachment nodes
-        AttachNode node = p.findAttachNodeByPart(eChildren.Current);
-        AttachNode childNode = eChildren.Current.findAttachNodeByPart(p);
+        AttachNode node = p.FindAttachNodeByPart(eChildren.Current);
+        AttachNode childNode = eChildren.Current.FindAttachNodeByPart(p);
         bool attachmentIsPassable = false;
         bool childAttachmentIsPassable = false;
         bool dockingConnection = false;
