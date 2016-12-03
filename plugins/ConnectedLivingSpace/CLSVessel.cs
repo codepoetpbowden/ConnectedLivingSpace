@@ -286,15 +286,15 @@ namespace ConnectedLivingSpace
           //Debug.Log("Found docking node that represents the docking connection to the 'other' part");
 
           // First consider if this docked connection has an accompanying AttachNode may be defined as (im)passable by CLS. 
-          if (epNodes.Current.referenceAttachNode != string.Empty)
+          if (epNodes.Current.referenceNode.id != string.Empty)
           {
-            //Debug.Log("docking node uses a referenceAttachNode called: " + docNode.referenceAttachNode + " In the meantime, passablenodes: " + clsModThis.passablenodes + " impassablenodes: " + clsModThis.impassablenodes);
-            if (clsModThis.passablenodes.Contains(epNodes.Current.referenceAttachNode))
+            //Debug.Log("docking node uses a referenceAttachNode called: " + docNode.referenceNode.id + " In the meantime, passablenodes: " + clsModThis.passablenodes + " impassablenodes: " + clsModThis.impassablenodes);
+            if (clsModThis.passablenodes.Contains(epNodes.Current.referenceNode.id))
             {
               retVal = true;
             }
 
-            if (clsModThis.impassablenodes.Contains(epNodes.Current.referenceAttachNode))
+            if (clsModThis.impassablenodes.Contains(epNodes.Current.referenceNode.id))
             {
               retVal = false;
             }
@@ -302,7 +302,7 @@ namespace ConnectedLivingSpace
           // Second, if there is no AttachNode, what about the type / size of the docking port
           else
           {
-            //Debug.Log("docking node does not use referenceAttachNode, instead considering the nodeType: " + docNode.nodeType + " In the meantime, impassableDockingNodeTypes:" + clsModThis.impassableDockingNodeTypes + " passableDockingNodeTypes:" + clsModThis.passableDockingNodeTypes);
+            //Debug.Log("docking node does not use referenceNode.id, instead considering the nodeType: " + docNode.nodeType + " In the meantime, impassableDockingNodeTypes:" + clsModThis.impassableDockingNodeTypes + " passableDockingNodeTypes:" + clsModThis.passableDockingNodeTypes);
             if (clsModThis.impassableDockingNodeTypes.Contains(epNodes.Current.nodeType))
             {
               retVal = false; // Docking node is of an impassable type.

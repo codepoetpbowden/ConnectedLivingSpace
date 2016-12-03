@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using KSP.UI.Screens;
 using KSP.UI.Screens.Flight.Dialogs;
 using UnityEngine;
 
 namespace ConnectedLivingSpace
 {
-  [KSPAddonFixedCLS(KSPAddon.Startup.EveryScene, false, typeof(CLSAddon))]
+  [KSPAddon(KSPAddon.Startup.EveryScene, false)]
   public class CLSAddon : MonoBehaviour, ICLSAddon
   {
     #region static Properties
@@ -150,10 +149,13 @@ namespace ConnectedLivingSpace
       }
 
       // Add the CLSModule to all parts that can house crew (and do not already have it).
-      AddModuleToParts();
+      if (HighLogic.LoadedScene == GameScenes.LOADING)
+      {
+        AddModuleToParts();
 
-      // Add hatches to all the docking ports (prefabs)
-      AddHatchModuleToPartPrefabs();
+        // Add hatches to all the docking ports (prefabs)
+        AddHatchModuleToPartPrefabs();
+      }
     }
 
     public void Update()
@@ -165,9 +167,13 @@ namespace ConnectedLivingSpace
 
     public void FixedUpdate()
     {
+    }
+
+    private void ReconcileHatches()
+    {
       try
       {
-        //Debug.Log("CLSAddon:FixedUpdate");
+        //Debug.Log("CLSAddon:ReconcileHatches");
 
         // Although hatches have been added to the docking port prefabs, for some reason that is not fully understood 
         // when the prefab is used to instantiate an actual part the hatch module has not been properly setup. 
@@ -285,7 +291,7 @@ namespace ConnectedLivingSpace
       RebuildCLSVessel(data);
     }
 
-    // This event is fired when the vessel is changed. If this happens we need to throw away all of our thoiughts about the previous vessel, and analyse the new one.
+    // This event is fired when the vessel is changed. If this happens we need to throw away all of our thoughts about the previous vessel, and analyse the new one.
     private void OnVesselChange(Vessel data)
     {
       //Debug.Log("CLSAddon::OnVesselChange");
@@ -481,6 +487,7 @@ namespace ConnectedLivingSpace
         // Build new vessel information
         vessel = new CLSVessel();
         vessel.Populate(newRootPart);
+        ReconcileHatches();
         if (WindowVisable && WindowSelectedSpace > -1)
         {
           vessel.Highlight(false);
@@ -683,9 +690,8 @@ namespace ConnectedLivingSpace
               ConfigNode node = new ConfigNode("MODULE");
               node.AddValue("name", "ModuleConnectedLivingSpace");
               {
-                // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
+                // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. 
                 PartModule pm = parts.Current.partPrefab.AddModule("ModuleConnectedLivingSpace");
-                // PartModule.Awake is now public...
                 if (Awaken(pm))
                 {
                   pm.Load(node);
@@ -759,11 +765,11 @@ namespace ConnectedLivingSpace
           ConfigNode node = new ConfigNode("MODULE");
           node.AddValue("name", "ModuleDockingHatch");
 
-          if (nodeList.Current.referenceAttachNode != string.Empty)
+          if (nodeList.Current.referenceNode.id != string.Empty)
           {
             Debug.Log("Adding ModuleDockingHatch to part " + parts.Current.title +
-                      " and the docking node that uses attachNode " + nodeList.Current.referenceAttachNode);
-            node.AddValue("docNodeAttachmentNodeName", nodeList.Current.referenceAttachNode);
+                      " and the docking node that uses attachNode " + nodeList.Current.referenceNode.id);
+            node.AddValue("docNodeAttachmentNodeName", nodeList.Current.referenceNode.id);
           }
           else
           {
@@ -875,10 +881,10 @@ namespace ConnectedLivingSpace
           ConfigNode node = new ConfigNode("MODULE");
           node.AddValue("name", "ModuleDockingHatch");
 
-          if (eldn.Current.referenceAttachNode != string.Empty)
+          if (eldn.Current.referenceNode.id != string.Empty)
           {
-            // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
-            node.AddValue("docNodeAttachmentNodeName", eldn.Current.referenceAttachNode);
+            // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceNode.id);
+            node.AddValue("docNodeAttachmentNodeName", eldn.Current.referenceNode.id);
           }
           else
           {
@@ -983,10 +989,10 @@ namespace ConnectedLivingSpace
             ConfigNode node = new ConfigNode("MODULE");
             node.AddValue("name", "ModuleDockingHatch");
 
-            if (eldn.Current.referenceAttachNode != string.Empty)
+            if (eldn.Current.referenceNode.id != string.Empty)
             {
-              //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
-              node.AddValue("docNodeAttachmentNodeName", eldn.Current.referenceAttachNode);
+              //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceNode.id);
+              node.AddValue("docNodeAttachmentNodeName", eldn.Current.referenceNode.id);
             }
             else
             {

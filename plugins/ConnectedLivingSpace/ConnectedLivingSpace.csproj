@@ -61,7 +61,6 @@
     <Compile Include="CLSPart.cs" />
     <Compile Include="CLSSpace.cs" />
     <Compile Include="CLSVessel.cs" />
-    <Compile Include="KSPAddonFixed.cs" />
     <Compile Include="CLSAddon.cs" />
     <Compile Include="ModuleDockingHatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

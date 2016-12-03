@@ -150,45 +150,43 @@ namespace ConnectedLivingSpace
     {
       if (HighLogic.LoadedSceneIsFlight)
       {
-        if (FlightGlobals.ready)
+        if (!FlightGlobals.ready) return;
+        if (isInDockedState())
         {
-          if (isInDockedState())
+          if (!HatchOpen)
+          {
+            // We are docked, but the hatch is closed. Make sure that it is possible to open the hatch
+            Events["CloseHatch"].active = false;
+            Events["OpenHatch"].active = true;
+          }
+        }
+        else
+        {
+          if (isAttachedToDockingPort())
           {
             if (!HatchOpen)
             {
-              // We are docked, but the hatch is closed. Make sure that it is possible to open the hatch
+              // We are not docked, but attached to a docking port, and the hatch is closed. Make sure that it is possible to open the hatch
               Events["CloseHatch"].active = false;
               Events["OpenHatch"].active = true;
+            }
+            else
+            {
+              // We are not docked, but attached to a docking port, and the hatch is open. Make sure that it is possible to close the hatch
+              Events["CloseHatch"].active = true;
+              Events["OpenHatch"].active = false;
             }
           }
           else
           {
-            if (isAttachedToDockingPort())
+            // We are not docked or attached to a docking port - close up the hatch if it is open!
+            if (HatchOpen)
             {
-              if (!HatchOpen)
-              {
-                // We are not docked, but attached to a docking port, and the hatch is closed. Make sure that it is possible to open the hatch
-                Events["CloseHatch"].active = false;
-                Events["OpenHatch"].active = true;
-              }
-              else
-              {
-                // We are not docked, but attached to a docking port, and the hatch is open. Make sure that it is possible to close the hatch
-                Events["CloseHatch"].active = true;
-                Events["OpenHatch"].active = false;
-              }
-            }
-            else
-            {
-              // We are not docked or attached to a docking port - close up the hatch if it is open!
-              if (HatchOpen)
-              {
-                Debug.Log("Closing a hatch because its corresponding docking port is in state: " + modDockNode.state);
+              Debug.Log("Closing a hatch because its corresponding docking port is in state: " + modDockNode.state);
 
-                HatchOpen = false;
-                Events["CloseHatch"].active = false;
-                Events["OpenHatch"].active = false;
-              }
+              HatchOpen = false;
+              Events["CloseHatch"].active = false;
+              Events["OpenHatch"].active = false;
             }
           }
         }
@@ -201,7 +199,6 @@ namespace ConnectedLivingSpace
           HatchOpen = true;
         }
       }
-
     }
 
     private bool CheckModuleDockingNode()
@@ -235,9 +232,19 @@ namespace ConnectedLivingSpace
         modDockNode = dockNode;
         return true;
       }
-      if (dockNode.referenceAttachNode == docNodeAttachmentNodeName)
+      if (dockNode.referenceNode.id == docNodeAttachmentNodeName)
       {
         modDockNode = dockNode;
+        return true;
+      }
+      // If we are here, we have an orphaned hatch.  we may be able to recover if the part only has one docking module...
+      // TODO, check for dups in the same part...
+      if (this.part.FindModulesImplementing<ModuleDockingNode>().Count == 1)
+      {
+        // we are good.  lets fix the hatch and continue
+        modDockNode = this.part.FindModulesImplementing<ModuleDockingNode>().First();
+        docNodeTransformName = modDockNode.nodeTransformName;
+        docNodeAttachmentNodeName = modDockNode.referenceAttachNode;
         return true;
       }
       return false;
@@ -284,7 +291,7 @@ namespace ConnectedLivingSpace
               while (eNodes.MoveNext())
               {
                 if (eNodes.Current == null) continue;
-                if (eNodes.Current.referenceAttachNode == reverseNode.id)
+                if (eNodes.Current.referenceNode.id == reverseNode.id)
                 {
                   // The part has a docking node that references the attachnode that connects back to our part - this is what we have been looking for!
                   return true;
@@ -304,7 +311,7 @@ namespace ConnectedLivingSpace
       modDockNode = _modDocNode;
 
       docNodeTransformName = _modDocNode.nodeTransformName;
-      docNodeAttachmentNodeName = _modDocNode.referenceAttachNode;
+      docNodeAttachmentNodeName = _modDocNode.referenceNode.id;
     }
   }
 }
