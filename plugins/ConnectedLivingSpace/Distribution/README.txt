@@ -1,4 +1,4 @@
-Connected Living Space v1.2.3.0
+Connected Living Space v1.2.4.0
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,9 +16,10 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
-release v 1.2.4
+release v 1.2.4.0
 * New:  Refactored to support KSP 1.2.2.
 * New:  Completely refactored method used to Add hatches to vessels.  Now utilizes a module manager config, eliminating prefab manipulation in game.
+* New:  Code refactored to improve performance and garbage collection.
 * Fixed: Some parts containing ModuleDockingNode without a referenceNodeName would be rendered impassable in some nodes.
 * Fixed: NRE generated during Vessel load. The addition of a female kerbal broke the CLS Module attachment code when a vessel is loaded at Flight. 
          (This was a old undetected bug, that may explain some parts not showing as passble)
