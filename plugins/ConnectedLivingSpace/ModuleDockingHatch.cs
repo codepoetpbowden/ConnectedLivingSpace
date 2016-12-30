@@ -7,16 +7,18 @@ using System.Reflection;
 
 namespace ConnectedLivingSpace
 {
-  // This module will be added at runtime to any part that also has a ModuleDockingNode. There will be a one to one relationship between ModuleDockingHatch and ModuleDockingNode
+  // This module is added by a module Manager config to any part that also has a ModuleDockingNode. There will be a one to one relationship between ModuleDockingHatch and ModuleDockingNode
   public class ModuleDockingHatch : PartModule, IModuleDockingHatch
   {
     [KSPField(isPersistant = true)]
     private bool hatchOpen;
 
     [KSPField(isPersistant = true)]
-    internal string docNodeAttachmentNodeName;
+    internal string docNodeAttachmentNodeName = "top"; // Note, on some ModuleDockingNodes this does not exist, so we set the value to "none"
+
     [KSPField(isPersistant = true)]
-    internal string docNodeTransformName;
+    internal string docNodeTransformName = "dockingNode";
+
     internal ModuleDockingNode modDockNode;
 
     public bool HatchOpen
@@ -78,18 +80,18 @@ namespace ConnectedLivingSpace
       Events["OpenHatch"].active = false;
       if (isInDockedState() || isAttachedToDockingPort())
       {
-        HatchOpen = true;
+        hatchOpen = true;
         Events["CloseHatch"].active = true;
       }
       else
       {
-        HatchOpen = false;
+        hatchOpen = false;
         Events["CloseHatch"].active = false;
       }
 
       // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVessel is only available in flight. 
       // However, it should only be possible to open and close hatches in flight, so we should be OK.
-      GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
+      if (HighLogic.LoadedSceneIsFlight) GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
     }
 
     [KSPEvent(active = true, guiActive = true, guiName = "Close Hatch")]
@@ -97,7 +99,7 @@ namespace ConnectedLivingSpace
     {
       bool docked = isInDockedState();
 
-      HatchOpen = false;
+      hatchOpen = false;
 
       Events["CloseHatch"].active = false;
       if (isInDockedState() || isAttachedToDockingPort())
@@ -184,7 +186,7 @@ namespace ConnectedLivingSpace
             {
               Debug.Log("Closing a hatch because its corresponding docking port is in state: " + modDockNode.state);
 
-              HatchOpen = false;
+              hatchOpen = false;
               Events["CloseHatch"].active = false;
               Events["OpenHatch"].active = false;
             }
@@ -196,7 +198,7 @@ namespace ConnectedLivingSpace
         // In the editor force the hatches open for attached docking ports so it is possible to see the living spaces at design time.
         if (isAttachedToDockingPort())
         {
-          HatchOpen = true;
+          hatchOpen = true;
         }
       }
     }
@@ -229,11 +231,13 @@ namespace ConnectedLivingSpace
     {
       if (dockNode.nodeTransformName == docNodeTransformName)
       {
+        if (string.IsNullOrEmpty(docNodeAttachmentNodeName)) docNodeAttachmentNodeName = dockNode.referenceNode.id;
         modDockNode = dockNode;
         return true;
       }
       if (dockNode.referenceNode.id == docNodeAttachmentNodeName)
       {
+        if (string.IsNullOrEmpty(docNodeTransformName)) docNodeTransformName = dockNode.nodeTransformName;
         modDockNode = dockNode;
         return true;
       }
@@ -274,7 +278,7 @@ namespace ConnectedLivingSpace
     private bool isAttachedToDockingPort()
     {
       // First - this is only possible if we have an reference attachmentNode
-      if (docNodeAttachmentNodeName != null && docNodeAttachmentNodeName != "" && docNodeAttachmentNodeName != string.Empty)
+      if (!string.IsNullOrEmpty(docNodeAttachmentNodeName))
       {
         AttachNode thisNode = part.attachNodes.Find(x => x.id == docNodeAttachmentNodeName);
         if (null != thisNode)
@@ -305,13 +309,43 @@ namespace ConnectedLivingSpace
       return false;
     }
 
-    // Method that can be used to set up the ModuleDockingNode that this ModuleDockingHatch refers to.
-    public void AttachModuleDockingNode(ModuleDockingNode _modDocNode)
-    {
-      modDockNode = _modDocNode;
+    //// Method that can be used to set up the ModuleDockingNode that this ModuleDockingHatch refers to.
+    //public void AttachModuleDockingNode(ModuleDockingNode _modDocNode)
+    //{
+    //  modDockNode = _modDocNode;
 
-      docNodeTransformName = _modDocNode.nodeTransformName;
-      docNodeAttachmentNodeName = _modDocNode.referenceNode.id;
+    //  docNodeTransformName = _modDocNode.nodeTransformName;
+    //  docNodeAttachmentNodeName = _modDocNode.referenceNode.id;
+    //}
+
+    // Method to provide extra infomation about the part on response to the RMBof the part gallery
+    public override string GetInfo()
+    {
+      string returnValue = string.Empty;
+      string yes = "<color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
+      string no = "<color=" + XKCDColors.HexFormat.Maroon + ">No</color>";
+      returnValue += "Has Hatch:  <color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
+      returnValue += "\r\nHatch Node:  <color=" + XKCDColors.HexFormat.Lime + ">" + docNodeAttachmentNodeName  + "</color>";
+      return returnValue;
     }
+
+
+    #region Event Handlers
+    public override void OnSave(ConfigNode node)
+    {
+      //node.SetValue("docNodeAttachmentNodeName", this.part.FindModuleImplementing<ModuleDockingNode>().referenceAttachNode, true);
+    }
+
+    public override void OnAwake()
+    {
+      docNodeAttachmentNodeName = part.FindModuleImplementing<ModuleDockingNode>().referenceAttachNode;
+      docNodeTransformName = part.FindModuleImplementing<ModuleDockingNode>().nodeTransformName;
+    }
+
+    public override void OnStart(PartModule.StartState state)
+    {
+
+    }
+    #endregion
   }
 }

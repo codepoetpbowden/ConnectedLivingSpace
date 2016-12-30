@@ -216,7 +216,7 @@ namespace ConnectedLivingSpace
       ModuleConnectedLivingSpace clsMod = (ModuleConnectedLivingSpace)p;
       if (null == clsMod)
       {
-        // No CLS mod. Therefore surface attachments are definately not passable
+        // No CLS module. Therefore surface attachments are definately not passable
         return false;
       }
       else
@@ -404,7 +404,7 @@ namespace ConnectedLivingSpace
       while (epHatches.MoveNext())
       {
         if (epHatches.Current == null) continue;
-        // This part does have a Docking Hatch - (it might have several) Consider if this hatch relates to the attachment node in question
+        // This part does have a Docking Hatch - Consider if this hatch relates to the attachment node in question
         if (epHatches.Current.docNodeAttachmentNodeName == node.id)
         {
           // This hatch relates to this attachment node

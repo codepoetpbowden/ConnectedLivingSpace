@@ -16,8 +16,10 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
-release v 1.2.3.1
-* New:  Refactored to support KSP 1.2.
+release v 1.2.4
+* New:  Refactored to support KSP 1.2.2.
+* New:  Completely refactored method used to Add hatches to vessels.  Now utilizes a module manager config, eliminating prefab manipulation in game.
+* Fixed: Some parts containing ModuleDockingNode without a referenceNodeName would be rendered impassable in some nodes.
 * Fixed: NRE generated during Vessel load. The addition of a female kerbal broke the CLS Module attachment code when a vessel is loaded at Flight. 
          (This was a old undetected bug, that may explain some parts not showing as passble)
 * Fixed: Spammed Index out of range error during space changes while CLS Window is opened.
