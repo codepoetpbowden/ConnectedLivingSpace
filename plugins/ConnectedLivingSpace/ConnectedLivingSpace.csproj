@@ -149,6 +149,9 @@ copy /Y "$(TargetDir)$(Targetname).pdb" "%25KSP_DIR%25\GameData\$(Targetname)\Pl
 copy /Y "$(TargetDir)CLSInterfaces.dll" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
 
 echo distributing $(Targetname) files...
+del /Q "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Configs\*.*"
+del /Q "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\assets\*.*"
+
 copy /Y "$(TargetPath)" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
 copy /Y "$(TargetDir)\CLSInterfaces.dll" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
 copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\assets\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\assets\"

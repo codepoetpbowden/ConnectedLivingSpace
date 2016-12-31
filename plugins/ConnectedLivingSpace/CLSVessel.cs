@@ -235,11 +235,9 @@ namespace ConnectedLivingSpace
       while (epNodes.MoveNext())
       {
         if (epNodes.Current == null) continue;
-        if (CheckForNodeDockedToPart(epNodes.Current, otherPart))
-        {
-          thisDockedToOther = true;
-          break;
-        }
+        if (!CheckForNodeDockedToPart(epNodes.Current, otherPart)) continue;
+        thisDockedToOther = true;
+        break;
       }
 
       // Loop through all the ModuleDockingNodes for the other part and check if any are docked to this part.
@@ -247,15 +245,13 @@ namespace ConnectedLivingSpace
       while (epNodes2.MoveNext())
       {
         if (epNodes2.Current == null) continue;
-        if (CheckForNodeDockedToPart(epNodes2.Current, thisPart))
-        {
-          otherDockedToThis = true;
-          break;
-        }
+        if (!CheckForNodeDockedToPart(epNodes2.Current, thisPart)) continue;
+        otherDockedToThis = true;
+        break;
       }
 
       // Return that this part and the other part are docked together if they are both considered docked to each other.
-      return (thisDockedToOther && otherDockedToThis);
+      return (thisDockedToOther || otherDockedToThis);
     }
 
     private bool IsDockedDockingPortPassable(Part thisPart, Part otherPart)
