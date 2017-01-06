@@ -7,16 +7,18 @@ using System.Reflection;
 
 namespace ConnectedLivingSpace
 {
-  // This module will be added at runtime to any part that also has a ModuleDockingNode. There will be a one to one relationship between ModuleDockingHatch and ModuleDockingNode
+  // This module is added by a module Manager config to any part that also has a ModuleDockingNode. There will be a one to one relationship between ModuleDockingHatch and ModuleDockingNode
   public class ModuleDockingHatch : PartModule, IModuleDockingHatch
   {
     [KSPField(isPersistant = true)]
     private bool hatchOpen;
 
     [KSPField(isPersistant = true)]
-    internal string docNodeAttachmentNodeName;
+    internal string docNodeAttachmentNodeName = "top"; // Note, on some ModuleDockingNodes this does not exist, so we set the value to "none"
+
     [KSPField(isPersistant = true)]
-    internal string docNodeTransformName;
+    internal string docNodeTransformName = "dockingNode";
+
     internal ModuleDockingNode modDockNode;
 
     public bool HatchOpen
@@ -28,16 +30,12 @@ namespace ConnectedLivingSpace
 
       set
       {
-        hatchOpen = value;
-
-        if (value)
+        if (hatchOpen != value)
         {
-          hatchStatus = "Open";
+          if (value) OpenHatch();
+          else CloseHatch();
         }
-        else
-        {
-          hatchStatus = "Closed";
-        }
+        hatchStatus = value ? "Open" : "Closed";
       }
     }
 
@@ -82,17 +80,18 @@ namespace ConnectedLivingSpace
       Events["OpenHatch"].active = false;
       if (isInDockedState() || isAttachedToDockingPort())
       {
-        HatchOpen = true;
+        hatchOpen = true;
         Events["CloseHatch"].active = true;
       }
       else
       {
-        HatchOpen = false;
+        hatchOpen = false;
         Events["CloseHatch"].active = false;
       }
 
-      // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVEssel is only available in flight, but then it should only be possible to open and close hatches in flight so we should be OK.
-      GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
+      // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVessel is only available in flight. 
+      // However, it should only be possible to open and close hatches in flight, so we should be OK.
+      if (HighLogic.LoadedSceneIsFlight) GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
     }
 
     [KSPEvent(active = true, guiActive = true, guiName = "Close Hatch")]
@@ -100,7 +99,7 @@ namespace ConnectedLivingSpace
     {
       bool docked = isInDockedState();
 
-      HatchOpen = false;
+      hatchOpen = false;
 
       Events["CloseHatch"].active = false;
       if (isInDockedState() || isAttachedToDockingPort())
@@ -153,45 +152,43 @@ namespace ConnectedLivingSpace
     {
       if (HighLogic.LoadedSceneIsFlight)
       {
-        if (FlightGlobals.ready)
+        if (!FlightGlobals.ready) return;
+        if (isInDockedState())
         {
-          if (isInDockedState())
+          if (!HatchOpen)
+          {
+            // We are docked, but the hatch is closed. Make sure that it is possible to open the hatch
+            Events["CloseHatch"].active = false;
+            Events["OpenHatch"].active = true;
+          }
+        }
+        else
+        {
+          if (isAttachedToDockingPort())
           {
             if (!HatchOpen)
             {
-              // We are docked, but the hatch is closed. Make sure that it is possible to open the hatch
+              // We are not docked, but attached to a docking port, and the hatch is closed. Make sure that it is possible to open the hatch
               Events["CloseHatch"].active = false;
               Events["OpenHatch"].active = true;
+            }
+            else
+            {
+              // We are not docked, but attached to a docking port, and the hatch is open. Make sure that it is possible to close the hatch
+              Events["CloseHatch"].active = true;
+              Events["OpenHatch"].active = false;
             }
           }
           else
           {
-            if (isAttachedToDockingPort())
+            // We are not docked or attached to a docking port - close up the hatch if it is open!
+            if (HatchOpen)
             {
-              if (!HatchOpen)
-              {
-                // We are not docked, but attached to a docking port, and the hatch is closed. Make sure that it is possible to open the hatch
-                Events["CloseHatch"].active = false;
-                Events["OpenHatch"].active = true;
-              }
-              else
-              {
-                // We are not docked, but attached to a docking port, and the hatch is open. Make sure that it is possible to close the hatch
-                Events["CloseHatch"].active = true;
-                Events["OpenHatch"].active = false;
-              }
-            }
-            else
-            {
-              // We are not docked or attached to a docking port - close up the hatch if it is open!
-              if (HatchOpen)
-              {
-                Debug.Log("Closing a hatch because its corresponding docking port is in state: " + modDockNode.state);
+              Debug.Log("Closing a hatch because its corresponding docking port is in state: " + modDockNode.state);
 
-                HatchOpen = false;
-                Events["CloseHatch"].active = false;
-                Events["OpenHatch"].active = false;
-              }
+              hatchOpen = false;
+              Events["CloseHatch"].active = false;
+              Events["OpenHatch"].active = false;
             }
           }
         }
@@ -201,10 +198,9 @@ namespace ConnectedLivingSpace
         // In the editor force the hatches open for attached docking ports so it is possible to see the living spaces at design time.
         if (isAttachedToDockingPort())
         {
-          HatchOpen = true;
+          hatchOpen = true;
         }
       }
-
     }
 
     private bool CheckModuleDockingNode()
@@ -235,12 +231,24 @@ namespace ConnectedLivingSpace
     {
       if (dockNode.nodeTransformName == docNodeTransformName)
       {
+        if (string.IsNullOrEmpty(docNodeAttachmentNodeName)) docNodeAttachmentNodeName = dockNode.referenceNode.id;
         modDockNode = dockNode;
         return true;
       }
-      if (dockNode.referenceAttachNode == docNodeAttachmentNodeName)
+      if (dockNode.referenceNode.id == docNodeAttachmentNodeName)
       {
+        if (string.IsNullOrEmpty(docNodeTransformName)) docNodeTransformName = dockNode.nodeTransformName;
         modDockNode = dockNode;
+        return true;
+      }
+      // If we are here, we have an orphaned hatch.  we may be able to recover if the part only has one docking module...
+      // TODO, check for dups in the same part...
+      if (this.part.FindModulesImplementing<ModuleDockingNode>().Count == 1)
+      {
+        // we are good.  lets fix the hatch and continue
+        modDockNode = this.part.FindModulesImplementing<ModuleDockingNode>().First();
+        docNodeTransformName = modDockNode.nodeTransformName;
+        docNodeAttachmentNodeName = modDockNode.referenceAttachNode;
         return true;
       }
       return false;
@@ -270,7 +278,7 @@ namespace ConnectedLivingSpace
     private bool isAttachedToDockingPort()
     {
       // First - this is only possible if we have an reference attachmentNode
-      if (docNodeAttachmentNodeName != null && docNodeAttachmentNodeName != "" && docNodeAttachmentNodeName != string.Empty)
+      if (!string.IsNullOrEmpty(docNodeAttachmentNodeName))
       {
         AttachNode thisNode = part.attachNodes.Find(x => x.id == docNodeAttachmentNodeName);
         if (null != thisNode)
@@ -279,7 +287,7 @@ namespace ConnectedLivingSpace
           if (null != attachedPart)
           {
             // What is the attachNode in the attachedPart that links back to us?
-            AttachNode reverseNode = attachedPart.findAttachNodeByPart(part);
+            AttachNode reverseNode = attachedPart.FindAttachNodeByPart(part);
             if (null != reverseNode)
             {
               // Now the big question - is the attached part a docking node that is centred on the reverseNode?
@@ -287,7 +295,7 @@ namespace ConnectedLivingSpace
               while (eNodes.MoveNext())
               {
                 if (eNodes.Current == null) continue;
-                if (eNodes.Current.referenceAttachNode == reverseNode.id)
+                if (eNodes.Current.referenceNode.id == reverseNode.id)
                 {
                   // The part has a docking node that references the attachnode that connects back to our part - this is what we have been looking for!
                   return true;
@@ -301,13 +309,43 @@ namespace ConnectedLivingSpace
       return false;
     }
 
-    // Method that can be used to set up the ModuleDockingNode that this ModuleDockingHatch refers to.
-    public void AttachModuleDockingNode(ModuleDockingNode _modDocNode)
-    {
-      modDockNode = _modDocNode;
+    //// Method that can be used to set up the ModuleDockingNode that this ModuleDockingHatch refers to.
+    //public void AttachModuleDockingNode(ModuleDockingNode _modDocNode)
+    //{
+    //  modDockNode = _modDocNode;
 
-      docNodeTransformName = _modDocNode.nodeTransformName;
-      docNodeAttachmentNodeName = _modDocNode.referenceAttachNode;
+    //  docNodeTransformName = _modDocNode.nodeTransformName;
+    //  docNodeAttachmentNodeName = _modDocNode.referenceNode.id;
+    //}
+
+    // Method to provide extra infomation about the part on response to the RMBof the part gallery
+    public override string GetInfo()
+    {
+      string returnValue = string.Empty;
+      string yes = "<color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
+      string no = "<color=" + XKCDColors.HexFormat.Maroon + ">No</color>";
+      returnValue += "Has Hatch:  <color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
+      returnValue += "\r\nHatch Node:  <color=" + XKCDColors.HexFormat.Lime + ">" + docNodeAttachmentNodeName  + "</color>";
+      return returnValue;
     }
+
+
+    #region Event Handlers
+    public override void OnSave(ConfigNode node)
+    {
+      //node.SetValue("docNodeAttachmentNodeName", this.part.FindModuleImplementing<ModuleDockingNode>().referenceAttachNode, true);
+    }
+
+    public override void OnAwake()
+    {
+      docNodeAttachmentNodeName = part.FindModuleImplementing<ModuleDockingNode>().referenceAttachNode;
+      docNodeTransformName = part.FindModuleImplementing<ModuleDockingNode>().nodeTransformName;
+    }
+
+    public override void OnStart(PartModule.StartState state)
+    {
+
+    }
+    #endregion
   }
 }

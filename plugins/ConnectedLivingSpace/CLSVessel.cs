@@ -72,10 +72,14 @@ namespace ConnectedLivingSpace
       while (eSpacesR.MoveNext())
       {
         if (eSpacesR.Current == null) continue;
+        eSpacesR.Current.Highlight(false);
         eSpacesR.Current.Clear();
         listSpaces.Remove(eSpacesR.Current);
       }
 
+      // Now let's clean up any space display issues...
+      if (!CLSAddon.WindowVisable || CLSAddon.WindowSelectedSpace < listSpaces.Count) return;
+      CLSAddon.WindowSelectedSpace = listSpaces.Count - 1;
     }
 
     // A method that is called recursively to walk the part tree, and allocate parts to habitable spaces
@@ -110,8 +114,8 @@ namespace ConnectedLivingSpace
       {
         if (eChildren.Current == null) continue;
         // Get the attachment nodes
-        AttachNode node = p.findAttachNodeByPart(eChildren.Current);
-        AttachNode childNode = eChildren.Current.findAttachNodeByPart(p);
+        AttachNode node = p.FindAttachNodeByPart(eChildren.Current);
+        AttachNode childNode = eChildren.Current.FindAttachNodeByPart(p);
         bool attachmentIsPassable = false;
         bool childAttachmentIsPassable = false;
         bool dockingConnection = false;
@@ -212,7 +216,7 @@ namespace ConnectedLivingSpace
       ModuleConnectedLivingSpace clsMod = (ModuleConnectedLivingSpace)p;
       if (null == clsMod)
       {
-        // No CLS mod. Therefore surface attachments are definately not passable
+        // No CLS module. Therefore surface attachments are definately not passable
         return false;
       }
       else
@@ -231,11 +235,9 @@ namespace ConnectedLivingSpace
       while (epNodes.MoveNext())
       {
         if (epNodes.Current == null) continue;
-        if (CheckForNodeDockedToPart(epNodes.Current, otherPart))
-        {
-          thisDockedToOther = true;
-          break;
-        }
+        if (!CheckForNodeDockedToPart(epNodes.Current, otherPart)) continue;
+        thisDockedToOther = true;
+        break;
       }
 
       // Loop through all the ModuleDockingNodes for the other part and check if any are docked to this part.
@@ -243,15 +245,13 @@ namespace ConnectedLivingSpace
       while (epNodes2.MoveNext())
       {
         if (epNodes2.Current == null) continue;
-        if (CheckForNodeDockedToPart(epNodes2.Current, thisPart))
-        {
-          otherDockedToThis = true;
-          break;
-        }
+        if (!CheckForNodeDockedToPart(epNodes2.Current, thisPart)) continue;
+        otherDockedToThis = true;
+        break;
       }
 
       // Return that this part and the other part are docked together if they are both considered docked to each other.
-      return (thisDockedToOther && otherDockedToThis);
+      return (thisDockedToOther || otherDockedToThis);
     }
 
     private bool IsDockedDockingPortPassable(Part thisPart, Part otherPart)
@@ -282,15 +282,15 @@ namespace ConnectedLivingSpace
           //Debug.Log("Found docking node that represents the docking connection to the 'other' part");
 
           // First consider if this docked connection has an accompanying AttachNode may be defined as (im)passable by CLS. 
-          if (epNodes.Current.referenceAttachNode != string.Empty)
+          if (epNodes.Current.referenceNode.id != string.Empty)
           {
-            //Debug.Log("docking node uses a referenceAttachNode called: " + docNode.referenceAttachNode + " In the meantime, passablenodes: " + clsModThis.passablenodes + " impassablenodes: " + clsModThis.impassablenodes);
-            if (clsModThis.passablenodes.Contains(epNodes.Current.referenceAttachNode))
+            //Debug.Log("docking node uses a referenceAttachNode called: " + docNode.referenceNode.id + " In the meantime, passablenodes: " + clsModThis.passablenodes + " impassablenodes: " + clsModThis.impassablenodes);
+            if (clsModThis.passablenodes.Contains(epNodes.Current.referenceNode.id))
             {
               retVal = true;
             }
 
-            if (clsModThis.impassablenodes.Contains(epNodes.Current.referenceAttachNode))
+            if (clsModThis.impassablenodes.Contains(epNodes.Current.referenceNode.id))
             {
               retVal = false;
             }
@@ -298,7 +298,7 @@ namespace ConnectedLivingSpace
           // Second, if there is no AttachNode, what about the type / size of the docking port
           else
           {
-            //Debug.Log("docking node does not use referenceAttachNode, instead considering the nodeType: " + docNode.nodeType + " In the meantime, impassableDockingNodeTypes:" + clsModThis.impassableDockingNodeTypes + " passableDockingNodeTypes:" + clsModThis.passableDockingNodeTypes);
+            //Debug.Log("docking node does not use referenceNode.id, instead considering the nodeType: " + docNode.nodeType + " In the meantime, impassableDockingNodeTypes:" + clsModThis.impassableDockingNodeTypes + " passableDockingNodeTypes:" + clsModThis.passableDockingNodeTypes);
             if (clsModThis.impassableDockingNodeTypes.Contains(epNodes.Current.nodeType))
             {
               retVal = false; // Docking node is of an impassable type.
@@ -400,7 +400,7 @@ namespace ConnectedLivingSpace
       while (epHatches.MoveNext())
       {
         if (epHatches.Current == null) continue;
-        // This part does have a Docking Hatch - (it might have several) Consider if this hatch relates to the attachment node in question
+        // This part does have a Docking Hatch - Consider if this hatch relates to the attachment node in question
         if (epHatches.Current.docNodeAttachmentNodeName == node.id)
         {
           // This hatch relates to this attachment node

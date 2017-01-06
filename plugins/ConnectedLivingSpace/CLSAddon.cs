@@ -2,41 +2,51 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using KSP.UI.Screens;
 using KSP.UI.Screens.Flight.Dialogs;
 using UnityEngine;
 
 namespace ConnectedLivingSpace
-{
-  [KSPAddonFixedCLS(KSPAddon.Startup.EveryScene, false, typeof(CLSAddon))]
+{ 
+  [KSPAddon(KSPAddon.Startup.FlightEditorAndKSC, false)]
   public class CLSAddon : MonoBehaviour, ICLSAddon
   {
-    #region Properties
+    #region static Properties
+
+    internal static bool WindowVisable;
     private static Rect windowPosition = new Rect(0, 0, 360, 480);
     private static Rect windowOptionsPosition = new Rect(0, 0, 0, 0);
     private static GUIStyle windowStyle;
-    public static bool allowUnrestrictedTransfers;
+    internal static bool allowUnrestrictedTransfers;
     // this value is used to "remember" the actual setting in CLS in the event it was changed by another mod
     public static bool backupAllowUnrestrictedTransfers;
     public static bool enableBlizzyToolbar;
     public static bool enablePassable;
     private static bool prevEnableBlizzyToolbar;
-    private ConfigNode settings;
-    private static bool windowVisable;
-    private bool optionsVisible;
-    private static readonly string SettingsPath = string.Format("{0}GameData/ConnectedLivingSpace/Plugins/PluginData", KSPUtil.ApplicationRootPath);
-    private static readonly string SettingsFile = string.Format("{0}/cls_settings.dat", SettingsPath);
-
-    private Vector2 scrollViewer = Vector2.zero;
-
-    private CLSVessel vessel;
+    private static string SettingsPath;
+    private static string SettingsFile;
 
     // this var is now restricted to use by the CLS window.  Highlighting will be handled by part.
-    int WindowSelectedSpace = -1;
+    internal static int WindowSelectedSpace = -1;
 
     private static ApplicationLauncherButton stockToolbarButton; // Stock Toolbar Button
     internal static IButton blizzyToolbarButton; // Blizzy Toolbar Button
+
+    public static CLSAddon Instance
+    {
+      get;
+      private set;
+    }
+
+    #endregion static Properties
+
+    #region Instanced Properties
+
+    private bool optionsVisible;
+
+    private ConfigNode settings;
+    private Vector2 scrollViewer = Vector2.zero;
+    internal CLSVessel vessel;
 
     // State var used by OnEditorShipModified event handler to note changes to vessel for reconstruction of spaces.
     private int editorPartCount;
@@ -60,13 +70,7 @@ namespace ConnectedLivingSpace
       set { allowUnrestrictedTransfers = value; }
     }
 
-    public static CLSAddon Instance
-    {
-      get;
-      private set;
-    }
-
-    #endregion Properties
+    #endregion Instanced Properties
 
     #region Constructor
     public CLSAddon()
@@ -79,32 +83,39 @@ namespace ConnectedLivingSpace
     #endregion Constructor
 
     #region Event handlers (in use)
+
     public void Awake()
     {
       //Debug.Log("CLSAddon:Awake");
       // Added support for Blizzy Toolbar and hot switching between Stock and Blizzy
-      if (enableBlizzyToolbar)
+      if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
       {
-        // Let't try to use Blizzy's toolbar
-        //Debug.Log("CLSAddon.Awake - Blizzy Toolbar Selected.");
-        if (ActivateBlizzyToolBar()) return;
-        // We failed to activate the toolbar, so revert to stock
-        //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
-        GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
-        GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
-      }
-      else
-      {
-        // Use stock Toolbar
-        //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
-        GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
-        GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+        if (enableBlizzyToolbar)
+        {
+          // Let't try to use Blizzy's toolbar
+          //Debug.Log("CLSAddon.Awake - Blizzy Toolbar Selected.");
+          if (ActivateBlizzyToolBar()) return;
+          // We failed to activate the toolbar, so revert to stock
+          //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
+          GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+          GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+        }
+        else
+        {
+          // Use stock Toolbar
+          //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
+          GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+          GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+        }
       }
     }
 
     public void Start()
     {
       // Debug.Log("CLSAddon:Start");
+      SettingsPath = string.Format("{0}GameData/ConnectedLivingSpace/Plugins/PluginData", KSPUtil.ApplicationRootPath);
+      SettingsFile = string.Format("{0}/cls_settings.dat", SettingsPath);
+
 
       windowStyle = new GUIStyle(HighLogic.Skin.window);
 
@@ -131,50 +142,62 @@ namespace ConnectedLivingSpace
         GameEvents.onFlightReady.Add(OnFlightReady);
         GameEvents.onEditorShipModified.Add(OnEditorShipModified);
 
+        GameEvents.onItemTransferStarted.Add(OnItemTransferStarted);
         GameEvents.onCrewTransferPartListCreated.Add(OnCrewTransferPartListCreated);
         GameEvents.onCrewTransferSelected.Add(OnCrewTransferSelected);
         //GameEvents.onCrewTransferred.Add(OnCrewTransfered);
       }
 
       // Add the CLSModule to all parts that can house crew (and do not already have it).
-      AddModuleToParts();
+      if (HighLogic.LoadedScene == GameScenes.LOADING)
+      {
+        AddModuleToParts();
 
-      // Add hatches to all the docking ports (prefabs)
-      AddHatchModuleToPartPrefabs();
+        // Add hatches to all the docking ports (prefabs)
+        //AddHatchModuleToPartPrefabs();
+      }
     }
 
     public void Update()
     {
       // Debug.Log("CLSAddon:Update");
-      CheckForToolbarTypeToggle();
+      if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
+        CheckForToolbarTypeToggle();
     }
 
     public void FixedUpdate()
     {
-      try
-      {
-        //Debug.Log("CLSAddon:FixedUpdate");
-
-        // Although hatches have been added to the docking port prefabs, for some reason that is not fully understood when the prefab is used to instantiate an actual part the hatch module has not been properly setup. This is not a problem where the craft is being loaded, as the act of loading it will overwrite all the persisted KSPFields with the saved values. However in the VAB/SPH we end up with a ModuleDockingHatch that has not its docNodeTransformName or docNodeAttahcmentNodeName set properly. The solution is to check for this state in the editor, and patch it up. In flight the part will get loaded so it is not an issue.
-        if (HighLogic.LoadedSceneIsEditor)
-        {
-          CheckAndFixDockingHatchesInEditor();
-        }
-
-        // It seems that there are sometimes problems with hatches that do not refer to dockingports in flight too, so check this in flight. It would be good to find a way of making this less expensive.
-        if (HighLogic.LoadedSceneIsFlight)
-        {
-          if (FlightGlobals.ready)
-          {
-            CheckAndFixDockingHatchesInFlight();
-          }
-        }
-      }
-      catch (Exception ex)
-      {
-        Debug.LogException(ex);
-      }
     }
+
+    //private void ReconcileHatches()
+    //{
+    //  try
+    //  {
+    //    //Debug.Log("CLSAddon:ReconcileHatches");
+
+    //    // Although hatches have been added to the docking port prefabs, for some reason that is not fully understood 
+    //    // when the prefab is used to instantiate an actual part the hatch module has not been properly setup. 
+    //    // This is not a problem where the craft is being loaded, as the act of loading it will overwrite all the persisted KSPFields with the saved values. 
+    //    // However in the VAB/SPH we end up with a ModuleDockingHatch that has not its docNodeTransformName or docNodeAttahcmentNodeName set properly. 
+    //    // The solution is to check for this state in the editor, and patch it up. In flight the part will get loaded so it is not an issue.
+    //    if (HighLogic.LoadedSceneIsEditor)
+    //    {
+    //      CheckAndFixDockingHatchesInEditor();
+    //    }
+
+    //    // It seems that there are sometimes problems with hatches that do not refer to dockingports in flight too, so check this in flight. 
+    //    //It would be good to find a way of making this less expensive.
+    //    if (!HighLogic.LoadedSceneIsFlight) return;
+    //    if (FlightGlobals.ready)
+    //    {
+    //      CheckAndFixDockingHatchesInFlight();
+    //    }
+    //  }
+    //  catch (Exception ex)
+    //  {
+    //    Debug.LogException(ex);
+    //  }
+    //}
 
     public void OnDestroy()
     {
@@ -210,6 +233,7 @@ namespace ConnectedLivingSpace
         ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
       }
 
+      GameEvents.onItemTransferStarted.Remove(OnItemTransferStarted);
       GameEvents.onCrewTransferPartListCreated.Remove(OnCrewTransferPartListCreated);
       GameEvents.onCrewTransferSelected.Remove(OnCrewTransferSelected);
       //GameEvents.onCrewTransferred.Remove(OnCrewTransfered);
@@ -233,17 +257,6 @@ namespace ConnectedLivingSpace
       if (stockToolbarButton == null) return;
       ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
       stockToolbarButton = null;
-    }
-
-    void onAppLaunchToggleOff()
-    {
-      if (null != vessel)
-      {
-        vessel.Highlight(false);
-      }
-      stockToolbarButton.SetTexture(GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
-
-      windowVisable = false;
     }
 
     void DummyVoid() { }
@@ -276,7 +289,7 @@ namespace ConnectedLivingSpace
       RebuildCLSVessel(data);
     }
 
-    // This event is fired when the vessel is changed. If this happens we need to throw away all of our thoiughts about the previous vessel, and analyse the new one.
+    // This event is fired when the vessel is changed. If this happens we need to throw away all of our thoughts about the previous vessel, and analyse the new one.
     private void OnVesselChange(Vessel data)
     {
       //Debug.Log("CLSAddon::OnVesselChange");
@@ -301,26 +314,26 @@ namespace ConnectedLivingSpace
 
     private void OnGameSceneSwitchRequested(GameEvents.FromToAction<GameScenes, GameScenes> sceneData)
     {
-      if (windowVisable) OnCLSButtonToggle();
+      if (WindowVisable) OnCLSButtonToggle();
     }
 
     internal void OnCLSButtonToggle()
     {
       //Debug.Log("CLSAddon::OnCLSButtonToggle");
-      windowVisable = !windowVisable;
+      WindowVisable = !WindowVisable;
 
-      if (!windowVisable && null != vessel)
+      if (!WindowVisable && null != vessel)
         vessel.Highlight(false);
 
       if (enableBlizzyToolbar)
-        blizzyToolbarButton.TexturePath = windowVisable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
+        blizzyToolbarButton.TexturePath = WindowVisable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
       else
-        stockToolbarButton.SetTexture(GameDatabase.Instance.GetTexture(windowVisable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
+        stockToolbarButton.SetTexture(GameDatabase.Instance.GetTexture(WindowVisable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
     }
 
     private void OnGUI()
     {
-      if (windowVisable)
+      if (WindowVisable)
       {
         //Set the GUI Skin
         //GUI.skin = HighLogic.Skin;
@@ -472,6 +485,9 @@ namespace ConnectedLivingSpace
         // Build new vessel information
         vessel = new CLSVessel();
         vessel.Populate(newRootPart);
+        if (!WindowVisable || WindowSelectedSpace <= -1) return;
+        vessel.Highlight(false);
+        vessel.Spaces[CLSAddon.WindowSelectedSpace].Highlight(true);
       }
       catch (Exception ex)
       {
@@ -652,7 +668,7 @@ namespace ConnectedLivingSpace
         if (parts.Current == null) continue;
         try
         {
-          if (parts.Current.name.Equals("kerbalEVA"))
+          if (parts.Current.name.Contains("kerbalEVA"))
           {
             // Debug.Log("No CLS required for KerbalEVA!");
           }
@@ -662,15 +678,15 @@ namespace ConnectedLivingSpace
 
             //Debug.Log("Adding ConnectedLivingSpace Support to " + part.name + "/" + prefabPart.partInfo.title);
 
-            if (!prefabPart.Modules.Contains("ModuleConnectedLivingSpace"))
+            if (!parts.Current.partPrefab.Modules.Contains("ModuleConnectedLivingSpace"))
             {
               //Debug.Log("The ModuleConnectedLivingSpace is missing!");
 
               ConfigNode node = new ConfigNode("MODULE");
               node.AddValue("name", "ModuleConnectedLivingSpace");
               {
-                // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
-                PartModule pm = prefabPart.AddModule("ModuleConnectedLivingSpace");
+                // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. 
+                PartModule pm = parts.Current.partPrefab.AddModule("ModuleConnectedLivingSpace");
                 if (Awaken(pm))
                 {
                   pm.Load(node);
@@ -692,336 +708,310 @@ namespace ConnectedLivingSpace
 
 
     // Method to add Docking Hatches to all parts that have Docking Nodes
-    private void AddHatchModuleToPartPrefabs()
-    {
-      IEnumerator<AvailablePart> parts = PartLoader.LoadedPartsList.Where(p => p.partPrefab != null).GetEnumerator();
-      while (parts.MoveNext())
-      {
-        if (parts.Current == null) continue;
-        Part partPrefab = parts.Current.partPrefab;
+    //private void AddHatchModuleToPartPrefabs()
+    //{
+    //  IEnumerator<AvailablePart> parts = PartLoader.LoadedPartsList.Where(p => p.partPrefab != null).GetEnumerator();
+    //  while (parts.MoveNext())
+    //  {
+    //    if (parts.Current == null) continue;
+    //    Part partPrefab = parts.Current.partPrefab;
 
-        // If the part does not have any modules set up then move to the next part
-        if (null == partPrefab.Modules)
-        {
-          continue;
-        }
+    //    // If the part does not have any modules set up then move to the next part
+    //    if (null == partPrefab.Modules)
+    //    {
+    //      continue;
+    //    }
 
-        List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
-        List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
+    //    List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
+    //    List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
 
-        // Build a temporary list of docking nodes to consider. This is necassery can we can not add hatch modules to the modules list while we are enumerating the very same list!
-        IEnumerator<ModuleDockingNode> dockNodes = partPrefab.Modules.OfType<ModuleDockingNode>().GetEnumerator();
-        while (dockNodes.MoveNext())
-        {
-          if (dockNodes.Current == null) continue;
-          listDockNodes.Add(dockNodes.Current);
-        }
+    //    // Build a temporary list of docking nodes to consider. This is necassery can we can not add hatch modules to the modules list while we are enumerating the very same list!
+    //    IEnumerator<ModuleDockingNode> dockNodes = partPrefab.Modules.OfType<ModuleDockingNode>().GetEnumerator();
+    //    while (dockNodes.MoveNext())
+    //    {
+    //      if (dockNodes.Current == null) continue;
+    //      listDockNodes.Add(dockNodes.Current);
+    //    }
 
-        IEnumerator<ModuleDockingHatch> dockHatches = partPrefab.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
-        while (dockHatches.MoveNext())
-        {
-          if (dockHatches.Current == null) continue;
-          listDockHatches.Add(dockHatches.Current);
-        }
+    //    IEnumerator<ModuleDockingHatch> dockHatches = partPrefab.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
+    //    while (dockHatches.MoveNext())
+    //    {
+    //      if (dockHatches.Current == null) continue;
+    //      listDockHatches.Add(dockHatches.Current);
+    //    }
 
-        IEnumerator<ModuleDockingNode> nodeList = listDockNodes.GetEnumerator();
-        while (nodeList.MoveNext())
-        {
-          if (nodeList.Current == null) continue;
-          // Does this docking node have a corresponding hatch?
-          ModuleDockingHatch hatch = null;
-          IEnumerator<ModuleDockingHatch> hatchList = listDockHatches.GetEnumerator();
-          while (hatchList.MoveNext())
-          {
-            if (hatchList.Current == null) continue;
-            if (!hatchList.Current.IsRelatedDockingNode(nodeList.Current)) continue;
-            hatch = hatchList.Current;
-            break;
-          }
+    //    IEnumerator<ModuleDockingNode> nodeList = listDockNodes.GetEnumerator();
+    //    while (nodeList.MoveNext())
+    //    {
+    //      if (nodeList.Current == null) continue;
+    //      // Does this docking node have a corresponding hatch?
+    //      ModuleDockingHatch hatch = null;
+    //      IEnumerator<ModuleDockingHatch> hatchList = listDockHatches.GetEnumerator();
+    //      while (hatchList.MoveNext())
+    //      {
+    //        if (hatchList.Current == null) continue;
+    //        if (!hatchList.Current.IsRelatedDockingNode(nodeList.Current)) continue;
+    //        hatch = hatchList.Current;
+    //        break;
+    //      }
 
-          if (null != hatch) continue;
-          // There is no corresponding hatch - add one.
-          ConfigNode node = new ConfigNode("MODULE");
-          node.AddValue("name", "ModuleDockingHatch");
+    //      if (null != hatch) continue;
+    //      // There is no corresponding hatch - add one.
+    //      ConfigNode node = new ConfigNode("MODULE");
+    //      node.AddValue("name", "ModuleDockingHatch");
 
-          if (nodeList.Current.referenceAttachNode != string.Empty)
-          {
-            Debug.Log("Adding ModuleDockingHatch to part " + parts.Current.title +
-                      " and the docking node that uses attachNode " + nodeList.Current.referenceAttachNode);
-            node.AddValue("docNodeAttachmentNodeName", nodeList.Current.referenceAttachNode);
-          }
-          else
-          {
-            if (nodeList.Current.nodeTransformName != string.Empty)
-            {
-              Debug.Log("Adding ModuleDockingHatch to part " + parts.Current.title +
-                        " and the docking node that uses transform " + nodeList.Current.nodeTransformName);
-              node.AddValue("docNodeTransformName", nodeList.Current.nodeTransformName);
-            }
-          }
-          // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
-          PartModule pm = partPrefab.AddModule("ModuleDockingHatch");
-          if (Awaken(pm))
-          {
-            Debug.Log("Loading the ModuleDockingHatch config");
-            pm.Load(node);
-          }
-          else
-          {
-            Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
-          }
-        }
-      }
-    }
+    //      if (nodeList.Current.referenceNode.id != string.Empty)
+    //      {
+    //        Debug.Log("Adding ModuleDockingHatch to part " + parts.Current.title +
+    //                  " and the docking node that uses attachNode " + nodeList.Current.referenceNode.id);
+    //        node.AddValue("docNodeAttachmentNodeName", nodeList.Current.referenceNode.id);
+    //      }
+    //      else
+    //      {
+    //        if (nodeList.Current.nodeTransformName != string.Empty)
+    //        {
+    //          Debug.Log("Adding ModuleDockingHatch to part " + parts.Current.title +
+    //                    " and the docking node that uses transform " + nodeList.Current.nodeTransformName);
+    //          node.AddValue("docNodeTransformName", nodeList.Current.nodeTransformName);
+    //        }
+    //      }
+    //      // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
+    //      PartModule pm = partPrefab.AddModule("ModuleDockingHatch");
+    //      if (Awaken(pm))
+    //      {
+    //        Debug.Log("Loading the ModuleDockingHatch config");
+    //        pm.Load(node);
+    //      }
+    //      else
+    //      {
+    //        Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
+    //      }
+    //    }
+    //  }
+    //}
 
 
-    private void CheckAndFixDockingHatches(List<Part> listParts)
-    {
-      IEnumerator<Part> parts = listParts.GetEnumerator();
-      while (parts.MoveNext())
-      {
-        if (parts.Current == null) continue;
-        // If the part does not have any modules set up then move to the next part
-        if (null == parts.Current.Modules) continue;
+    //private void CheckAndFixDockingHatches(List<Part> listParts)
+    //{
+    //  IEnumerator<Part> parts = listParts.GetEnumerator();
+    //  while (parts.MoveNext())
+    //  {
+    //    if (parts.Current == null) continue;
+    //    // If the part does not have any modules set up then move to the next part
+    //    if (null == parts.Current.Modules) continue;
 
-        List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
-        List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
+    //    List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
+    //    List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
 
-        // Build a temporary list of docking nodes to consider. This is necassery can we can not add hatch modules to the modules list while we are enumerating the very same list!
-        IEnumerator<ModuleDockingNode> edN = parts.Current.Modules.OfType<ModuleDockingNode>().GetEnumerator();
-        while (edN.MoveNext())
-        {
-          if (edN.Current == null) continue;
-          listDockNodes.Add(edN.Current);
-        }
+    //    // Build a temporary list of docking nodes to consider. This is necessary can we can not add hatch modules to the modules list while we are enumerating the very same list!
+    //    IEnumerator<ModuleDockingNode> edN = parts.Current.Modules.OfType<ModuleDockingNode>().GetEnumerator();
+    //    while (edN.MoveNext())
+    //    {
+    //      if (edN.Current == null) continue;
+    //      listDockNodes.Add(edN.Current);
+    //    }
 
-        IEnumerator<ModuleDockingHatch> edH = parts.Current.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
-        while (edH.MoveNext())
-        {
-          if (edH.Current == null) continue;
-          listDockHatches.Add(edH.Current);
-        }
+    //    IEnumerator<ModuleDockingHatch> edH = parts.Current.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
+    //    while (edH.MoveNext())
+    //    {
+    //      if (edH.Current == null) continue;
+    //      listDockHatches.Add(edH.Current);
+    //    }
 
-        // First go through all the hatches. If any do not refer to a dockingPort then remove it.
-        IEnumerator<ModuleDockingHatch> eLDH = listDockHatches.GetEnumerator();
-        while (eLDH.MoveNext())
-        {
-          if (eLDH.Current == null) continue;
-          // I know we are making  abit of a meal of this. It is unclear to me what the unset vakues will be, and this way we are catching every possibility. It seems that open (3) is the open that gets called, but I will leave this as is for now.
-          if ("" == eLDH.Current.docNodeAttachmentNodeName && "" == eLDH.Current.docNodeTransformName)
-          {
-            Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(1)");
-            parts.Current.RemoveModule(eLDH.Current);
-          }
-          else if (string.Empty == eLDH.Current.docNodeAttachmentNodeName && string.Empty == eLDH.Current.docNodeTransformName)
-          {
-            Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(2)");
-            parts.Current.RemoveModule(eLDH.Current);
-          }
-          else if (null == eLDH.Current.docNodeAttachmentNodeName && null == eLDH.Current.docNodeTransformName)
-          {
-            Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(3)");
-            parts.Current.RemoveModule(eLDH.Current);
-          }
-          else if (string.IsNullOrEmpty(eLDH.Current.docNodeAttachmentNodeName) && string.IsNullOrEmpty(eLDH.Current.docNodeTransformName))
-          {
-            Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.(4)");
-            parts.Current.RemoveModule(eLDH.Current);
-          }
-        }
+    //    // First go through all the hatches. If any do not refer to a dockingPort then remove it.
+    //    IEnumerator<ModuleDockingHatch> eLDH = listDockHatches.GetEnumerator();
+    //    while (eLDH.MoveNext())
+    //    {
+    //      if (eLDH.Current == null) continue;
+    //      if (string.IsNullOrEmpty(eLDH.Current.docNodeAttachmentNodeName) && string.IsNullOrEmpty(eLDH.Current.docNodeTransformName))
+    //      {
+    //        Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.");
+    //        parts.Current.RemoveModule(eLDH.Current);
+    //      }
+    //    }
 
-        // Now because we might have removed for dodgy hatches, rebuild the hatch list.
-        listDockHatches.Clear();
-        IEnumerator<ModuleDockingHatch> eMDH = parts.Current.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
-        while (eMDH.MoveNext())
-        {
-          if (eMDH.Current == null) continue;
-          listDockHatches.Add(eMDH.Current);
-        }
+    //    // Now because we might have removed for dodgy hatches, rebuild the hatch list.
+    //    listDockHatches.Clear();
+    //    IEnumerator<ModuleDockingHatch> eMDH = parts.Current.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
+    //    while (eMDH.MoveNext())
+    //    {
+    //      if (eMDH.Current == null) continue;
+    //      listDockHatches.Add(eMDH.Current);
+    //    }
 
-        // Now go through all the dockingPorts and add hatches for any docking ports that do not have one.
-        IEnumerator<ModuleDockingNode> eldn = listDockNodes.GetEnumerator();
-        while (eldn.MoveNext())
-        {
-          if (eldn.Current == null) continue;
-          // Does this docking node have a corresponding hatch?
-          ModuleDockingHatch hatch = null;
-          IEnumerator<ModuleDockingHatch> eldh = listDockHatches.GetEnumerator();
-          while (eldh.MoveNext())
-          {
-            if (eldh.Current == null) continue;
-            if (!eldh.Current.IsRelatedDockingNode(eldn.Current)) continue;
-            hatch = eldh.Current;
-            break;
-          }
+    //    // Now go through all the dockingPorts and add hatches for any docking ports that do not have one.
+    //    IEnumerator<ModuleDockingNode> eldn = listDockNodes.GetEnumerator();
+    //    while (eldn.MoveNext())
+    //    {
+    //      if (eldn.Current == null) continue;
+    //      // Does this docking node have a corresponding hatch?
+    //      ModuleDockingHatch hatch = null;
+    //      IEnumerator<ModuleDockingHatch> eldh = listDockHatches.GetEnumerator();
+    //      while (eldh.MoveNext())
+    //      {
+    //        if (eldh.Current == null) continue;
+    //        if (!eldh.Current.IsRelatedDockingNode(eldn.Current)) continue;
+    //        hatch = eldh.Current;
+    //        break;
+    //      }
 
-          if (null != hatch) continue;
-          // There is no corresponding hatch - add one.
-          ConfigNode node = new ConfigNode("MODULE");
-          node.AddValue("name", "ModuleDockingHatch");
+    //      if (null != hatch) continue;
+    //      // There is no corresponding hatch - add one.
+    //      ConfigNode node = new ConfigNode("MODULE");
+    //      node.AddValue("name", "ModuleDockingHatch");
 
-          if (eldn.Current.referenceAttachNode != string.Empty)
-          {
-            // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
-            node.AddValue("docNodeAttachmentNodeName", eldn.Current.referenceAttachNode);
-          }
-          else
-          {
-            if (eldn.Current.nodeTransformName != string.Empty)
-            {
-              // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
-              node.AddValue("docNodeTransformName", eldn.Current.nodeTransformName);
-            }
-          }
-          // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
-          PartModule pm = parts.Current.AddModule("ModuleDockingHatch");
-          if (Awaken(pm))
-          {
-            // Debug.Log("Loading the ModuleDockingHatch config");
-            pm.Load(node);
-          }
-          else
-          {
-            Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
-          }
-        }
-      }
-    }
+    //      if (eldn.Current.referenceNode.id != string.Empty)
+    //      {
+    //        // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceNode.id);
+    //        node.AddValue("docNodeAttachmentNodeName", eldn.Current.referenceNode.id);
+    //      }
+    //      else
+    //      {
+    //        if (eldn.Current.nodeTransformName != string.Empty)
+    //        {
+    //          // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
+    //          node.AddValue("docNodeTransformName", eldn.Current.nodeTransformName);
+    //        }
+    //      }
+    //      // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
+    //      PartModule pm = parts.Current.AddModule("ModuleDockingHatch");
+    //      if (Awaken(pm))
+    //      {
+    //        // Debug.Log("Loading the ModuleDockingHatch config");
+    //        pm.Load(node);
+    //      }
+    //      else
+    //      {
+    //        Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
+    //      }
+    //    }
+    //  }
+    //}
 
-    private void CheckAndFixDockingHatchesInEditor()
-    {
-      if (EditorLogic.RootPart == null)
-      {
-        return; // If there are no parts then there is nothing to check. 
-      }
-      CheckAndFixDockingHatches(EditorLogic.SortedShipList);
-    }
+    //private void CheckAndFixDockingHatchesInEditor()
+    //{
+    //  if (EditorLogic.RootPart == null)
+    //  {
+    //    return; // If there are no parts then there is nothing to check. 
+    //  }
+    //  CheckAndFixDockingHatches(EditorLogic.SortedShipList);
+    //}
 
-    private void CheckAndFixDockingHatchesInFlight()
-    {
-      CheckAndFixDockingHatches(FlightGlobals.ActiveVessel.Parts);
-    }
+    //private void CheckAndFixDockingHatchesInFlight()
+    //{
+    //  CheckAndFixDockingHatches(FlightGlobals.ActiveVessel.Parts);
+    //}
 
-    // Method to add Docking Hatches to all parts that have Docking Nodes
-    private void AddHatchModuleToParts()
-    {
-      // If we are in the editor or if flight, take a look at the active vesssel and add a ModuleDockingHatch to any part that has a ModuleDockingNode without a corresponding ModuleDockingHatch
-      List<Part> listParts;
+    //// Method to add Docking Hatches to all parts that have Docking Nodes
+    //private void AddHatchModuleToParts()
+    //{
+    //  // If we are in the editor or if flight, take a look at the active vesssel and add a ModuleDockingHatch to any part that has a ModuleDockingNode without a corresponding ModuleDockingHatch
+    //  List<Part> listParts;
 
-      if (HighLogic.LoadedSceneIsEditor && null != EditorLogic.RootPart)
-      {
-        listParts = EditorLogic.SortedShipList;
-      }
-      else if (HighLogic.LoadedSceneIsFlight && null != FlightGlobals.ActiveVessel && null != FlightGlobals.ActiveVessel.Parts)
-      {
-        listParts = FlightGlobals.ActiveVessel.Parts;
-      }
-      else
-      {
-        listParts = new List<Part>();
-      }
+    //  if (HighLogic.LoadedSceneIsEditor && null != EditorLogic.RootPart)
+    //  {
+    //    listParts = EditorLogic.SortedShipList;
+    //  }
+    //  else if (HighLogic.LoadedSceneIsFlight && null != FlightGlobals.ActiveVessel && null != FlightGlobals.ActiveVessel.Parts)
+    //  {
+    //    listParts = FlightGlobals.ActiveVessel.Parts;
+    //  }
+    //  else
+    //  {
+    //    listParts = new List<Part>();
+    //  }
 
-      IEnumerator<Part> elP = listParts.GetEnumerator();
-      while (elP.MoveNext())
-      {
-        if (elP.Current == null) continue;
-        try
-        {
-          // If the part does not have any modules set up then move to the next part
-          if (null == elP.Current.Modules) continue;
+    //  IEnumerator<Part> elP = listParts.GetEnumerator();
+    //  while (elP.MoveNext())
+    //  {
+    //    if (elP.Current == null) continue;
+    //    try
+    //    {
+    //      // If the part does not have any modules set up then move to the next part
+    //      if (null == elP.Current.Modules) continue;
 
-          List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
-          List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
+    //      List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
+    //      List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
 
-          // Build a temporary list of docking nodes to consider. This is necassery can we can not add hatch modules to the modules list while we are enumerating the very same list!
-          IEnumerator<ModuleDockingNode> edn = elP.Current.Modules.OfType<ModuleDockingNode>().GetEnumerator();
-          while (edn.MoveNext())
-          {
-            if (edn.Current == null) continue;
-            listDockNodes.Add(edn.Current);
-          }
+    //      // Build a temporary list of docking nodes to consider. This is necassery can we can not add hatch modules to the modules list while we are enumerating the very same list!
+    //      IEnumerator<ModuleDockingNode> edn = elP.Current.Modules.OfType<ModuleDockingNode>().GetEnumerator();
+    //      while (edn.MoveNext())
+    //      {
+    //        if (edn.Current == null) continue;
+    //        listDockNodes.Add(edn.Current);
+    //      }
 
-          IEnumerator<ModuleDockingHatch> edh = elP.Current.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
-          while (edh.MoveNext())
-          {
-            if (edh.Current == null) continue;
-            listDockHatches.Add(edh.Current);
-          }
+    //      IEnumerator<ModuleDockingHatch> edh = elP.Current.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
+    //      while (edh.MoveNext())
+    //      {
+    //        if (edh.Current == null) continue;
+    //        listDockHatches.Add(edh.Current);
+    //      }
 
-          IEnumerator<ModuleDockingNode> eldn = listDockNodes.GetEnumerator();
-          while (eldn.MoveNext())
-          {
-            if (eldn.Current == null) continue;
-            // Does this docking node have a corresponding hatch?
-            ModuleDockingHatch hatch = null;
-            IEnumerator<ModuleDockingHatch> eldh = listDockHatches.GetEnumerator();
-            while (eldh.MoveNext())
-            {
-              if (eldh.Current == null) continue;
-              if (!eldh.Current.IsRelatedDockingNode(eldn.Current)) continue;
-              hatch = eldh.Current;
-              break;
-            }
+    //      IEnumerator<ModuleDockingNode> eldn = listDockNodes.GetEnumerator();
+    //      while (eldn.MoveNext())
+    //      {
+    //        if (eldn.Current == null) continue;
+    //        // Does this docking node have a corresponding hatch?
+    //        ModuleDockingHatch hatch = null;
+    //        IEnumerator<ModuleDockingHatch> eldh = listDockHatches.GetEnumerator();
+    //        while (eldh.MoveNext())
+    //        {
+    //          if (eldh.Current == null) continue;
+    //          if (!eldh.Current.IsRelatedDockingNode(eldn.Current)) continue;
+    //          hatch = eldh.Current;
+    //          break;
+    //        }
 
-            if (null != hatch) continue;
-            // There is no corresponding hatch - add one.
-            ConfigNode node = new ConfigNode("MODULE");
-            node.AddValue("name", "ModuleDockingHatch");
+    //        if (null != hatch) continue;
+    //        // There is no corresponding hatch - add one.
+    //        ConfigNode node = new ConfigNode("MODULE");
+    //        node.AddValue("name", "ModuleDockingHatch");
 
-            if (eldn.Current.referenceAttachNode != string.Empty)
-            {
-              //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceAttachNode);
-              node.AddValue("docNodeAttachmentNodeName", eldn.Current.referenceAttachNode);
-            }
-            else
-            {
-              if (eldn.Current.nodeTransformName != string.Empty)
-              {
-                //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
-                node.AddValue("docNodeTransformName", eldn.Current.nodeTransformName);
-              }
-            }
+    //        if (eldn.Current.referenceNode.id != string.Empty)
+    //        {
+    //          //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceNode.id);
+    //          node.AddValue("docNodeAttachmentNodeName", eldn.Current.referenceNode.id);
+    //        }
+    //        else
+    //        {
+    //          if (eldn.Current.nodeTransformName != string.Empty)
+    //          {
+    //            //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
+    //            node.AddValue("docNodeTransformName", eldn.Current.nodeTransformName);
+    //          }
+    //        }
 
-            {
-              // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
-              PartModule pm = elP.Current.AddModule("ModuleDockingHatch");
-              if (Awaken(pm))
-              {
-                //Debug.Log("Loading the ModuleDockingHatch config");
-                pm.Load(node);
-              }
-              else
-              {
-                Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
-              }
-            }
-          }
-        }
-        catch (Exception ex)
-        {
-          Debug.LogException(ex);
-        }
-      }
-    }
+    //        {
+    //          // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
+    //          PartModule pm = elP.Current.AddModule("ModuleDockingHatch");
+    //          if (Awaken(pm))
+    //          {
+    //            //Debug.Log("Loading the ModuleDockingHatch config");
+    //            pm.Load(node);
+    //          }
+    //          else
+    //          {
+    //            Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
+    //          }
+    //        }
+    //      }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //      Debug.LogException(ex);
+    //    }
+    //  }
+    //}
 
-    //This method uses reflection to call the Awake private method in PartModule. It turns out that Part.AddModule fails if Awake has not been called (which sometimes it has not). See http://forum.kerbalspaceprogram.com/threads/27851 for more info on this.
     public static bool Awaken(PartModule module)
     {
-      // thanks to Mu and Kine for help with this bit of Dark Magic. 
-      // KINEMORTOBESTMORTOLOLOLOL
-      if (module == null)
-        return false;
-      object[] paramList = new object[] { };
-      MethodInfo awakeMethod = typeof(PartModule).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
-
-      if (awakeMethod == null)
-        return false;
-
-      awakeMethod.Invoke(module, paramList);
+      if (module == null) return false;
+      module.Awake();
       return true;
     }
 
-    private void OnCrewTransferPartListCreated(GameEvents.FromToAction<List<Part>, List<Part>> eventData)
+    private void OnCrewTransferPartListCreated(GameEvents.HostedFromToAction<Part, List<Part>> eventData)
     {
       if (allowUnrestrictedTransfers) return;
 
@@ -1047,13 +1037,19 @@ namespace ConnectedLivingSpace
         fullList.Add(fromList.Current);
       }
       if (fullList.Count <= 0) return;
-      CrewTransfer.fullMessage = "<color=orange>CLS - This module is either full or internally unreachable.</color>";
+      //CrewTransfer.fullMessage = "<color=orange>CLS - This module is either full or internally unreachable.</color>";
       List<Part>.Enumerator removeList = fullList.GetEnumerator();
       while (removeList.MoveNext())
       {
         eventData.from.Remove(removeList.Current);
       }
       eventData.to.AddRange(fullList);
+    }
+
+    internal void OnItemTransferStarted(PartItemTransfer xferPartItem)
+    {
+      if (!allowUnrestrictedTransfers && xferPartItem.type == "Crew")
+        xferPartItem.semiValidMessage = "<color=orange>CLS - This module is either full or internally unreachable (different spaces).</color>";
     }
 
     // Method to optionally abort an attempt to use the stock crew transfer mechanism
@@ -1110,6 +1106,7 @@ namespace ConnectedLivingSpace
       windowOptionsPosition = getRectangle(toolbarNode, "windowOptionsPosition", windowOptionsPosition);
       enableBlizzyToolbar = toolbarNode.HasValue("enableBlizzyToolbar") ? bool.Parse(toolbarNode.GetValue("enableBlizzyToolbar")) : enableBlizzyToolbar;
       enablePassable = toolbarNode.HasValue("enablePassable") ? bool.Parse(toolbarNode.GetValue("enablePassable")) : enablePassable;
+
     }
 
     private ConfigNode loadSettings()

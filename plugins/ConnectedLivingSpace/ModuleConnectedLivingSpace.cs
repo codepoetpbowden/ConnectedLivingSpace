@@ -151,11 +151,11 @@ namespace ConnectedLivingSpace
     public override string GetInfo()
     {
       string returnValue = string.Empty;
-      string yes = "<color=Lime>Yes</color>";
-      string no = "<color=Red>No</color>";
+      string yes = "<color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
+      string no = "<color=" + XKCDColors.HexFormat.Maroon + ">No</color>";
       if (passable)
       {
-        returnValue += "Passable:  <color=Lime>Yes</color>";
+        returnValue += "Passable:  <color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
         returnValue += "\r\nCrewable:  " + (part.CrewCapacity > 0 ? yes : no);
         returnValue += "\r\nImpassable Nodes:  " + (impassablenodes != "" ? impassablenodes : (passable ? "None" : "All"));
         returnValue += "\r\nPassable Nodes:  " + (passablenodes != "" ? passablenodes : (passable ? "All" : "None"));
@@ -164,7 +164,7 @@ namespace ConnectedLivingSpace
       }
       else
       {
-        returnValue += "Passable:  <color=Red>No</color>";
+        returnValue += "Passable:  <color=" + XKCDColors.HexFormat.Maroon + ">No</color>";
         if (passablenodes != "")
           returnValue += "\r\nPassable Nodes:  " + passablenodes;
       }
