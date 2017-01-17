@@ -38,6 +38,8 @@ namespace ConnectedLivingSpace
       private set;
     }
 
+    public static EventData<Vessel> onCLSVesselChange = new EventData<Vessel>("onCLSVesselChange");
+
     #endregion static Properties
 
     #region Instanced Properties
@@ -485,6 +487,10 @@ namespace ConnectedLivingSpace
         // Build new vessel information
         vessel = new CLSVessel();
         vessel.Populate(newRootPart);
+
+        // Notify other mods that the CLS Vessel has been rebuilt.
+        onCLSVesselChange.Fire(FlightGlobals.ActiveVessel);
+
         if (!WindowVisable || WindowSelectedSpace <= -1) return;
         vessel.Highlight(false);
         vessel.Spaces[CLSAddon.WindowSelectedSpace].Highlight(true);
