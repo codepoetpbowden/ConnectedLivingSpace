@@ -16,6 +16,10 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v 1.2.4.2
+* New: Added a custom event to notify mods that the CLS vessel data has been refreshed.
+* New: Added a some configs per GitHub issue and PR 79 Thanks Kerbas-ad-Astra!
+
 release v 1.2.4.1
 * Fixed: Some parts were not merging spaces event when hatches were opened. Github Issue #75. Forum Post: http://forum.kerbalspaceprogram.com/index.php?/topic/109972-122-connected-living-space-v1240-30-dec-2016-customize-your-cls-parts/&do=findComment&comment=2906269
 * Fixed: CLSDefaultPart.cfg was included in distribution.  There should only be a CLSDefaultPart.cfg.txt file.  Removed.  Github Issue #78.
