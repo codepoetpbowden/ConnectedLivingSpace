@@ -49,6 +49,45 @@ namespace ConnectedLivingSpace
     private ConfigNode settings;
     private Vector2 scrollViewer = Vector2.zero;
     internal CLSVessel vessel;
+    protected internal List<ConnectPair> requestedConnections = new List<ConnectPair>();
+
+    protected internal struct ConnectPair
+    {
+        public Part part1;
+        public Part part2;
+
+        public ConnectPair(Part part1, Part part2)
+        {
+            this.part1 = part1;
+            this.part2 = part2;
+        }
+        public bool Includes(Part part)
+        {
+            return (part1 == part || part2 == part);
+        }
+        public bool IsEquivalentTo(Part part1, Part part2)
+        {
+            return ((this.part1 == part1 && this.part2 == part2) || (this.part1 == part2 && this.part2 == part1));
+        }
+        public static ConnectPair Other(Part part1, Part part2)
+        {
+            return new ConnectPair(part2, part1);
+        }
+        public static ConnectPair Other(ConnectPair connectPair)
+        {
+            return new ConnectPair(connectPair.part2, connectPair.part1);
+        }
+        public ConnectPair Other()
+        {
+            return new ConnectPair(this.part2, this.part1);
+        }
+        public Part OtherPart(Part inPart)
+        {
+            if (!this.Includes(inPart))
+                return null;
+            return part1 == inPart ? part1 : part2;
+        }
+    }
 
     // State var used by OnEditorShipModified event handler to note changes to vessel for reconstruction of spaces.
     private int editorPartCount;
@@ -488,6 +527,14 @@ namespace ConnectedLivingSpace
         vessel = new CLSVessel();
         vessel.Populate(newRootPart);
 
+        for (int i = requestedConnections.Count - 1; i >= 0; i--)
+        {
+            ConnectPair connectPair = requestedConnections[i];
+            if (connectPair.part1.vessel != connectPair.part2.vessel)
+                requestedConnections.Remove(connectPair);
+            vessel.MergeSpaces(connectPair.part1, connectPair.part2);
+        }
+
         // Notify other mods that the CLS Vessel has been rebuilt.
         onCLSVesselChange.Fire(FlightGlobals.ActiveVessel);
 
@@ -499,6 +546,84 @@ namespace ConnectedLivingSpace
       {
         Debug.Log("CLS rebuild Vessel Error:  " + ex.ToString());
       }
+    }
+
+    protected internal bool RequestAddConnection(Part part1, Part part2, bool rebuildVessel = true)
+    {
+        ConnectPair connectPair = new ConnectPair(part1, part2);
+        if (!(requestedConnections.Contains(connectPair) || requestedConnections.Contains(connectPair.Other())))
+        {
+            requestedConnections.Add(connectPair);
+            if (rebuildVessel && ((HighLogic.LoadedSceneIsFlight && part1.vessel == FlightGlobals.ActiveVessel) ||
+                    HighLogic.LoadedSceneIsEditor))
+                RebuildCLSVessel();
+            return true;
+        }
+        else
+            return false;
+    }
+
+    public bool RequestAddConnection(Part part1, Part part2)
+    {
+        return RequestAddConnection(part1, part2, true);
+    }
+
+    public List<bool> RequestAddConnections(List<Part> part1, List<Part> part2)
+    {
+        List<bool> success = new List<bool>();
+        if (part1.Count != part2.Count)
+            return success;
+        for(int i = 0; i < part1.Count; i++)
+        {
+            success.Add(RequestAddConnection(part1[i], part2[i], false));
+        }
+        if (success.Any((bool b) => b))
+            if ((HighLogic.LoadedSceneIsFlight && part1.Any((Part p) => p.vessel == FlightGlobals.ActiveVessel)) ||
+            HighLogic.LoadedSceneIsEditor)
+                RebuildCLSVessel();
+        return success;
+    }
+
+    protected internal bool RequestRemoveConnection(Part part1, Part part2, bool rebuildVessel = true)
+    {
+        bool modified = false;
+        ConnectPair CPtoRemove = new ConnectPair(part1, part2);
+        if (requestedConnections.Contains(CPtoRemove))
+        {
+            requestedConnections.Remove(CPtoRemove);
+            modified = true;
+        }
+        else if (requestedConnections.Contains(CPtoRemove.Other()))
+        {
+            requestedConnections.Remove(CPtoRemove.Other());
+            modified = true;
+        }
+        if (modified && rebuildVessel &&
+            ((HighLogic.LoadedSceneIsFlight && part1.vessel == FlightGlobals.ActiveVessel) ||
+            HighLogic.LoadedSceneIsEditor))
+            RebuildCLSVessel();
+        return modified;
+    }
+
+    public bool RequestRemoveConnection(Part part1, Part part2)
+    {
+        return RequestRemoveConnection(part1, part2, true);
+    }
+
+    public List<bool> RequestRemoveConnections(List<Part> part1, List<Part> part2)
+    {
+        List<bool> success = new List<bool>();
+        if (part1.Count != part2.Count)
+            return success;
+        for (int i = 0; i < part1.Count; i++)
+        {
+            success.Add(RequestRemoveConnection(part1[i], part2[i], false));
+        }
+        if (success.Any((bool b) => b))
+            if ((HighLogic.LoadedSceneIsFlight && part1.Any((Part p) => p.vessel == FlightGlobals.ActiveVessel)) ||
+            HighLogic.LoadedSceneIsEditor)
+                RebuildCLSVessel();
+         return success;
     }
 
     private void OnWindow(int windowID)

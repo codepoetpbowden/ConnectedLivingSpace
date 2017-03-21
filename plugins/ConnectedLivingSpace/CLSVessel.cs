@@ -35,6 +35,51 @@ namespace ConnectedLivingSpace
       }
     }
 
+    public void MergeSpaces(ICLSSpace space1, ICLSSpace space2)
+    {
+        if (space1 == space2)
+            return;
+        if(listSpaces.Contains(space1) && listSpaces.Contains(space2))
+        {
+            CLSSpace space1Real = space1 as CLSSpace;
+            List<ICLSPart> partsToAdd = space2.Parts;
+            for (int i = 0; i < partsToAdd.Count; i++)
+            {
+                space1Real.AddPart(partsToAdd[i] as CLSPart);
+            }
+            listSpaces.Remove(space2);
+            // Probably should not fire in this method.
+            // CLSAddon.onCLSVesselChange.Fire(space1Real.Parts[0].Part.vessel);
+        }
+    }
+    
+    public void MergeSpaces(ICLSPart part1, ICLSPart part2)
+    {
+        if (part1.Space == null || part2.Space == null)
+            return;
+
+        MergeSpaces(part1.Space, part2.Space);
+    }
+
+    public void MergeSpaces(Part part1, Part part2)
+    {
+        ICLSPart clsPart1 = null;
+        ICLSPart clsPart2 = null;
+        for (int i = listParts.Count - 1; i >= 0; i--)
+        {
+            if (listParts[i].Part == part1)
+                clsPart1 = listParts[i];
+            if (listParts[i].Part == part2)
+                clsPart2 = listParts[i];
+            if (clsPart1 != null && clsPart2 != null)
+                break;
+        }
+        if (clsPart1 == null || clsPart2 == null)
+            return;
+
+        MergeSpaces(clsPart1, clsPart2);
+    }
+
     internal void Populate(Vessel vessel)
     {
       Populate(vessel.rootPart);
