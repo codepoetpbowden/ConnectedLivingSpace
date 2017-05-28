@@ -62,7 +62,7 @@ namespace ConnectedLivingSpace
     /// </summary>
     public override void OnStart(StartState state)
     {
-      //Debug.Log("CLS::OnStart state=" + state.ToString());
+      //Debug.Log("[CLS]:  CLS::OnStart state=" + state.ToString());
 
       try
       {
