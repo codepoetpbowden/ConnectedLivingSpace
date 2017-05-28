@@ -162,8 +162,8 @@ namespace ConnectedLivingSpace
           if (null != childNode)
           {
             // The attachment is in the form of an AttachNode - use it to work out if the attachment is passable.
-            childAttachmentIsPassable = IsNodeNavigable(childNode, child);
-            //Debug.Log("the attachment on the child part is defined by attachment node " + childNode.id + " and had been given passable=" + attachmentIsPassable);
+            childAttachmentIsPassable = IsNodeNavigable(childNode, eChildren.Current);
+            //Debug.Log("[CLS]:  the attachment on the child part is defined by attachment node " + childNode.id + " and had been given passable=" + attachmentIsPassable);
           }
           else
           {
@@ -171,8 +171,8 @@ namespace ConnectedLivingSpace
             {
               //Debug.Log("[CLS]:  The two parts are considered to be docked together.");
               // The parts are docked, but we still need to have a think about if the docking port is passable.
-              childAttachmentIsPassable = IsDockedDockingPortPassable(child, p);
-              //Debug.Log("the docked attachment on the child part has been given passable=" + attachmentIsPassable);
+              childAttachmentIsPassable = IsDockedDockingPortPassable(eChildren.Current, p);
+              //Debug.Log("[CLS]:  the docked attachment on the child part has been given passable=" + attachmentIsPassable);
             }
             else
             {
@@ -289,8 +289,8 @@ namespace ConnectedLivingSpace
           // First consider if this docked connection has an accompanying AttachNode may be defined as (im)passable by CLS. 
           if (epNodes.Current.referenceNode.id != string.Empty)
           {
-            //Debug.Log("docking node uses a referenceAttachNode called: " + docNode.referenceAttachNode + " In the meantime, passablenodes: " + clsModThis.passablenodes + " impassablenodes: " + clsModThis.impassablenodes);
-            if (clsModThis.passablenodes.Contains(docNode.referenceAttachNode))
+            //Debug.Log("[CLS]:  docking node uses a referenceAttachNode called: " + docNode.referenceAttachNode + " In the meantime, passablenodes: " + clsModThis.passablenodes + " impassablenodes: " + clsModThis.impassablenodes);
+            if (clsModThis.passablenodes.Contains(epNodes.Current.referenceAttachNode))
             {
               retVal = true;
             }
@@ -303,8 +303,8 @@ namespace ConnectedLivingSpace
           // Second, if there is no AttachNode, what about the type / size of the docking port
           else
           {
-            //Debug.Log("docking node does not use referenceAttachNode, instead considering the nodeType: " + docNode.nodeType + " In the meantime, impassableDockingNodeTypes:" + clsModThis.impassableDockingNodeTypes + " passableDockingNodeTypes:" + clsModThis.passableDockingNodeTypes);
-            if (clsModThis.impassableDockingNodeTypes.Contains(docNode.nodeType))
+            //Debug.Log("[CLS]:  docking node does not use referenceAttachNode, instead considering the nodeType: " + docNode.nodeType + " In the meantime, impassableDockingNodeTypes:" + clsModThis.impassableDockingNodeTypes + " passableDockingNodeTypes:" + clsModThis.passableDockingNodeTypes);
+            if (clsModThis.impassableDockingNodeTypes.Contains(epNodes.Current.nodeType))
             {
               retVal = false; // Docking node is of an impassable type.
             }
@@ -330,7 +330,7 @@ namespace ConnectedLivingSpace
           break;
         }
       }
-      //Debug.Log("returning " + retVal);
+      //Debug.Log("[CLS]:  returning " + retVal);
       return retVal;
     }
 
