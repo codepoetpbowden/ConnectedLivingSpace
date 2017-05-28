@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ConnectedLivingSpace
 {
@@ -49,6 +47,7 @@ namespace ConnectedLivingSpace
             modCLS.spaceName = value;
           }
         }
+        eParts.Dispose();
       }
     }
 
@@ -85,6 +84,7 @@ namespace ConnectedLivingSpace
         if (eParts.Current == null) continue;
         ((CLSPart)eParts.Current).Highlight(val);
       }
+      eParts.Dispose();
     }
 
     internal void AddPart(CLSPart p)
@@ -113,6 +113,7 @@ namespace ConnectedLivingSpace
         if (eCrew.Current == null) continue;
         crew.Add((CLSKerbal)eCrew.Current);
       }
+      eCrew.Dispose();
     }
 
     // A function to throw away all the parts references, and so break the circular reference. This should be called before throwing a CLSSpace away.
@@ -124,6 +125,7 @@ namespace ConnectedLivingSpace
         if (eParts.Current == null) continue;
         ((CLSPart)eParts.Current).Clear();
       }
+      eParts.Dispose();
       parts.Clear();
       vessel = null;
     }

@@ -12,3 +12,4 @@ plugins/CLSInterfaces/bin/
 plugins/ConnectedLivingSpace/.vs/ConnectedLivingSpace/v14/.suo
 *.suo
 *.user
+plugins/CLSInterfaces/obj/

@@ -66,6 +66,7 @@ namespace ConnectedLivingSpace
         {
           listSpacesToRemove.Add((CLSSpace)eSpaces.Current);
         }
+        eSpaces.Dispose();
       }
 
       IEnumerator<CLSSpace> eSpacesR = listSpacesToRemove.GetEnumerator();
@@ -76,6 +77,7 @@ namespace ConnectedLivingSpace
         eSpacesR.Current.Clear();
         listSpaces.Remove(eSpacesR.Current);
       }
+      eSpacesR.Dispose();
 
       // Now let's clean up any space display issues...
       if (!CLSAddon.WindowVisable || CLSAddon.WindowSelectedSpace < listSpaces.Count) return;
@@ -208,6 +210,7 @@ namespace ConnectedLivingSpace
           newPart.SetDocked(true);
         }
       }
+      eChildren.Dispose();
     }
 
     // Helper method that figures out if surfaceAttachmentsPassable is set for a CLSModule on the specified part.
@@ -239,6 +242,7 @@ namespace ConnectedLivingSpace
         thisDockedToOther = true;
         break;
       }
+      epNodes.Dispose();
 
       // Loop through all the ModuleDockingNodes for the other part and check if any are docked to this part.
       IEnumerator<ModuleDockingNode> epNodes2 = thisPart.Modules.OfType<ModuleDockingNode>().GetEnumerator();
@@ -249,6 +253,7 @@ namespace ConnectedLivingSpace
         otherDockedToThis = true;
         break;
       }
+      epNodes2.Dispose();
 
       // Return that this part and the other part are docked together if they are both considered docked to each other.
       return (thisDockedToOther || otherDockedToThis);
@@ -325,6 +330,7 @@ namespace ConnectedLivingSpace
           break;
         }
       }
+      epNodes.Dispose();
       //Debug.Log("returning " + retVal);
       return retVal;
     }
@@ -340,6 +346,7 @@ namespace ConnectedLivingSpace
           return epHatches.Current;
         }
       }
+      epHatches.Dispose();
       return null;
     }
 
@@ -394,6 +401,7 @@ namespace ConnectedLivingSpace
         retVal = eModules.Current.passable;
         break;
       }
+      eModules.Dispose();
 
       // Is there a DockingHatch that relates to this node? This would occur in a situation where a docking node was assembled onto another part in the VAB.
       IEnumerator<ModuleDockingHatch> epHatches = p.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
@@ -408,10 +416,10 @@ namespace ConnectedLivingSpace
           {
             closedHatch = true;
           }
-
           break;
         }
       }
+      epHatches.Dispose();
 
       if (node.nodeType == AttachNode.NodeType.Surface)
       {
@@ -476,6 +484,7 @@ namespace ConnectedLivingSpace
         if (eSpaces.Current == null) continue;
         ((CLSSpace)eSpaces.Current).Clear();
       }
+      eSpaces.Dispose();
       listSpaces.Clear();
     }
 
@@ -488,6 +497,7 @@ namespace ConnectedLivingSpace
         if (eSpaces.Current == null) continue;
         ((CLSSpace)eSpaces.Current).Highlight(arg);
       }
+      eSpaces.Dispose();
     }
   }
 }

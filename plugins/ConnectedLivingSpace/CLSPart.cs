@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace ConnectedLivingSpace
@@ -32,6 +30,7 @@ namespace ConnectedLivingSpace
         CLSKerbal kerbal = new CLSKerbal(crewmembers.Current, this);
         crew.Add(kerbal);
       }
+      crewmembers.Dispose();
 
       // Does the part have a CLSModule on it? If so then give the module a reference to ourselves to make its life a bit easier.
       {
@@ -98,6 +97,7 @@ namespace ConnectedLivingSpace
           if (epModules.Current == null) continue;
           return epModules.Current;
         }
+        epModules.Dispose();
         return null;
       }
     }
@@ -169,6 +169,7 @@ namespace ConnectedLivingSpace
             break;
           }
         }
+        epModules.Dispose();
         part.SetHighlightColor(docNodeColor);
       }
       else if (Navigable)
@@ -186,6 +187,7 @@ namespace ConnectedLivingSpace
             break;
           }
         }
+        epModules.Dispose();
         part.SetHighlightColor(docNodeColor);
       }
       else
@@ -248,6 +250,7 @@ namespace ConnectedLivingSpace
         if (eCrew.Current == null) continue;
         ((CLSKerbal)eCrew.Current).Clear();
       }
+      eCrew.Dispose();
       crew.Clear();
     }
   }

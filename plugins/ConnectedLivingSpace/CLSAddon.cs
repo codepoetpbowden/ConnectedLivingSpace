@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using KSP.Localization;
 using KSP.UI.Screens;
 using KSP.UI.Screens.Flight.Dialogs;
 using UnityEngine;
@@ -13,9 +15,17 @@ namespace ConnectedLivingSpace
   {
     #region static Properties
 
+    internal static Dictionary<string, string> CLSTags;
+
     internal static bool WindowVisable;
-    private static Rect windowPosition = new Rect(0, 0, 360, 480);
-    private static Rect windowOptionsPosition = new Rect(0, 0, 0, 0);
+    private static Rect windowPosition = new Rect(0, 0, 400, 100);
+    private static Rect windowOptionsPosition = new Rect(0, 0, 200, 120);
+    private static Rect scrollCrew = new Rect(0, 0, 0, 0);
+    private static Rect scrollParts = new Rect(0, 0, 0, 0);
+    private static float scrollY = 0;
+    private static float scrollXCrew = 0;
+    private static float scrollXParts = 0;
+
     private static GUIStyle windowStyle;
     internal static bool allowUnrestrictedTransfers;
     // this value is used to "remember" the actual setting in CLS in the event it was changed by another mod
@@ -31,6 +41,29 @@ namespace ConnectedLivingSpace
 
     private static ApplicationLauncherButton stockToolbarButton; // Stock Toolbar Button
     internal static IButton blizzyToolbarButton; // Blizzy Toolbar Button
+    internal static bool IsStyleSet = false;
+
+    // For localization.  These are the default (english) values...
+    private static string _clsLocTitle = "Connected Living Space";
+    private static string _clsLocOptions = "Options";
+    private static string _clsLocOptionTt = "Click to view/edit options";
+    private static string _clsLocSpace = "Living Space";
+    private static string _clsLocName = "Name";
+    private static string _clsLocUpdate = "Update";
+    private static string _clsLocCapacity = "CrewCapacity";
+    private static string _clsLocPartCount = "Selected Space Parts Count";
+    private static string _clsLocParts = "Parts";
+    private static string _clsLocInfo = "Crew Info";
+    private static string _clsLocNoVessel = "No current vessel";
+    private static string _clsLocUnrestricted = "Allow Unrestricted Crew Transfers";
+    private static string _clsLocOptPassable = "Enable Optional Passable Parts\\n(Requires game restart)";
+    private static string _clsLocBlizzy = "Use Blizzy's Toolbar instead of Stock";
+    private static string _clsLocWarnFull = "CLS - This module is either full or internally unreachable (different spaces)";
+    private static string _clsLocWarnXfer = "CLS has prevented the transfer of";
+    private static string _clsLocAnd = "and ";
+    private static string _clsLocNotSameLs = "are not in the same living space";
+    private static string _clsLocNone = "None";
+
 
     public static CLSAddon Instance
     {
@@ -47,7 +80,9 @@ namespace ConnectedLivingSpace
     private bool optionsVisible;
 
     private ConfigNode settings;
-    private Vector2 scrollViewer = Vector2.zero;
+    private Vector2 scrollViewerCrew = Vector2.zero;
+    private Vector2 scrollViewerParts = Vector2.zero;
+
     internal CLSVessel vessel;
 
     // State var used by OnEditorShipModified event handler to note changes to vessel for reconstruction of spaces.
@@ -89,6 +124,8 @@ namespace ConnectedLivingSpace
     public void Awake()
     {
       //Debug.Log("CLSAddon:Awake");
+      CacheClsLocalization();
+      SetLocalization();
       // Added support for Blizzy Toolbar and hot switching between Stock and Blizzy
       if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
       {
@@ -115,9 +152,8 @@ namespace ConnectedLivingSpace
     public void Start()
     {
       // Debug.Log("CLSAddon:Start");
-      SettingsPath = string.Format("{0}GameData/ConnectedLivingSpace/Plugins/PluginData", KSPUtil.ApplicationRootPath);
-      SettingsFile = string.Format("{0}/cls_settings.dat", SettingsPath);
-
+      SettingsPath = $"{KSPUtil.ApplicationRootPath}GameData/ConnectedLivingSpace/Plugins/PluginData";
+      SettingsFile = $"{SettingsPath}/cls_settings.dat";
 
       windowStyle = new GUIStyle(HighLogic.Skin.window);
 
@@ -170,36 +206,6 @@ namespace ConnectedLivingSpace
     public void FixedUpdate()
     {
     }
-
-    //private void ReconcileHatches()
-    //{
-    //  try
-    //  {
-    //    //Debug.Log("CLSAddon:ReconcileHatches");
-
-    //    // Although hatches have been added to the docking port prefabs, for some reason that is not fully understood 
-    //    // when the prefab is used to instantiate an actual part the hatch module has not been properly setup. 
-    //    // This is not a problem where the craft is being loaded, as the act of loading it will overwrite all the persisted KSPFields with the saved values. 
-    //    // However in the VAB/SPH we end up with a ModuleDockingHatch that has not its docNodeTransformName or docNodeAttahcmentNodeName set properly. 
-    //    // The solution is to check for this state in the editor, and patch it up. In flight the part will get loaded so it is not an issue.
-    //    if (HighLogic.LoadedSceneIsEditor)
-    //    {
-    //      CheckAndFixDockingHatchesInEditor();
-    //    }
-
-    //    // It seems that there are sometimes problems with hatches that do not refer to dockingports in flight too, so check this in flight. 
-    //    //It would be good to find a way of making this less expensive.
-    //    if (!HighLogic.LoadedSceneIsFlight) return;
-    //    if (FlightGlobals.ready)
-    //    {
-    //      CheckAndFixDockingHatchesInFlight();
-    //    }
-    //  }
-    //  catch (Exception ex)
-    //  {
-    //    Debug.LogException(ex);
-    //  }
-    //}
 
     public void OnDestroy()
     {
@@ -339,12 +345,13 @@ namespace ConnectedLivingSpace
       {
         //Set the GUI Skin
         //GUI.skin = HighLogic.Skin;
+        CLSStyles.SetupGuiStyles();
 
-        windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, "Connected Living Space", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
+        windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, _clsLocTitle, windowStyle, GUILayout.MinHeight(80), GUILayout.MinWidth(400), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true), GUILayout.Width(400), GUILayout.Height(80));
         if (!optionsVisible) return;
         if (windowOptionsPosition == new Rect(0, 0, 0, 0))
-          windowOptionsPosition = new Rect(windowPosition.x + windowPosition.width + 10, windowPosition.y, 260, 115);
-        windowOptionsPosition = GUILayout.Window(947696, windowOptionsPosition, DisplayOptionWindow, "Options", windowStyle, GUILayout.MinHeight(20), GUILayout.ExpandHeight(true));
+          windowOptionsPosition = new Rect(windowPosition.x + windowPosition.width + 10, windowPosition.y, 260, 120);
+        windowOptionsPosition = GUILayout.Window(947696, windowOptionsPosition, DisplayOptionWindow, _clsLocOptions, windowStyle, GUILayout.MinHeight(120), GUILayout.ExpandWidth(true));
       }
       else
       {
@@ -403,6 +410,266 @@ namespace ConnectedLivingSpace
     }
 
     #endregion Event Handlers (not in use)
+
+    #region Display Methods
+    private void OnWindow(int windowID)
+    {
+      DisplayCLSWindow();
+    }
+
+    private void DisplayCLSWindow()
+    {
+      // set scrollviewer sizes...
+      if (Event.current.type == EventType.Repaint)
+      {
+        scrollY = scrollCrew.height > scrollParts.height ? scrollCrew.height : scrollParts.height;
+        scrollXCrew = scrollCrew.width > 140 ? scrollCrew.width : 140;
+        scrollXParts = scrollParts.width > 240 ? scrollParts.width : 240;
+
+        // reset counters.
+        scrollCrew.height = scrollParts.height = scrollCrew.width = scrollParts.width = 0;
+      }
+      try
+      {
+        Rect rect = new Rect(windowPosition.width - 20, 4, 16, 16);
+        if (GUI.Button(rect, ""))
+        {
+          OnCLSButtonToggle();
+        }
+        rect = new Rect(windowPosition.width - 90, 4, 65, 16);
+        if (GUI.Button(rect, new GUIContent(_clsLocOptions, _clsLocOptionTt))) // "Options","Click to view/edit options"
+        {
+          optionsVisible = !optionsVisible;
+        }
+        GUILayout.BeginVertical();
+        GUI.enabled = true;
+
+        // Build strings describing the contents of each of the spaces.
+        if (null != vessel)
+        {
+          string[] spaceNames = new string[vessel.Spaces.Count];
+          int counter = 0;
+          int newSelectedSpace = -1;
+
+          string partsList = "";
+          List<ICLSSpace>.Enumerator spaces = vessel.Spaces.GetEnumerator();
+          while (spaces.MoveNext())
+          {
+            if (spaces.Current == null) continue;
+            if (spaces.Current.Name == "")
+            {
+              spaceNames[counter] = $"{_clsLocSpace} {counter + 1}";
+            }
+            else
+            {
+              spaceNames[counter] = spaces.Current.Name;
+            }
+            counter++;
+          }
+          spaces.Dispose();
+
+          if (vessel.Spaces.Count > 0)
+          {
+            newSelectedSpace = DisplaySpaceButtons(WindowSelectedSpace, spaceNames);
+          }
+
+
+          // Only fiddle with the highlighting if the selected space has actually changed
+          UpdateDisplayHighlghting(newSelectedSpace);
+
+          // Update the space that has been selected.
+          WindowSelectedSpace = newSelectedSpace;
+
+          // If one of the spaces has been selected then display lists of the crew and parts that make it up
+          if (WindowSelectedSpace != -1)
+          {
+            Rect _rect;
+            // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
+            partsList = $"{_clsLocParts}:";
+            List<ICLSPart>.Enumerator parts = vessel.Spaces[WindowSelectedSpace].Parts.GetEnumerator();
+            while (parts.MoveNext())
+            {
+              if (parts.Current == null) continue;
+              partsList += "\n- " + (parts.Current.Part).partInfo.title;
+            }
+            parts.Dispose();
+
+            string crewList = $"{_clsLocInfo}:";
+            if (vessel.Spaces[WindowSelectedSpace].Crew.Count == 0)
+              crewList += "\n- " + _clsLocNone;
+            else
+            {
+              List<ICLSKerbal>.Enumerator crewmembers = vessel.Spaces[WindowSelectedSpace].Crew.GetEnumerator();
+              while (crewmembers.MoveNext())
+              {
+                if (crewmembers.Current == null) continue;
+                crewList += "\n- " + (crewmembers.Current.Kerbal).name;
+              }
+              crewmembers.Dispose();
+            }
+
+            // Display the text box that allows the space name to be changed
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(_clsLocName + ":"); // "Name:"
+            spaceNameEditField = GUILayout.TextField(spaceNameEditField, GUILayout.Width(200));
+            if (GUILayout.Button(_clsLocUpdate)) // "Update"
+            {
+              vessel.Spaces[WindowSelectedSpace].Name = spaceNameEditField;
+            }
+            GUILayout.EndHorizontal();
+
+            // Lets use 2 scrollers for Crew and parts to save space...
+            GUILayout.BeginHorizontal();
+
+            // Crew Scroller
+            scrollViewerCrew = GUILayout.BeginScrollView(scrollViewerCrew, GUILayout.Width(scrollXCrew), GUILayout.Height(20 > scrollY ? 20 : scrollY + 20));
+            GUILayout.BeginVertical();
+
+            // Display the crew capacity of the space.
+            GUILayout.Label($"{_clsLocCapacity}:  {vessel.Spaces[WindowSelectedSpace].MaxCrew}");
+            _rect = GUILayoutUtility.GetLastRect();
+            if (Event.current.type == EventType.Repaint)
+            {
+              scrollCrew.height = _rect.height;
+              scrollCrew.width = _rect.width;
+            }
+
+            // Crew Capacity
+            GUILayout.Label(crewList);
+            _rect = GUILayoutUtility.GetLastRect();
+            if (Event.current.type == EventType.Repaint)
+            {
+              scrollCrew.height += _rect.height;
+              scrollCrew.width = scrollCrew.width > _rect.width ? scrollCrew.width : _rect.width;
+            }
+
+            GUILayout.EndVertical();
+            GUILayout.EndScrollView();
+
+            // Part Scroller
+            scrollViewerParts = GUILayout.BeginScrollView(scrollViewerParts, GUILayout.Width(scrollXParts), GUILayout.Height(20 > scrollY ? 20 : scrollY + 20));
+            GUILayout.BeginVertical();
+
+            // Display the Part count of the space.
+            GUILayout.Label($"{_clsLocPartCount}:  {vessel.Spaces[WindowSelectedSpace].Parts.Count}"); // Selected Space Parts Count
+            _rect = GUILayoutUtility.GetLastRect();
+            if (Event.current.type == EventType.Repaint)
+            {
+              scrollParts.height = _rect.height;
+              scrollParts.width = _rect.width;
+            }
+
+            // Display the list of component parts.
+            GUILayout.Label(partsList);
+            _rect = GUILayoutUtility.GetLastRect();
+            if (Event.current.type == EventType.Repaint)
+            {
+              scrollParts.height += _rect.height;
+              scrollParts.width = scrollParts.width > _rect.width ? scrollParts.width : _rect.width;
+            }
+
+            GUILayout.EndVertical();
+            GUILayout.EndScrollView();
+            GUILayout.EndHorizontal();
+          }
+        }
+        else
+        {
+          GUILayout.Label("", GUILayout.Height(20)); // Add some vertical space.
+          GUILayout.Label(_clsLocNoVessel, CLSStyles.LabelStyleBold, GUILayout.Width(380)); // "No current vessel"
+        }
+        GUILayout.EndVertical();
+        GUI.DragWindow();
+        RepositionWindow(ref windowPosition);
+      }
+      catch (Exception ex)
+      {
+        Debug.LogException(ex);
+      }
+    }
+
+    private void UpdateDisplayHighlghting(int newSelectedSpace)
+    {
+      // First unhighlight the space that was selected.
+      if (WindowSelectedSpace == newSelectedSpace) return;
+      if (-1 != WindowSelectedSpace && WindowSelectedSpace < vessel.Spaces.Count)
+      {
+        vessel.Spaces[WindowSelectedSpace].Highlight(false);
+      }
+
+      if (newSelectedSpace == -1) return;
+
+      // Update the text in the Space edit box
+      spaceNameEditField = vessel.Spaces[newSelectedSpace].Name;
+
+      // Highlight the new space
+      vessel.Spaces[newSelectedSpace].Highlight(true);
+    }
+
+    private void DisplayOptionWindow(int windowID)
+    {
+      Rect rect = new Rect(windowOptionsPosition.width - 20, 4, 16, 16);
+      if (GUI.Button(rect, ""))
+      {
+        optionsVisible = false;
+      }
+      GUILayout.BeginVertical();
+      // Unrestricted Xfers
+      bool oldAllow = allowUnrestrictedTransfers;
+      allowUnrestrictedTransfers = GUILayout.Toggle(allowUnrestrictedTransfers, _clsLocUnrestricted); // "Allow Crew Unrestricted Transfers"
+      if (oldAllow != allowUnrestrictedTransfers)
+      {
+        backupAllowUnrestrictedTransfers = allowUnrestrictedTransfers;
+      }
+      // Optional Passable Parts
+      enablePassable = GUILayout.Toggle(enablePassable, _clsLocOptPassable); // "Enable Optional Passable Parts\r\n(Requires game restart)"
+
+      // Blizzy Toolbar?
+      if (ToolbarManager.ToolbarAvailable)
+        GUI.enabled = true;
+      else
+      {
+        GUI.enabled = false;
+        enableBlizzyToolbar = false;
+      }
+      enableBlizzyToolbar = GUILayout.Toggle(enableBlizzyToolbar, _clsLocBlizzy); // "Use Blizzy's Toolbar instead of Stock"
+
+      GUI.enabled = true;
+      GUILayout.EndVertical();
+      GUI.DragWindow();
+      RepositionWindow(ref windowOptionsPosition);
+    }
+
+    private static int DisplaySpaceButtons(int selectedSpace, string[] spaceNames)
+    {
+      // Selected Space options
+      GUIContent[] options = new GUIContent[spaceNames.Length];
+      GUIStyle[] styles = new GUIStyle[spaceNames.Length];
+      int newSelectedSpace = selectedSpace;
+
+      // Populate button characteristics
+      for (int x = 0; x < spaceNames.Length; x++)
+      {
+        options[x] = new GUIContent(spaceNames[x]);
+        styles[x] = new GUIStyle(newSelectedSpace == x ? CLSStyles.ButtonToggledStyle : CLSStyles.ButtonStyle);
+      }
+
+      // Build Option Buttons
+      GUILayout.BeginVertical();
+      for (int x = 0; x < spaceNames.Length; x++)
+      {
+        if (GUILayout.Button(options[x], styles[x], GUILayout.Height(20)))
+        {
+          if (newSelectedSpace != x) newSelectedSpace = x;
+          else newSelectedSpace = -1; // revert to none selected.
+        }
+      }
+      GUILayout.EndVertical();
+
+      return newSelectedSpace;
+    }
+
+    #endregion
 
     #region Support/action Methods
     private void RebuildCLSVessel()
@@ -501,170 +768,6 @@ namespace ConnectedLivingSpace
       }
     }
 
-    private void OnWindow(int windowID)
-    {
-      DisplayCLSWindow();
-    }
-
-    private void DisplayCLSWindow()
-    {
-      try
-      {
-        Rect rect = new Rect(windowPosition.width - 20, 4, 16, 16);
-        if (GUI.Button(rect, ""))
-        {
-          OnCLSButtonToggle();
-        }
-        rect = new Rect(windowPosition.width - 90, 4, 65, 16);
-        if (GUI.Button(rect, new GUIContent("Options", "Click to view/edit options")))
-        {
-          optionsVisible = !optionsVisible;
-        }
-        GUILayout.BeginVertical();
-        GUI.enabled = true;
-
-        // Build a string descibing the contents of each of the spaces.
-        if (null != vessel)
-        {
-
-          string[] spaceNames = new string[vessel.Spaces.Count];
-          int counter = 0;
-          int newSelectedSpace = -1;
-
-          string partsList = "";
-          List<ICLSSpace>.Enumerator spaces = vessel.Spaces.GetEnumerator();
-          while (spaces.MoveNext())
-          {
-            if (spaces.Current == null) continue;
-            if (spaces.Current.Name == "")
-            {
-              spaceNames[counter] = "Living Space " + (counter + 1).ToString();
-            }
-            else
-            {
-              spaceNames[counter] = spaces.Current.Name;
-            }
-            counter++;
-          }
-
-          if (vessel.Spaces.Count > 0)
-          {
-            newSelectedSpace = GUILayout.SelectionGrid(WindowSelectedSpace, spaceNames, 1);
-          }
-
-          // If one of the spaces has been selected then display a list of parts that make it up and sort out the highlighting
-          if (-1 != newSelectedSpace)
-          {
-            // Only fiddle with the highlighting if the selected space has actually changed
-            if (newSelectedSpace != WindowSelectedSpace)
-            {
-              // First unhighlight the space that was selected.
-              if (-1 != WindowSelectedSpace && WindowSelectedSpace < vessel.Spaces.Count)
-              {
-                vessel.Spaces[WindowSelectedSpace].Highlight(false);
-              }
-
-              // Update the space that has been selected.
-              WindowSelectedSpace = newSelectedSpace;
-
-              // Update the text in the Space edit box
-              spaceNameEditField = vessel.Spaces[WindowSelectedSpace].Name;
-
-              // Highlight the new space
-              vessel.Spaces[WindowSelectedSpace].Highlight(true);
-            }
-
-            // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
-            List<ICLSPart>.Enumerator parts = vessel.Spaces[WindowSelectedSpace].Parts.GetEnumerator();
-            while (parts.MoveNext())
-            {
-              if (parts.Current == null) continue;
-              partsList += (parts.Current.Part).partInfo.title + "\n";
-            }
-
-            // Display the text box that allows the space name to be changed
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Name:");
-            spaceNameEditField = GUILayout.TextField(spaceNameEditField);
-            if (GUILayout.Button("Update"))
-            {
-              vessel.Spaces[WindowSelectedSpace].Name = spaceNameEditField;
-            }
-            GUILayout.EndHorizontal();
-
-            scrollViewer = GUILayout.BeginScrollView(scrollViewer, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
-            GUILayout.BeginVertical();
-
-            // Display the crew capacity of the space.
-            GUILayout.Label("Crew Capacity: " + vessel.Spaces[WindowSelectedSpace].MaxCrew);
-
-            // And list the crew names
-            string crewList = "Crew Info:\n";
-
-            List<ICLSKerbal>.Enumerator crewmembers = vessel.Spaces[WindowSelectedSpace].Crew.GetEnumerator();
-            while (crewmembers.MoveNext())
-            {
-              if (crewmembers.Current == null) continue;
-              crewList += (crewmembers.Current.Kerbal).name + "\n";
-            }
-            GUILayout.Label(crewList);
-
-            // Display the list of component parts.
-            GUILayout.Label(partsList);
-
-            GUILayout.EndVertical();
-            GUILayout.EndScrollView();
-
-          }
-        }
-        else
-        {
-          GUILayout.Label("No current vessel.");
-        }
-        GUILayout.EndVertical();
-        GUI.DragWindow();
-        RepositionWindow(ref windowPosition);
-      }
-      catch (Exception ex)
-      {
-        Debug.LogException(ex);
-      }
-    }
-
-    private void DisplayOptionWindow(int windowID)
-    {
-      Rect rect = new Rect(windowOptionsPosition.width - 20, 4, 16, 16);
-      if (GUI.Button(rect, ""))
-      {
-        optionsVisible = false;
-      }
-      GUILayout.BeginVertical();
-      // Unrestricted Xfers
-      bool oldAllow = allowUnrestrictedTransfers;
-      allowUnrestrictedTransfers = GUILayout.Toggle(allowUnrestrictedTransfers, "Allow Crew Unrestricted Transfers");
-      if (oldAllow != allowUnrestrictedTransfers)
-      {
-        backupAllowUnrestrictedTransfers = allowUnrestrictedTransfers;
-      }
-      // Optional Passable Parts
-      enablePassable = GUILayout.Toggle(enablePassable, "Enable Optional Passable Parts\r\n(Requires game restart)");
-
-      // Blizzy Toolbar?
-      if (ToolbarManager.ToolbarAvailable)
-        GUI.enabled = true;
-      else
-      {
-        GUI.enabled = false;
-        enableBlizzyToolbar = false;
-      }
-      enableBlizzyToolbar = GUILayout.Toggle(enableBlizzyToolbar, "Use Blizzy's Toolbar instead of Stock");
-
-      GUI.enabled = true;
-      GUILayout.EndVertical();
-      GUI.DragWindow();
-      RepositionWindow(ref windowOptionsPosition);
-    }
-
     // Method to ensure that all parts which have a crewcapacity >0 have a CLSModule attached to it.
     private void AddModuleToParts()
     {
@@ -710,305 +813,8 @@ namespace ConnectedLivingSpace
           Debug.LogException(ex);
         }
       }
+      parts.Dispose();
     }
-
-
-    // Method to add Docking Hatches to all parts that have Docking Nodes
-    //private void AddHatchModuleToPartPrefabs()
-    //{
-    //  IEnumerator<AvailablePart> parts = PartLoader.LoadedPartsList.Where(p => p.partPrefab != null).GetEnumerator();
-    //  while (parts.MoveNext())
-    //  {
-    //    if (parts.Current == null) continue;
-    //    Part partPrefab = parts.Current.partPrefab;
-
-    //    // If the part does not have any modules set up then move to the next part
-    //    if (null == partPrefab.Modules)
-    //    {
-    //      continue;
-    //    }
-
-    //    List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
-    //    List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
-
-    //    // Build a temporary list of docking nodes to consider. This is necassery can we can not add hatch modules to the modules list while we are enumerating the very same list!
-    //    IEnumerator<ModuleDockingNode> dockNodes = partPrefab.Modules.OfType<ModuleDockingNode>().GetEnumerator();
-    //    while (dockNodes.MoveNext())
-    //    {
-    //      if (dockNodes.Current == null) continue;
-    //      listDockNodes.Add(dockNodes.Current);
-    //    }
-
-    //    IEnumerator<ModuleDockingHatch> dockHatches = partPrefab.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
-    //    while (dockHatches.MoveNext())
-    //    {
-    //      if (dockHatches.Current == null) continue;
-    //      listDockHatches.Add(dockHatches.Current);
-    //    }
-
-    //    IEnumerator<ModuleDockingNode> nodeList = listDockNodes.GetEnumerator();
-    //    while (nodeList.MoveNext())
-    //    {
-    //      if (nodeList.Current == null) continue;
-    //      // Does this docking node have a corresponding hatch?
-    //      ModuleDockingHatch hatch = null;
-    //      IEnumerator<ModuleDockingHatch> hatchList = listDockHatches.GetEnumerator();
-    //      while (hatchList.MoveNext())
-    //      {
-    //        if (hatchList.Current == null) continue;
-    //        if (!hatchList.Current.IsRelatedDockingNode(nodeList.Current)) continue;
-    //        hatch = hatchList.Current;
-    //        break;
-    //      }
-
-    //      if (null != hatch) continue;
-    //      // There is no corresponding hatch - add one.
-    //      ConfigNode node = new ConfigNode("MODULE");
-    //      node.AddValue("name", "ModuleDockingHatch");
-
-    //      if (nodeList.Current.referenceNode.id != string.Empty)
-    //      {
-    //        Debug.Log("Adding ModuleDockingHatch to part " + parts.Current.title +
-    //                  " and the docking node that uses attachNode " + nodeList.Current.referenceNode.id);
-    //        node.AddValue("docNodeAttachmentNodeName", nodeList.Current.referenceNode.id);
-    //      }
-    //      else
-    //      {
-    //        if (nodeList.Current.nodeTransformName != string.Empty)
-    //        {
-    //          Debug.Log("Adding ModuleDockingHatch to part " + parts.Current.title +
-    //                    " and the docking node that uses transform " + nodeList.Current.nodeTransformName);
-    //          node.AddValue("docNodeTransformName", nodeList.Current.nodeTransformName);
-    //        }
-    //      }
-    //      // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
-    //      PartModule pm = partPrefab.AddModule("ModuleDockingHatch");
-    //      if (Awaken(pm))
-    //      {
-    //        Debug.Log("Loading the ModuleDockingHatch config");
-    //        pm.Load(node);
-    //      }
-    //      else
-    //      {
-    //        Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
-    //      }
-    //    }
-    //  }
-    //}
-
-
-    //private void CheckAndFixDockingHatches(List<Part> listParts)
-    //{
-    //  IEnumerator<Part> parts = listParts.GetEnumerator();
-    //  while (parts.MoveNext())
-    //  {
-    //    if (parts.Current == null) continue;
-    //    // If the part does not have any modules set up then move to the next part
-    //    if (null == parts.Current.Modules) continue;
-
-    //    List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
-    //    List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
-
-    //    // Build a temporary list of docking nodes to consider. This is necessary can we can not add hatch modules to the modules list while we are enumerating the very same list!
-    //    IEnumerator<ModuleDockingNode> edN = parts.Current.Modules.OfType<ModuleDockingNode>().GetEnumerator();
-    //    while (edN.MoveNext())
-    //    {
-    //      if (edN.Current == null) continue;
-    //      listDockNodes.Add(edN.Current);
-    //    }
-
-    //    IEnumerator<ModuleDockingHatch> edH = parts.Current.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
-    //    while (edH.MoveNext())
-    //    {
-    //      if (edH.Current == null) continue;
-    //      listDockHatches.Add(edH.Current);
-    //    }
-
-    //    // First go through all the hatches. If any do not refer to a dockingPort then remove it.
-    //    IEnumerator<ModuleDockingHatch> eLDH = listDockHatches.GetEnumerator();
-    //    while (eLDH.MoveNext())
-    //    {
-    //      if (eLDH.Current == null) continue;
-    //      if (string.IsNullOrEmpty(eLDH.Current.docNodeAttachmentNodeName) && string.IsNullOrEmpty(eLDH.Current.docNodeTransformName))
-    //      {
-    //        Debug.Log("Found a hatch that does not reference a docking node. Removing it from the part.");
-    //        parts.Current.RemoveModule(eLDH.Current);
-    //      }
-    //    }
-
-    //    // Now because we might have removed for dodgy hatches, rebuild the hatch list.
-    //    listDockHatches.Clear();
-    //    IEnumerator<ModuleDockingHatch> eMDH = parts.Current.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
-    //    while (eMDH.MoveNext())
-    //    {
-    //      if (eMDH.Current == null) continue;
-    //      listDockHatches.Add(eMDH.Current);
-    //    }
-
-    //    // Now go through all the dockingPorts and add hatches for any docking ports that do not have one.
-    //    IEnumerator<ModuleDockingNode> eldn = listDockNodes.GetEnumerator();
-    //    while (eldn.MoveNext())
-    //    {
-    //      if (eldn.Current == null) continue;
-    //      // Does this docking node have a corresponding hatch?
-    //      ModuleDockingHatch hatch = null;
-    //      IEnumerator<ModuleDockingHatch> eldh = listDockHatches.GetEnumerator();
-    //      while (eldh.MoveNext())
-    //      {
-    //        if (eldh.Current == null) continue;
-    //        if (!eldh.Current.IsRelatedDockingNode(eldn.Current)) continue;
-    //        hatch = eldh.Current;
-    //        break;
-    //      }
-
-    //      if (null != hatch) continue;
-    //      // There is no corresponding hatch - add one.
-    //      ConfigNode node = new ConfigNode("MODULE");
-    //      node.AddValue("name", "ModuleDockingHatch");
-
-    //      if (eldn.Current.referenceNode.id != string.Empty)
-    //      {
-    //        // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceNode.id);
-    //        node.AddValue("docNodeAttachmentNodeName", eldn.Current.referenceNode.id);
-    //      }
-    //      else
-    //      {
-    //        if (eldn.Current.nodeTransformName != string.Empty)
-    //        {
-    //          // Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
-    //          node.AddValue("docNodeTransformName", eldn.Current.nodeTransformName);
-    //        }
-    //      }
-    //      // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
-    //      PartModule pm = parts.Current.AddModule("ModuleDockingHatch");
-    //      if (Awaken(pm))
-    //      {
-    //        // Debug.Log("Loading the ModuleDockingHatch config");
-    //        pm.Load(node);
-    //      }
-    //      else
-    //      {
-    //        Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
-    //      }
-    //    }
-    //  }
-    //}
-
-    //private void CheckAndFixDockingHatchesInEditor()
-    //{
-    //  if (EditorLogic.RootPart == null)
-    //  {
-    //    return; // If there are no parts then there is nothing to check. 
-    //  }
-    //  CheckAndFixDockingHatches(EditorLogic.SortedShipList);
-    //}
-
-    //private void CheckAndFixDockingHatchesInFlight()
-    //{
-    //  CheckAndFixDockingHatches(FlightGlobals.ActiveVessel.Parts);
-    //}
-
-    //// Method to add Docking Hatches to all parts that have Docking Nodes
-    //private void AddHatchModuleToParts()
-    //{
-    //  // If we are in the editor or if flight, take a look at the active vesssel and add a ModuleDockingHatch to any part that has a ModuleDockingNode without a corresponding ModuleDockingHatch
-    //  List<Part> listParts;
-
-    //  if (HighLogic.LoadedSceneIsEditor && null != EditorLogic.RootPart)
-    //  {
-    //    listParts = EditorLogic.SortedShipList;
-    //  }
-    //  else if (HighLogic.LoadedSceneIsFlight && null != FlightGlobals.ActiveVessel && null != FlightGlobals.ActiveVessel.Parts)
-    //  {
-    //    listParts = FlightGlobals.ActiveVessel.Parts;
-    //  }
-    //  else
-    //  {
-    //    listParts = new List<Part>();
-    //  }
-
-    //  IEnumerator<Part> elP = listParts.GetEnumerator();
-    //  while (elP.MoveNext())
-    //  {
-    //    if (elP.Current == null) continue;
-    //    try
-    //    {
-    //      // If the part does not have any modules set up then move to the next part
-    //      if (null == elP.Current.Modules) continue;
-
-    //      List<ModuleDockingNode> listDockNodes = new List<ModuleDockingNode>();
-    //      List<ModuleDockingHatch> listDockHatches = new List<ModuleDockingHatch>();
-
-    //      // Build a temporary list of docking nodes to consider. This is necassery can we can not add hatch modules to the modules list while we are enumerating the very same list!
-    //      IEnumerator<ModuleDockingNode> edn = elP.Current.Modules.OfType<ModuleDockingNode>().GetEnumerator();
-    //      while (edn.MoveNext())
-    //      {
-    //        if (edn.Current == null) continue;
-    //        listDockNodes.Add(edn.Current);
-    //      }
-
-    //      IEnumerator<ModuleDockingHatch> edh = elP.Current.Modules.OfType<ModuleDockingHatch>().GetEnumerator();
-    //      while (edh.MoveNext())
-    //      {
-    //        if (edh.Current == null) continue;
-    //        listDockHatches.Add(edh.Current);
-    //      }
-
-    //      IEnumerator<ModuleDockingNode> eldn = listDockNodes.GetEnumerator();
-    //      while (eldn.MoveNext())
-    //      {
-    //        if (eldn.Current == null) continue;
-    //        // Does this docking node have a corresponding hatch?
-    //        ModuleDockingHatch hatch = null;
-    //        IEnumerator<ModuleDockingHatch> eldh = listDockHatches.GetEnumerator();
-    //        while (eldh.MoveNext())
-    //        {
-    //          if (eldh.Current == null) continue;
-    //          if (!eldh.Current.IsRelatedDockingNode(eldn.Current)) continue;
-    //          hatch = eldh.Current;
-    //          break;
-    //        }
-
-    //        if (null != hatch) continue;
-    //        // There is no corresponding hatch - add one.
-    //        ConfigNode node = new ConfigNode("MODULE");
-    //        node.AddValue("name", "ModuleDockingHatch");
-
-    //        if (eldn.Current.referenceNode.id != string.Empty)
-    //        {
-    //          //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses attachNode " + dockNode.referenceNode.id);
-    //          node.AddValue("docNodeAttachmentNodeName", eldn.Current.referenceNode.id);
-    //        }
-    //        else
-    //        {
-    //          if (eldn.Current.nodeTransformName != string.Empty)
-    //          {
-    //            //Debug.Log("Adding ModuleDockingHatch to part " + part.partInfo.title + " and the docking node that uses transform " + dockNode.nodeTransformName);
-    //            node.AddValue("docNodeTransformName", eldn.Current.nodeTransformName);
-    //          }
-    //        }
-
-    //        {
-    //          // This block is required as calling AddModule and passing in the node throws an exception if Awake has not been called. The method Awaken uses reflection to call then private method Awake. See http://forum.kerbalspaceprogram.com/threads/27851 for more information.
-    //          PartModule pm = elP.Current.AddModule("ModuleDockingHatch");
-    //          if (Awaken(pm))
-    //          {
-    //            //Debug.Log("Loading the ModuleDockingHatch config");
-    //            pm.Load(node);
-    //          }
-    //          else
-    //          {
-    //            Debug.LogWarning("Failed to call Awaken so the config has not been loaded.");
-    //          }
-    //        }
-    //      }
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //      Debug.LogException(ex);
-    //    }
-    //  }
-    //}
 
     public static bool Awaken(PartModule module)
     {
@@ -1042,6 +848,8 @@ namespace ConnectedLivingSpace
         if (clsFrom != null && clsTo != null && clsFrom.Space == clsTo.Space) continue;
         fullList.Add(fromList.Current);
       }
+      fromList.Dispose();
+
       if (fullList.Count <= 0) return;
       //CrewTransfer.fullMessage = "<color=orange>CLS - This module is either full or internally unreachable.</color>";
       List<Part>.Enumerator removeList = fullList.GetEnumerator();
@@ -1049,13 +857,14 @@ namespace ConnectedLivingSpace
       {
         eventData.from.Remove(removeList.Current);
       }
+      removeList.Dispose();
       eventData.to.AddRange(fullList);
     }
 
     internal void OnItemTransferStarted(PartItemTransfer xferPartItem)
     {
       if (!allowUnrestrictedTransfers && xferPartItem.type == "Crew")
-        xferPartItem.semiValidMessage = "<color=orange>CLS - This module is either full or internally unreachable (different spaces).</color>";
+        xferPartItem.semiValidMessage = $"<color=orange>{_clsLocWarnFull}.</color>"; // CLS - This module is either full or internally unreachable (different spaces)
     }
 
     // Method to optionally abort an attempt to use the stock crew transfer mechanism
@@ -1072,9 +881,7 @@ namespace ConnectedLivingSpace
       // Okay, houston, we have a problem.   Prevent transfer.
       crewTransferData.canTransfer = false;
       ScreenMessages.PostScreenMessage(
-        string.Format(
-          "<color=orange>CLS has prevented {0} from moving.   {1} and {2} are not in the same living space.</color>",
-          crewTransferData.crewMember.name, crewTransferData.sourcePart.partInfo.title, crewTransferData.destPart.partInfo.title), 10f);
+        $"<color=orange>{_clsLocWarnXfer}: {crewTransferData.crewMember.name}.  {crewTransferData.sourcePart.partInfo.title} {_clsLocAnd} {crewTransferData.destPart.partInfo.title} {_clsLocNotSameLs}.</color>", 10f);
     }
 
     internal bool ActivateBlizzyToolBar()
@@ -1086,7 +893,7 @@ namespace ConnectedLivingSpace
         if (HighLogic.LoadedScene != GameScenes.EDITOR && HighLogic.LoadedScene != GameScenes.FLIGHT) return true;
         blizzyToolbarButton = ToolbarManager.Instance.add("ConnectedLivingSpace", "ConnectedLivingSpace");
         blizzyToolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_b_icon_on";
-        blizzyToolbarButton.ToolTip = "Connected Living Space";
+        blizzyToolbarButton.ToolTip = _clsLocTitle; // "Connected Living Space";
         blizzyToolbarButton.Visible = true;
         blizzyToolbarButton.OnClick += (e) =>
         {
@@ -1224,7 +1031,50 @@ namespace ConnectedLivingSpace
           Destroy(list.Current.gameObject);
         }
       }
+      list.Dispose();
     }
     #endregion Support/action methods
+
+    #region Localization
+    internal static void CacheClsLocalization()
+    {
+      CLSTags = new Dictionary<string, string>();
+      IEnumerator tags = Localizer.Tags.Keys.GetEnumerator();
+      while (tags.MoveNext())
+      {
+        if (tags.Current == null) continue;
+        if (tags.Current.ToString().Contains("#clsloc_"))
+          CLSTags.Add(tags.Current.ToString(), Localizer.GetStringByTag(tags.Current.ToString()).Replace("\\n", "\n"));
+      }
+    }
+
+    internal static string Localize(string tag)
+    {
+      return CLSTags[tag];
+    }
+
+    private static void SetLocalization()
+    {
+      _clsLocTitle = Localize("#clsloc_001"); // "Connected Living Space";
+      _clsLocOptions = Localize("#clsloc_002"); // "Options";
+      _clsLocOptionTt = Localize("#clsloc_003"); // "Click to view/edit options";
+      _clsLocSpace = Localize("#clsloc_004"); // "Living Space";
+      _clsLocName = Localize("#clsloc_005"); // "Name";
+      _clsLocUpdate = Localize("#clsloc_006"); // "Update";
+      _clsLocCapacity = Localize("#clsloc_007"); // "CrewCapacity";
+      _clsLocInfo = Localize("#clsloc_008"); // "Crew Info";
+      _clsLocNoVessel = Localize("#clsloc_009"); // "No current vessel";
+      _clsLocUnrestricted = Localize("#clsloc_010"); // "Allow Unrestricted Crew Transfers";
+      _clsLocOptPassable = Localize("#clsloc_011"); // "Enable Optional Passable Parts\\n(Requires game restart)";
+      _clsLocBlizzy = Localize("#clsloc_012"); // "Use Blizzy's Toolbar instead of Stock";
+      _clsLocWarnFull = Localize("#clsloc_013"); // "CLS - This module is either full or internally unreachable (different spaces)";
+      _clsLocWarnXfer = Localize("#clsloc_014"); // "CLS has prevented the transfer of";
+      _clsLocAnd = Localize("#clsloc_015"); // "and";
+      _clsLocNotSameLs = Localize("#clsloc_016"); // "are not in the same living space";
+      _clsLocPartCount = Localize("#clsloc_040"); // "Selected Space Parts Count"
+      _clsLocParts = Localize("#clsloc_041"); // "Parts";
+      _clsLocNone = Localize("#clsloc_020"); // "None"
+    }
+    #endregion
   }
 }

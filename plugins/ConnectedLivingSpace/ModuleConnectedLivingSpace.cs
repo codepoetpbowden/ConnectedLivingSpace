@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using KSP.Localization;
 using UnityEngine;
 
 namespace ConnectedLivingSpace
@@ -28,6 +30,20 @@ namespace ConnectedLivingSpace
     [KSPField(isPersistant = true)]
     public string spaceName;
 
+    private string returnValue = string.Empty;
+
+    // For localization.  These are the default (english) values...
+    private static string _strYes = $"<color={XKCDColors.HexFormat.Lime}>Yes</color>";
+    private static string _strNo = $"<color={ XKCDColors.HexFormat.Maroon}>No</color>";
+    private static string _strAll = "All";
+    private static string _strNone = "None";
+    private static string _strPassable = "Passable";
+    private static string _strCapacity = "Crew Capacity";
+    private static string _strImpassableNodes = "Impassable Nodes";
+    private static string _strPassableNodes = "Passable Nodes";
+    private static string _strPassableSA = "Pass when Surface Attached";
+    private static string _strSAPassable = "Surface Attached Parts Pass";
+
     public override void OnAwake()
     {
       try
@@ -51,6 +67,9 @@ namespace ConnectedLivingSpace
       try
       {
         // If the CLS Space name for this part is not set or empty, then set it to the title of this part.
+        SetLocalization();
+        SetEventGuiNames();
+
         if (null == spaceName)
         {
           spaceName = part.partInfo.title;
@@ -135,6 +154,30 @@ namespace ConnectedLivingSpace
       }
     }
 
+    private void SetLocalization()
+    {
+      _strYes = $"<color={XKCDColors.HexFormat.Lime}>{CLSAddon.Localize("#clsloc_017")}</color>";
+      _strNo = $"<color={ XKCDColors.HexFormat.Maroon}>{CLSAddon.Localize("#clsloc_018")}</color>";
+      _strAll = CLSAddon.Localize("#clsloc_019");
+      _strNone = CLSAddon.Localize("#clsloc_020");
+      _strPassable = CLSAddon.Localize("#clsloc_021");
+      _strCapacity = CLSAddon.Localize("#clsloc_022");
+      _strImpassableNodes = CLSAddon.Localize("#clsloc_023");
+      _strPassableNodes = CLSAddon.Localize("#clsloc_024");
+      _strPassableSA = CLSAddon.Localize("#clsloc_025");
+      _strSAPassable = CLSAddon.Localize("#clsloc_026");
+    }
+
+    private void SetEventGuiNames()
+    {
+      Events["EnablePassable"].guiName = CLSAddon.Localize("#clsloc_027");
+      Events["DisablePassable"].guiName = CLSAddon.Localize("#clsloc_028");
+      Events["EnableSurfaceAttachable"].guiName = CLSAddon.Localize("#clsloc_029");
+      Events["DisableSurfaceAttachable"].guiName = CLSAddon.Localize("#clsloc_030");
+      Events["EnableAttachableSurface"].guiName = CLSAddon.Localize("#clsloc_031");
+      Events["DisableAttachableSurface"].guiName = CLSAddon.Localize("#clsloc_032");
+    }
+
     // Allow a CLSPart to be cast into a ModuleConnectedLivingSpace. Note that this might fail, if the part in question does not have the CLS module configured.
     public static implicit operator ModuleConnectedLivingSpace(Part _p)
     {
@@ -144,29 +187,32 @@ namespace ConnectedLivingSpace
         if (eModules.Current == null) continue;
         return (eModules.Current);
       }
+      eModules.Dispose();
       return null;
     }
 
     // Method to provide extra infomation about the part on response to the RMBof the part gallery
     public override string GetInfo()
     {
-      string returnValue = string.Empty;
-      string yes = "<color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
-      string no = "<color=" + XKCDColors.HexFormat.Maroon + ">No</color>";
       if (passable)
       {
-        returnValue += "Passable:  <color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
-        returnValue += "\r\nCrewable:  " + (part.CrewCapacity > 0 ? yes : no);
-        returnValue += "\r\nImpassable Nodes:  " + (impassablenodes != "" ? impassablenodes : (passable ? "None" : "All"));
-        returnValue += "\r\nPassable Nodes:  " + (passablenodes != "" ? passablenodes : (passable ? "All" : "None"));
-        returnValue += "\r\nPass when Surface Attached:  " + (passableWhenSurfaceAttached ? yes : no);
-        returnValue += "\r\nSurface Attached Parts Pass:  " + (surfaceAttachmentsPassable ? yes : no);
+        //returnValue += "Passable:  <color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
+        //returnValue += "\r\nCrewable:  " + (part.CrewCapacity > 0 ? yes : no);
+        //returnValue += "\r\nImpassable Nodes:  " + (impassablenodes != "" ? impassablenodes : (passable ? "None" : "All"));
+        //returnValue += "\r\nPassable Nodes:  " + (passablenodes != "" ? passablenodes : (passable ? "All" : "None"));
+        //returnValue += "\r\nPass when Surface Attached:  " + (passableWhenSurfaceAttached ? yes : no);
+        //returnValue += "\r\nSurface Attached Parts Pass:  " + (surfaceAttachmentsPassable ? yes : no);
+        returnValue += $"{_strPassable}:  {_strYes}";
+        returnValue += $"\n{_strCapacity}:  {(part.CrewCapacity > 0 ? _strYes : _strNo)}";
+        returnValue += $"\n{_strImpassableNodes}:  {(impassablenodes != "" ? impassablenodes : passable ? _strNone : _strAll)}";
+        returnValue += $"\n{_strPassableNodes}:  {(passablenodes != "" ? passablenodes : passable ? _strAll : _strNone)}";
+        returnValue += $"\n{_strPassableSA}:  {(passableWhenSurfaceAttached ? _strYes : _strNo)}";
+        returnValue += $"\n{_strSAPassable}:  {(surfaceAttachmentsPassable ? _strYes : _strNo)}";
       }
       else
       {
-        returnValue += "Passable:  <color=" + XKCDColors.HexFormat.Maroon + ">No</color>";
-        if (passablenodes != "")
-          returnValue += "\r\nPassable Nodes:  " + passablenodes;
+        returnValue += $"{_strPassable}:  {_strNo}";
+        if (passablenodes != "") returnValue += $"\n{_strPassableNodes}:  {passablenodes}";
       }
       return returnValue;
     }
@@ -217,6 +263,5 @@ namespace ConnectedLivingSpace
       Events["EnableAttachableSurface"].active = false;
       Events["DisableAttachableSurface"].active = true;
     }
-
   }
 }

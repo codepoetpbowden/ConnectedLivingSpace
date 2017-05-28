@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CLSKerbal.cs" />
+    <Compile Include="CLSStyles.cs" />
     <Compile Include="ModuleConnectedLivingSpace.cs" />
     <Compile Include="CLSPart.cs" />
     <Compile Include="CLSSpace.cs" />
@@ -123,6 +124,7 @@
     <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSTT.cfg" />
     <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSUniversalStorage.cfg" />
     <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\TaurusHCV.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Localization\ConnectedLivingSpace.cfg" />
     <None Include="Distribution\GameData\ConnectedLivingSpace\Plugins\PluginData\cls_settings.dat" />
   </ItemGroup>
   <ItemGroup />
@@ -142,6 +144,7 @@ copy /Y "$(TargetPath)" "$(ProjectDir)Distribution\GameData\$(Targetname)\Plugin
 copy /Y "$(TargetDir)CLSInterfaces.dll" "$(ProjectDir)Distribution\GameData\$(Targetname)\Plugins\"
 
 echo Copying $(Targetname) files to test env:  %25KSP_DIR%25\GameData\$(Targetname)\...
+copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\Localization\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\Localization\"
 copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\assets\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\assets\"
 copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\configs\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\Configs\"
 copy /Y "$(TargetPath)" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
@@ -151,9 +154,11 @@ copy /Y "$(TargetDir)CLSInterfaces.dll" "%25KSP_DIR%25\GameData\$(Targetname)\Pl
 echo distributing $(Targetname) files...
 del /Q "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Configs\*.*"
 del /Q "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\assets\*.*"
+del /Q "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Localization\*.*"
 
 copy /Y "$(TargetPath)" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
 copy /Y "$(TargetDir)\CLSInterfaces.dll" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
+copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\Localization\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Localization\"
 copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\assets\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\assets\"
 copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\configs\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Configs\"
 copy /Y "$(ProjectDir)\Distribution\README.txt" "%25DIST_DIR%25\Distribution\"

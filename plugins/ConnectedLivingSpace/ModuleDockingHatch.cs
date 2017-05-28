@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
-using System.Reflection;
 
 namespace ConnectedLivingSpace
 {
-  // This module is added by a module Manager config to any part that also has a ModuleDockingNode. There will be a one to one relationship between ModuleDockingHatch and ModuleDockingNode
+  // This module is added by a module Manager config to any part that also has a ModuleDockingNode. 
+  // There is a one to one relationship between ModuleDockingHatch and ModuleDockingNode
   public class ModuleDockingHatch : PartModule, IModuleDockingHatch
   {
     [KSPField(isPersistant = true)]
@@ -20,6 +18,17 @@ namespace ConnectedLivingSpace
     internal string docNodeTransformName = "dockingNode";
 
     internal ModuleDockingNode modDockNode;
+
+    // For localization.  These are the default (english) values...
+    private static string _strOpen = "Open";
+    private static string _strClosed = "Closed";
+    private static string _strHatchStatus = "Hatch Status";
+    private static string _strOpenHatch = "Open Hatch";
+    private static string _strCloseHatch = "Close Hatch";
+    private static string _strHasHatch = "Has Hatch";
+    private static string _strHatchNode = "Hatch Node";
+    private static string _strYes = $"<color={XKCDColors.HexFormat.Lime}>Yes</color>";
+    //private readonly string _strNo = "<color=" + XKCDColors.HexFormat.Maroon + ">No</color>";
 
     public bool HatchOpen
     {
@@ -35,7 +44,7 @@ namespace ConnectedLivingSpace
           if (value) OpenHatch();
           else CloseHatch();
         }
-        hatchStatus = value ? "Open" : "Closed";
+        hatchStatus = value ? _strOpen : _strClosed;
       }
     }
 
@@ -117,12 +126,6 @@ namespace ConnectedLivingSpace
 
     public override void OnLoad(ConfigNode node)
     {
-      //Debug.Log("ModuleDockingHatch::OnLoad");
-      //Debug.Log("this.docNodeAttachmentNodeName: " + this.docNodeAttachmentNodeName);
-      //Debug.Log("this.docNodeTransformName: " + this.docNodeTransformName);
-      //Debug.Log("node.GetValue(docNodeTransformName): " + node.GetValue("docNodeTransformName"));
-      //Debug.Log("node.GetValue(docNodeAttachmentNodeName): " + node.GetValue("docNodeAttachmentNodeName"));
-
       // The Loader with have set hatchOpen, but not via the Property HatchOpen, so we need to re-do it to ensure that hatchStatus gets properly set.
       HatchOpen = hatchOpen;
 
@@ -203,6 +206,27 @@ namespace ConnectedLivingSpace
       }
     }
 
+    private void SetLocalization()
+    {
+      //CacheClsLocalization();
+
+      _strOpen = CLSAddon.Localize("#clsloc_033");
+      _strClosed = CLSAddon.Localize("#clsloc_034");
+      _strHatchStatus = CLSAddon.Localize("#clsloc_035");
+      _strOpenHatch = CLSAddon.Localize("#clsloc_036");
+      _strCloseHatch = CLSAddon.Localize("#clsloc_037");
+      _strHasHatch = CLSAddon.Localize("#clsloc_038");
+      _strHatchNode = CLSAddon.Localize("#clsloc_039");
+      _strYes = $"<color={XKCDColors.HexFormat.Lime}>{CLSAddon.Localize("#clsloc_017")}</color>";
+    }
+
+    private void SetEventGuiNames()
+    {
+      Fields["hatchStatus"].guiName = _strHatchStatus;
+      Events["OpenHatch"].guiName = _strOpenHatch;
+      Events["CloseHatch"].guiName = _strCloseHatch;
+    }
+
     private bool CheckModuleDockingNode()
     {
       if (null == modDockNode)
@@ -218,6 +242,7 @@ namespace ConnectedLivingSpace
             return true;
           }
         }
+        eNodes.Dispose();
       }
       else
       {
@@ -278,55 +303,33 @@ namespace ConnectedLivingSpace
     private bool isAttachedToDockingPort()
     {
       // First - this is only possible if we have an reference attachmentNode
-      if (!string.IsNullOrEmpty(docNodeAttachmentNodeName))
+      if (string.IsNullOrEmpty(docNodeAttachmentNodeName)) return false;
+      AttachNode thisNode = part.attachNodes.Find(x => x.id == docNodeAttachmentNodeName);
+      if (null == thisNode) return false;
+      Part attachedPart = thisNode.attachedPart;
+      if (null == attachedPart) return false;
+      // What is the attachNode in the attachedPart that links back to us?
+      AttachNode reverseNode = attachedPart.FindAttachNodeByPart(part);
+      if (null == reverseNode) return false;
+      // Now the big question - is the attached part a docking node that is centred on the reverseNode?
+      IEnumerator<ModuleDockingNode> eNodes = attachedPart.Modules.OfType<ModuleDockingNode>().GetEnumerator();
+      while (eNodes.MoveNext())
       {
-        AttachNode thisNode = part.attachNodes.Find(x => x.id == docNodeAttachmentNodeName);
-        if (null != thisNode)
+        if (eNodes.Current == null) continue;
+        if (eNodes.Current.referenceNode.id == reverseNode.id)
         {
-          Part attachedPart = thisNode.attachedPart;
-          if (null != attachedPart)
-          {
-            // What is the attachNode in the attachedPart that links back to us?
-            AttachNode reverseNode = attachedPart.FindAttachNodeByPart(part);
-            if (null != reverseNode)
-            {
-              // Now the big question - is the attached part a docking node that is centred on the reverseNode?
-              IEnumerator<ModuleDockingNode> eNodes = attachedPart.Modules.OfType<ModuleDockingNode>().GetEnumerator();
-              while (eNodes.MoveNext())
-              {
-                if (eNodes.Current == null) continue;
-                if (eNodes.Current.referenceNode.id == reverseNode.id)
-                {
-                  // The part has a docking node that references the attachnode that connects back to our part - this is what we have been looking for!
-                  return true;
-                }
-              }
-            }
-          }
+          // The part has a docking node that references the attachnode that connects back to our part - this is what we have been looking for!
+          return true;
         }
       }
-
+      eNodes.Dispose();
       return false;
     }
 
-    //// Method that can be used to set up the ModuleDockingNode that this ModuleDockingHatch refers to.
-    //public void AttachModuleDockingNode(ModuleDockingNode _modDocNode)
-    //{
-    //  modDockNode = _modDocNode;
-
-    //  docNodeTransformName = _modDocNode.nodeTransformName;
-    //  docNodeAttachmentNodeName = _modDocNode.referenceNode.id;
-    //}
-
-    // Method to provide extra infomation about the part on response to the RMBof the part gallery
+    // Method to provide extra infomation about the part on response to the RMB of the part gallery
     public override string GetInfo()
     {
-      string returnValue = string.Empty;
-      string yes = "<color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
-      string no = "<color=" + XKCDColors.HexFormat.Maroon + ">No</color>";
-      returnValue += "Has Hatch:  <color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
-      returnValue += "\r\nHatch Node:  <color=" + XKCDColors.HexFormat.Lime + ">" + docNodeAttachmentNodeName  + "</color>";
-      return returnValue;
+      return $"{_strHasHatch}:  {_strYes}\n{_strHatchNode}:  <color={XKCDColors.HexFormat.Lime}>{docNodeAttachmentNodeName}</color>";
     }
 
 
@@ -344,7 +347,8 @@ namespace ConnectedLivingSpace
 
     public override void OnStart(PartModule.StartState state)
     {
-
+      SetLocalization();
+      SetEventGuiNames();
     }
     #endregion
   }
