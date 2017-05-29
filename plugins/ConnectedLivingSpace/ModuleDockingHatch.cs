@@ -187,7 +187,7 @@ namespace ConnectedLivingSpace
             // We are not docked or attached to a docking port - close up the hatch if it is open!
             if (HatchOpen)
             {
-              Debug.Log("Closing a hatch because its corresponding docking port is in state: " + modDockNode.state);
+              Debug.Log($"Closing a hatch because its corresponding docking port is in state: {modDockNode.state}");
 
               hatchOpen = false;
               Events["CloseHatch"].active = false;
@@ -293,7 +293,7 @@ namespace ConnectedLivingSpace
       else
       {
         // This is bad - it means there is a hatch that we can not match to a docking node. This should not happen. We will log an error but it will likely spam the log.
-        Debug.LogError(" Error - Docking port hatch can not find its ModuleDockingNode docNodeTransformName:" + docNodeTransformName + " docNodeAttachmentNodeName " + docNodeAttachmentNodeName);
+        Debug.LogError($" Error - Docking port hatch can not find its ModuleDockingNode docNodeTransformName: {docNodeTransformName} docNodeAttachmentNodeName: {docNodeAttachmentNodeName}");
       }
 
       return false;

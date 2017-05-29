@@ -25,10 +25,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using UnityEngine;
+ using System.Reflection;
+ using UnityEngine;
 
 
 namespace ConnectedLivingSpace
@@ -275,7 +273,7 @@ namespace ConnectedLivingSpace
     /// <code>
     /// IButton button = ...
     /// button.OnClick += (e) => {
-    ///     Debug.Log("[CLS]:  button clicked, mouseButton: " + e.MouseButton);
+    ///     Debug.Log($"[CLS]:  button clicked, mouseButton: {e.MouseButton}");
     /// };
     /// </code>
     /// </example>

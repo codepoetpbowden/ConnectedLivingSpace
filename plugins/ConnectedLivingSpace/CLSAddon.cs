@@ -18,29 +18,29 @@ namespace ConnectedLivingSpace
     internal static Dictionary<string, string> CLSTags;
 
     internal static bool WindowVisable;
-    private static Rect windowPosition = new Rect(0, 0, 400, 100);
-    private static Rect windowOptionsPosition = new Rect(0, 0, 200, 120);
-    private static Rect scrollCrew = new Rect(0, 0, 0, 0);
-    private static Rect scrollParts = new Rect(0, 0, 0, 0);
-    private static float scrollY = 0;
-    private static float scrollXCrew = 0;
-    private static float scrollXParts = 0;
+    private static Rect _windowPosition = new Rect(0, 0, 400, 100);
+    private static Rect _windowOptionsPosition = new Rect(0, 0, 200, 120);
+    private static Rect _scrollCrew = new Rect(0, 0, 0, 0);
+    private static Rect _scrollParts = new Rect(0, 0, 0, 0);
+    private static float _scrollY = 0;
+    private static float _scrollXCrew = 0;
+    private static float _scrollXParts = 0;
 
-    private static GUIStyle windowStyle;
-    internal static bool allowUnrestrictedTransfers;
+    private static GUIStyle _windowStyle;
+    private static bool _allowUnrestrictedTransfers;
     // this value is used to "remember" the actual setting in CLS in the event it was changed by another mod
-    public static bool backupAllowUnrestrictedTransfers;
-    public static bool enableBlizzyToolbar;
-    public static bool enablePassable;
-    private static bool prevEnableBlizzyToolbar;
-    private static string SettingsPath;
-    private static string SettingsFile;
+    private static bool _backupAllowUnrestrictedTransfers;
+    public static bool EnableBlizzyToolbar;
+    public static bool EnablePassable;
+    private static bool _prevEnableBlizzyToolbar;
+    private static string _settingsPath;
+    private static string _settingsFile;
 
     // this var is now restricted to use by the CLS window.  Highlighting will be handled by part.
     internal static int WindowSelectedSpace = -1;
 
-    private static ApplicationLauncherButton stockToolbarButton; // Stock Toolbar Button
-    internal static IButton blizzyToolbarButton; // Blizzy Toolbar Button
+    private static ApplicationLauncherButton _stockToolbarButton; // Stock Toolbar Button
+    internal static IButton BlizzyToolbarButton; // Blizzy Toolbar Button
     internal static bool IsStyleSet = false;
 
     // For localization.  These are the default (english) values...
@@ -77,24 +77,64 @@ namespace ConnectedLivingSpace
 
     #region Instanced Properties
 
-    private bool optionsVisible;
+    private bool _optionsVisible;
 
-    private ConfigNode settings;
-    private Vector2 scrollViewerCrew = Vector2.zero;
-    private Vector2 scrollViewerParts = Vector2.zero;
+    private ConfigNode _settings;
+    private Vector2 _scrollViewerCrew = Vector2.zero;
+    private Vector2 _scrollViewerParts = Vector2.zero;
 
-    internal CLSVessel vessel;
+    private CLSVessel _vessel;
+
+    protected internal List<ConnectPair> requestedConnections = new List<ConnectPair>();
+
+    protected internal struct ConnectPair
+    {
+      public Part part1;
+      public Part part2;
+
+      public ConnectPair(Part part1, Part part2)
+      {
+        this.part1 = part1;
+        this.part2 = part2;
+      }
+      public bool Includes(Part part)
+      {
+        return (part1 == part || part2 == part);
+      }
+      public bool IsEquivalentTo(Part part1, Part part2)
+      {
+        return ((this.part1 == part1 && this.part2 == part2) || (this.part1 == part2 && this.part2 == part1));
+      }
+      public static ConnectPair Other(Part part1, Part part2)
+      {
+        return new ConnectPair(part2, part1);
+      }
+      public static ConnectPair Other(ConnectPair connectPair)
+      {
+        return new ConnectPair(connectPair.part2, connectPair.part1);
+      }
+      public ConnectPair Other()
+      {
+        return new ConnectPair(this.part2, this.part1);
+      }
+      public Part OtherPart(Part inPart)
+      {
+        if (!this.Includes(inPart))
+          return null;
+        return part1 == inPart ? part1 : part2;
+      }
+    }
 
     // State var used by OnEditorShipModified event handler to note changes to vessel for reconstruction of spaces.
-    private int editorPartCount;
+    private int _editorPartCount;
 
-    private string spaceNameEditField;
+    private string _spaceNameEditField;
 
     public ICLSVessel Vessel
     {
       get
       {
-        return vessel;
+        return _vessel;
       }
     }
 
@@ -102,9 +142,9 @@ namespace ConnectedLivingSpace
     {
       get
       {
-        return allowUnrestrictedTransfers;
+        return _allowUnrestrictedTransfers;
       }
-      set { allowUnrestrictedTransfers = value; }
+      set { _allowUnrestrictedTransfers = value; }
     }
 
     #endregion Instanced Properties
@@ -127,35 +167,33 @@ namespace ConnectedLivingSpace
       CacheClsLocalization();
       SetLocalization();
       // Added support for Blizzy Toolbar and hot switching between Stock and Blizzy
-      if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
+      if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight) return;
+      if (EnableBlizzyToolbar)
       {
-        if (enableBlizzyToolbar)
-        {
-          // Let't try to use Blizzy's toolbar
-          //Debug.Log("CLSAddon.Awake - Blizzy Toolbar Selected.");
-          if (ActivateBlizzyToolBar()) return;
-          // We failed to activate the toolbar, so revert to stock
-          //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
-          GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
-          GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
-        }
-        else
-        {
-          // Use stock Toolbar
-          //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
-          GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
-          GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
-        }
+        // Let't try to use Blizzy's toolbar
+        //Debug.Log("CLSAddon.Awake - Blizzy Toolbar Selected.");
+        if (ActivateBlizzyToolBar()) return;
+        // We failed to activate the toolbar, so revert to stock
+        //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
+        GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+        GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
+      }
+      else
+      {
+        // Use stock Toolbar
+        //Debug.Log("CLSAddon.Awake - Stock Toolbar Selected.");
+        GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+        GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
       }
     }
 
     public void Start()
     {
       // Debug.Log("CLSAddon:Start");
-      SettingsPath = $"{KSPUtil.ApplicationRootPath}GameData/ConnectedLivingSpace/Plugins/PluginData";
-      SettingsFile = $"{SettingsPath}/cls_settings.dat";
+      _settingsPath = $"{KSPUtil.ApplicationRootPath}GameData/ConnectedLivingSpace/Plugins/PluginData";
+      _settingsFile = $"{_settingsPath}/cls_settings.dat";
 
-      windowStyle = new GUIStyle(HighLogic.Skin.window);
+      _windowStyle = new GUIStyle(HighLogic.Skin.window);
 
       // load toolbar selection setting
       ApplySettings();
@@ -211,7 +249,7 @@ namespace ConnectedLivingSpace
     {
       //Debug.Log("CLSAddon::OnDestroy");
 
-      allowUnrestrictedTransfers = backupAllowUnrestrictedTransfers;
+      _allowUnrestrictedTransfers = _backupAllowUnrestrictedTransfers;
       saveSettings();
 
       GameEvents.onGameSceneSwitchRequested.Remove(OnGameSceneSwitchRequested);
@@ -236,9 +274,9 @@ namespace ConnectedLivingSpace
 
       // Remove the stock toolbar button
       GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
-      if (stockToolbarButton != null)
+      if (_stockToolbarButton != null)
       {
-        ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
+        ApplicationLauncher.Instance.RemoveModApplication(_stockToolbarButton);
       }
 
       GameEvents.onItemTransferStarted.Remove(OnItemTransferStarted);
@@ -249,7 +287,7 @@ namespace ConnectedLivingSpace
 
     void OnGUIAppLauncherReady()
     {
-      stockToolbarButton = ApplicationLauncher.Instance.AddModApplication(
+      _stockToolbarButton = ApplicationLauncher.Instance.AddModApplication(
           OnCLSButtonToggle,
           OnCLSButtonToggle,
           DummyVoid,
@@ -262,12 +300,12 @@ namespace ConnectedLivingSpace
 
     void OnGUIAppLauncherDestroyed()
     {
-      if (stockToolbarButton == null) return;
-      ApplicationLauncher.Instance.RemoveModApplication(stockToolbarButton);
-      stockToolbarButton = null;
+      if (_stockToolbarButton == null) return;
+      ApplicationLauncher.Instance.RemoveModApplication(_stockToolbarButton);
+      _stockToolbarButton = null;
     }
 
-    void DummyVoid() { }
+    private static void DummyVoid() { }
 
     private void OnFlightReady()
     {
@@ -308,15 +346,15 @@ namespace ConnectedLivingSpace
 
     private void OnEditorShipModified(ShipConstruct vesselConstruct)
     {
-        if (vesselConstruct.Parts.Count == editorPartCount) return;
+        if (vesselConstruct.Parts.Count == _editorPartCount) return;
       //Debug.Log("Calling RebuildCLSVessel as the part count has changed in the editor");
 
       RebuildCLSVessel();
-      editorPartCount = vesselConstruct.Parts.Count;
+      _editorPartCount = vesselConstruct.Parts.Count;
       // First unhighlight the space that was selected.
-      if (-1 != WindowSelectedSpace && WindowSelectedSpace < vessel.Spaces.Count)
+      if (-1 != WindowSelectedSpace && WindowSelectedSpace < _vessel.Spaces.Count)
       {
-        vessel.Spaces[WindowSelectedSpace].Highlight(true);
+        _vessel.Spaces[WindowSelectedSpace].Highlight(true);
       }
     }
 
@@ -330,13 +368,13 @@ namespace ConnectedLivingSpace
       //Debug.Log("CLSAddon::OnCLSButtonToggle");
       WindowVisable = !WindowVisable;
 
-      if (!WindowVisable && null != vessel)
-        vessel.Highlight(false);
+      if (!WindowVisable && null != _vessel)
+        _vessel.Highlight(false);
 
-      if (enableBlizzyToolbar)
-        blizzyToolbarButton.TexturePath = WindowVisable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
+      if (EnableBlizzyToolbar)
+        BlizzyToolbarButton.TexturePath = WindowVisable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
       else
-        stockToolbarButton.SetTexture(GameDatabase.Instance.GetTexture(WindowVisable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
+        _stockToolbarButton.SetTexture(GameDatabase.Instance.GetTexture(WindowVisable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
     }
 
     private void OnGUI()
@@ -347,16 +385,16 @@ namespace ConnectedLivingSpace
         //GUI.skin = HighLogic.Skin;
         CLSStyles.SetupGuiStyles();
 
-        windowPosition = GUILayout.Window(947695, windowPosition, OnWindow, _clsLocTitle, windowStyle, GUILayout.MinHeight(80), GUILayout.MinWidth(400), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true), GUILayout.Width(400), GUILayout.Height(80));
-        if (!optionsVisible) return;
-        if (windowOptionsPosition == new Rect(0, 0, 0, 0))
-          windowOptionsPosition = new Rect(windowPosition.x + windowPosition.width + 10, windowPosition.y, 260, 120);
-        windowOptionsPosition = GUILayout.Window(947696, windowOptionsPosition, DisplayOptionWindow, _clsLocOptions, windowStyle, GUILayout.MinHeight(120), GUILayout.ExpandWidth(true));
+        _windowPosition = GUILayout.Window(947695, _windowPosition, OnWindow, _clsLocTitle, _windowStyle, GUILayout.MinHeight(80), GUILayout.MinWidth(400), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true), GUILayout.Width(400), GUILayout.Height(80));
+        if (!_optionsVisible) return;
+        if (_windowOptionsPosition == new Rect(0, 0, 0, 0))
+          _windowOptionsPosition = new Rect(_windowPosition.x + _windowPosition.width + 10, _windowPosition.y, 260, 120);
+        _windowOptionsPosition = GUILayout.Window(947696, _windowOptionsPosition, DisplayOptionWindow, _clsLocOptions, _windowStyle, GUILayout.MinHeight(120), GUILayout.ExpandWidth(true));
       }
       else
       {
         if (WindowSelectedSpace <= -1) return;
-        vessel.Spaces[WindowSelectedSpace].Highlight(false);
+        _vessel.Spaces[WindowSelectedSpace].Highlight(false);
         WindowSelectedSpace = -1;
       }
     }
@@ -422,37 +460,37 @@ namespace ConnectedLivingSpace
       // set scrollviewer sizes...
       if (Event.current.type == EventType.Repaint)
       {
-        scrollY = scrollCrew.height > scrollParts.height ? scrollCrew.height : scrollParts.height;
-        scrollXCrew = scrollCrew.width > 140 ? scrollCrew.width : 140;
-        scrollXParts = scrollParts.width > 240 ? scrollParts.width : 240;
+        _scrollY = _scrollCrew.height > _scrollParts.height ? _scrollCrew.height : _scrollParts.height;
+        _scrollXCrew = _scrollCrew.width > 140 ? _scrollCrew.width : 140;
+        _scrollXParts = _scrollParts.width > 240 ? _scrollParts.width : 240;
 
         // reset counters.
-        scrollCrew.height = scrollParts.height = scrollCrew.width = scrollParts.width = 0;
+        _scrollCrew.height = _scrollParts.height = _scrollCrew.width = _scrollParts.width = 0;
       }
       try
       {
-        Rect rect = new Rect(windowPosition.width - 20, 4, 16, 16);
+        Rect rect = new Rect(_windowPosition.width - 20, 4, 16, 16);
         if (GUI.Button(rect, ""))
         {
           OnCLSButtonToggle();
         }
-        rect = new Rect(windowPosition.width - 90, 4, 65, 16);
+        rect = new Rect(_windowPosition.width - 90, 4, 65, 16);
         if (GUI.Button(rect, new GUIContent(_clsLocOptions, _clsLocOptionTt))) // "Options","Click to view/edit options"
         {
-          optionsVisible = !optionsVisible;
+          _optionsVisible = !_optionsVisible;
         }
         GUILayout.BeginVertical();
         GUI.enabled = true;
 
         // Build strings describing the contents of each of the spaces.
-        if (null != vessel)
+        if (null != _vessel)
         {
-          string[] spaceNames = new string[vessel.Spaces.Count];
+          string[] spaceNames = new string[_vessel.Spaces.Count];
           int counter = 0;
           int newSelectedSpace = -1;
 
           string partsList = "";
-          List<ICLSSpace>.Enumerator spaces = vessel.Spaces.GetEnumerator();
+          List<ICLSSpace>.Enumerator spaces = _vessel.Spaces.GetEnumerator();
           while (spaces.MoveNext())
           {
             if (spaces.Current == null) continue;
@@ -468,7 +506,7 @@ namespace ConnectedLivingSpace
           }
           spaces.Dispose();
 
-          if (vessel.Spaces.Count > 0)
+          if (_vessel.Spaces.Count > 0)
           {
             newSelectedSpace = DisplaySpaceButtons(WindowSelectedSpace, spaceNames);
           }
@@ -486,35 +524,35 @@ namespace ConnectedLivingSpace
             Rect _rect;
             // Loop through all the parts in the newly selected space and create a list of all the spaces in it.
             partsList = $"{_clsLocParts}:";
-            List<ICLSPart>.Enumerator parts = vessel.Spaces[WindowSelectedSpace].Parts.GetEnumerator();
+            List<ICLSPart>.Enumerator parts = _vessel.Spaces[WindowSelectedSpace].Parts.GetEnumerator();
             while (parts.MoveNext())
             {
               if (parts.Current == null) continue;
-              partsList += "\n- " + (parts.Current.Part).partInfo.title;
+              partsList += $"\n- {(parts.Current.Part).partInfo.title}";
             }
             parts.Dispose();
 
             string crewList = $"{_clsLocInfo}:";
-            if (vessel.Spaces[WindowSelectedSpace].Crew.Count == 0)
-              crewList += "\n- " + _clsLocNone;
+            if (_vessel.Spaces[WindowSelectedSpace].Crew.Count == 0)
+              crewList += $"\n- {_clsLocNone}";
             else
             {
-              List<ICLSKerbal>.Enumerator crewmembers = vessel.Spaces[WindowSelectedSpace].Crew.GetEnumerator();
+              List<ICLSKerbal>.Enumerator crewmembers = _vessel.Spaces[WindowSelectedSpace].Crew.GetEnumerator();
               while (crewmembers.MoveNext())
               {
                 if (crewmembers.Current == null) continue;
-                crewList += "\n- " + (crewmembers.Current.Kerbal).name;
+                crewList += $"\n- {(crewmembers.Current.Kerbal).name}";
               }
               crewmembers.Dispose();
             }
 
             // Display the text box that allows the space name to be changed
             GUILayout.BeginHorizontal();
-            GUILayout.Label(_clsLocName + ":"); // "Name:"
-            spaceNameEditField = GUILayout.TextField(spaceNameEditField, GUILayout.Width(200));
+            GUILayout.Label($"{_clsLocName}:"); // "Name:"
+            _spaceNameEditField = GUILayout.TextField(_spaceNameEditField, GUILayout.Width(200));
             if (GUILayout.Button(_clsLocUpdate)) // "Update"
             {
-              vessel.Spaces[WindowSelectedSpace].Name = spaceNameEditField;
+              _vessel.Spaces[WindowSelectedSpace].Name = _spaceNameEditField;
             }
             GUILayout.EndHorizontal();
 
@@ -522,16 +560,16 @@ namespace ConnectedLivingSpace
             GUILayout.BeginHorizontal();
 
             // Crew Scroller
-            scrollViewerCrew = GUILayout.BeginScrollView(scrollViewerCrew, GUILayout.Width(scrollXCrew), GUILayout.Height(20 > scrollY ? 20 : scrollY + 20));
+            _scrollViewerCrew = GUILayout.BeginScrollView(_scrollViewerCrew, GUILayout.Width(_scrollXCrew), GUILayout.Height(20 > _scrollY ? 20 : _scrollY + 20));
             GUILayout.BeginVertical();
 
             // Display the crew capacity of the space.
-            GUILayout.Label($"{_clsLocCapacity}:  {vessel.Spaces[WindowSelectedSpace].MaxCrew}");
+            GUILayout.Label($"{_clsLocCapacity}:  {_vessel.Spaces[WindowSelectedSpace].MaxCrew}");
             _rect = GUILayoutUtility.GetLastRect();
             if (Event.current.type == EventType.Repaint)
             {
-              scrollCrew.height = _rect.height;
-              scrollCrew.width = _rect.width;
+              _scrollCrew.height = _rect.height;
+              _scrollCrew.width = _rect.width;
             }
 
             // Crew Capacity
@@ -539,24 +577,24 @@ namespace ConnectedLivingSpace
             _rect = GUILayoutUtility.GetLastRect();
             if (Event.current.type == EventType.Repaint)
             {
-              scrollCrew.height += _rect.height;
-              scrollCrew.width = scrollCrew.width > _rect.width ? scrollCrew.width : _rect.width;
+              _scrollCrew.height += _rect.height;
+              _scrollCrew.width = _scrollCrew.width > _rect.width ? _scrollCrew.width : _rect.width;
             }
 
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
 
             // Part Scroller
-            scrollViewerParts = GUILayout.BeginScrollView(scrollViewerParts, GUILayout.Width(scrollXParts), GUILayout.Height(20 > scrollY ? 20 : scrollY + 20));
+            _scrollViewerParts = GUILayout.BeginScrollView(_scrollViewerParts, GUILayout.Width(_scrollXParts), GUILayout.Height(20 > _scrollY ? 20 : _scrollY + 20));
             GUILayout.BeginVertical();
 
             // Display the Part count of the space.
-            GUILayout.Label($"{_clsLocPartCount}:  {vessel.Spaces[WindowSelectedSpace].Parts.Count}"); // Selected Space Parts Count
+            GUILayout.Label($"{_clsLocPartCount}:  {_vessel.Spaces[WindowSelectedSpace].Parts.Count}"); // Selected Space Parts Count
             _rect = GUILayoutUtility.GetLastRect();
             if (Event.current.type == EventType.Repaint)
             {
-              scrollParts.height = _rect.height;
-              scrollParts.width = _rect.width;
+              _scrollParts.height = _rect.height;
+              _scrollParts.width = _rect.width;
             }
 
             // Display the list of component parts.
@@ -564,8 +602,8 @@ namespace ConnectedLivingSpace
             _rect = GUILayoutUtility.GetLastRect();
             if (Event.current.type == EventType.Repaint)
             {
-              scrollParts.height += _rect.height;
-              scrollParts.width = scrollParts.width > _rect.width ? scrollParts.width : _rect.width;
+              _scrollParts.height += _rect.height;
+              _scrollParts.width = _scrollParts.width > _rect.width ? _scrollParts.width : _rect.width;
             }
 
             GUILayout.EndVertical();
@@ -580,7 +618,7 @@ namespace ConnectedLivingSpace
         }
         GUILayout.EndVertical();
         GUI.DragWindow();
-        RepositionWindow(ref windowPosition);
+        RepositionWindow(ref _windowPosition);
       }
       catch (Exception ex)
       {
@@ -592,37 +630,37 @@ namespace ConnectedLivingSpace
     {
       // First unhighlight the space that was selected.
       if (WindowSelectedSpace == newSelectedSpace) return;
-      if (-1 != WindowSelectedSpace && WindowSelectedSpace < vessel.Spaces.Count)
+      if (-1 != WindowSelectedSpace && WindowSelectedSpace < _vessel.Spaces.Count)
       {
-        vessel.Spaces[WindowSelectedSpace].Highlight(false);
+        _vessel.Spaces[WindowSelectedSpace].Highlight(false);
       }
 
       if (newSelectedSpace == -1) return;
 
       // Update the text in the Space edit box
-      spaceNameEditField = vessel.Spaces[newSelectedSpace].Name;
+      _spaceNameEditField = _vessel.Spaces[newSelectedSpace].Name;
 
       // Highlight the new space
-      vessel.Spaces[newSelectedSpace].Highlight(true);
+      _vessel.Spaces[newSelectedSpace].Highlight(true);
     }
 
     private void DisplayOptionWindow(int windowID)
     {
-      Rect rect = new Rect(windowOptionsPosition.width - 20, 4, 16, 16);
+      Rect rect = new Rect(_windowOptionsPosition.width - 20, 4, 16, 16);
       if (GUI.Button(rect, ""))
       {
-        optionsVisible = false;
+        _optionsVisible = false;
       }
       GUILayout.BeginVertical();
       // Unrestricted Xfers
-      bool oldAllow = allowUnrestrictedTransfers;
-      allowUnrestrictedTransfers = GUILayout.Toggle(allowUnrestrictedTransfers, _clsLocUnrestricted); // "Allow Crew Unrestricted Transfers"
-      if (oldAllow != allowUnrestrictedTransfers)
+      bool oldAllow = _allowUnrestrictedTransfers;
+      _allowUnrestrictedTransfers = GUILayout.Toggle(_allowUnrestrictedTransfers, _clsLocUnrestricted); // "Allow Crew Unrestricted Transfers"
+      if (oldAllow != _allowUnrestrictedTransfers)
       {
-        backupAllowUnrestrictedTransfers = allowUnrestrictedTransfers;
+        _backupAllowUnrestrictedTransfers = _allowUnrestrictedTransfers;
       }
       // Optional Passable Parts
-      enablePassable = GUILayout.Toggle(enablePassable, _clsLocOptPassable); // "Enable Optional Passable Parts\r\n(Requires game restart)"
+      EnablePassable = GUILayout.Toggle(EnablePassable, _clsLocOptPassable); // "Enable Optional Passable Parts\r\n(Requires game restart)"
 
       // Blizzy Toolbar?
       if (ToolbarManager.ToolbarAvailable)
@@ -630,14 +668,14 @@ namespace ConnectedLivingSpace
       else
       {
         GUI.enabled = false;
-        enableBlizzyToolbar = false;
+        EnableBlizzyToolbar = false;
       }
-      enableBlizzyToolbar = GUILayout.Toggle(enableBlizzyToolbar, _clsLocBlizzy); // "Use Blizzy's Toolbar instead of Stock"
+      EnableBlizzyToolbar = GUILayout.Toggle(EnableBlizzyToolbar, _clsLocBlizzy); // "Use Blizzy's Toolbar instead of Stock"
 
       GUI.enabled = true;
       GUILayout.EndVertical();
       GUI.DragWindow();
-      RepositionWindow(ref windowOptionsPosition);
+      RepositionWindow(ref _windowOptionsPosition);
     }
 
     private static int DisplaySpaceButtons(int selectedSpace, string[] spaceNames)
@@ -683,11 +721,11 @@ namespace ConnectedLivingSpace
         if (null == EditorLogic.RootPart)
         {
           // There is no root part in the editor - this ought to mean that there are no parts. Juest clear out everything
-          if (null != vessel)
+          if (null != _vessel)
           {
-            vessel.Clear();
+            _vessel.Clear();
           }
-          vessel = null;
+          _vessel = null;
         }
         else
         {
@@ -698,7 +736,7 @@ namespace ConnectedLivingSpace
 
     private void CheckForToolbarTypeToggle()
     {
-      if (enableBlizzyToolbar && !prevEnableBlizzyToolbar)
+      if (EnableBlizzyToolbar && !_prevEnableBlizzyToolbar)
       {
         // Let't try to use Blizzy's toolbar
         if (!ActivateBlizzyToolBar())
@@ -707,28 +745,28 @@ namespace ConnectedLivingSpace
           GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
           GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
 
-          enableBlizzyToolbar = prevEnableBlizzyToolbar;
+          EnableBlizzyToolbar = _prevEnableBlizzyToolbar;
         }
         else
         {
           OnGUIAppLauncherDestroyed();
           GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
           GameEvents.onGUIApplicationLauncherDestroyed.Remove(OnGUIAppLauncherDestroyed);
-          prevEnableBlizzyToolbar = enableBlizzyToolbar;
+          _prevEnableBlizzyToolbar = EnableBlizzyToolbar;
           if (HighLogic.LoadedSceneIsFlight)
-            blizzyToolbarButton.Visible = true;
+            BlizzyToolbarButton.Visible = true;
         }
 
       }
-      else if (!enableBlizzyToolbar && prevEnableBlizzyToolbar)
+      else if (!EnableBlizzyToolbar && _prevEnableBlizzyToolbar)
       {
         // Use stock Toolbar
         if (HighLogic.LoadedSceneIsFlight)
-          blizzyToolbarButton.Visible = false;
+          BlizzyToolbarButton.Visible = false;
         GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
         GameEvents.onGUIApplicationLauncherDestroyed.Add(OnGUIAppLauncherDestroyed);
         OnGUIAppLauncherReady();
-        prevEnableBlizzyToolbar = enableBlizzyToolbar;
+        _prevEnableBlizzyToolbar = EnableBlizzyToolbar;
       }
     }
 
@@ -744,28 +782,110 @@ namespace ConnectedLivingSpace
       try
       {
         //Debug.Log("RebuildCLSVessel");
-        if (null != vessel)
+        if (null != _vessel)
         {
           // Tidy up the old vessel information
-          vessel.Clear();
-          vessel = null;
+          _vessel.Clear();
+          _vessel = null;
         }
 
         // Build new vessel information
-        vessel = new CLSVessel();
-        vessel.Populate(newRootPart);
+        _vessel = new CLSVessel();
+        _vessel.Populate(newRootPart);
 
+        for (int i = requestedConnections.Count - 1; i >= 0; i--)
+        {
+          ConnectPair connectPair = requestedConnections[i];
+          if (connectPair.part1.vessel != connectPair.part2.vessel)
+            requestedConnections.Remove(connectPair);
+          _vessel.MergeSpaces(connectPair.part1, connectPair.part2);
+        }
         // Notify other mods that the CLS Vessel has been rebuilt.
         onCLSVesselChange.Fire(FlightGlobals.ActiveVessel);
 
         if (!WindowVisable || WindowSelectedSpace <= -1) return;
-        vessel.Highlight(false);
-        vessel.Spaces[CLSAddon.WindowSelectedSpace].Highlight(true);
+        _vessel.Highlight(false);
+        _vessel.Spaces[CLSAddon.WindowSelectedSpace].Highlight(true);
       }
       catch (Exception ex)
       {
-        Debug.Log("CLS rebuild Vessel Error:  " + ex.ToString());
+        Debug.Log($"CLS rebuild Vessel Error:  { ex}");
       }
+    }
+
+    protected internal bool RequestAddConnection(Part part1, Part part2, bool rebuildVessel = true)
+    {
+      ConnectPair connectPair = new ConnectPair(part1, part2);
+      if (requestedConnections.Contains(connectPair) || requestedConnections.Contains(connectPair.Other()))
+        return false;
+      requestedConnections.Add(connectPair);
+      if (rebuildVessel && ((HighLogic.LoadedSceneIsFlight && part1.vessel == FlightGlobals.ActiveVessel) ||
+                            HighLogic.LoadedSceneIsEditor))
+        RebuildCLSVessel();
+      return true;
+    }
+
+    public bool RequestAddConnection(Part part1, Part part2)
+    {
+      return RequestAddConnection(part1, part2, true);
+    }
+
+    public List<bool> RequestAddConnections(List<Part> part1, List<Part> part2)
+    {
+      List<bool> success = new List<bool>();
+      if (part1.Count != part2.Count)
+        return success;
+      for (int i = 0; i < part1.Count; i++)
+      {
+        success.Add(RequestAddConnection(part1[i], part2[i], false));
+      }
+      if (!success.Any((bool b) => b)) return success;
+      if ((HighLogic.LoadedSceneIsFlight && part1.Any((Part p) => p.vessel == FlightGlobals.ActiveVessel)) ||
+          HighLogic.LoadedSceneIsEditor)
+        RebuildCLSVessel();
+      return success;
+    }
+
+    protected internal bool RequestRemoveConnection(Part part1, Part part2, bool rebuildVessel = true)
+    {
+      bool modified = false;
+      ConnectPair CPtoRemove = new ConnectPair(part1, part2);
+      if (requestedConnections.Contains(CPtoRemove))
+      {
+        requestedConnections.Remove(CPtoRemove);
+        modified = true;
+      }
+      else if (requestedConnections.Contains(CPtoRemove.Other()))
+      {
+        requestedConnections.Remove(CPtoRemove.Other());
+        modified = true;
+      }
+      if (modified && rebuildVessel &&
+          ((HighLogic.LoadedSceneIsFlight && part1.vessel == FlightGlobals.ActiveVessel) ||
+          HighLogic.LoadedSceneIsEditor))
+        RebuildCLSVessel();
+      return modified;
+    }
+
+    public bool RequestRemoveConnection(Part part1, Part part2)
+    {
+      return RequestRemoveConnection(part1, part2, true);
+    }
+
+    public List<bool> RequestRemoveConnections(List<Part> part1, List<Part> part2)
+    {
+      List<bool> success = new List<bool>();
+      if (part1.Count != part2.Count)
+        return success;
+      for (int i = 0; i < part1.Count; i++)
+      {
+        success.Add(RequestRemoveConnection(part1[i], part2[i], false));
+      }
+      if (success.Any((bool b) => b))
+        if ((HighLogic.LoadedSceneIsFlight && part1.Any((Part p) => p.vessel == FlightGlobals.ActiveVessel)) ||
+        HighLogic.LoadedSceneIsEditor)
+          RebuildCLSVessel();
+      return success;
     }
 
     // Method to ensure that all parts which have a crewcapacity >0 have a CLSModule attached to it.
@@ -783,9 +903,7 @@ namespace ConnectedLivingSpace
           }
           else
           {
-            Part prefabPart = parts.Current.partPrefab;
-
-            //Debug.Log("Adding ConnectedLivingSpace Support to " + part.name + "/" + prefabPart.partInfo.title);
+            //Debug.Log($"Adding ConnectedLivingSpace Support to {part.name}/{prefabPart.partInfo.title}");
 
             if (!parts.Current.partPrefab.Modules.Contains("ModuleConnectedLivingSpace"))
             {
@@ -825,7 +943,7 @@ namespace ConnectedLivingSpace
 
     private void OnCrewTransferPartListCreated(GameEvents.HostedFromToAction<Part, List<Part>> eventData)
     {
-      if (allowUnrestrictedTransfers) return;
+      if (_allowUnrestrictedTransfers) return;
 
       // How can I tell if the parts are in the same space?... I need a starting point!  What part initiated the event?
       Part sourcePart = null;
@@ -863,7 +981,7 @@ namespace ConnectedLivingSpace
 
     internal void OnItemTransferStarted(PartItemTransfer xferPartItem)
     {
-      if (!allowUnrestrictedTransfers && xferPartItem.type == "Crew")
+      if (!_allowUnrestrictedTransfers && xferPartItem.type == "Crew")
         xferPartItem.semiValidMessage = $"<color=orange>{_clsLocWarnFull}.</color>"; // CLS - This module is either full or internally unreachable (different spaces)
     }
 
@@ -871,7 +989,7 @@ namespace ConnectedLivingSpace
     private void OnCrewTransferSelected(CrewTransfer.CrewTransferData crewTransferData)
     {
       // If transfers are not restricted then we have got nothing to do here.
-      if (allowUnrestrictedTransfers) return;
+      if (_allowUnrestrictedTransfers) return;
       ICLSPart clsFrom = Instance.Vessel.Parts.Find(x => x.Part == crewTransferData.sourcePart);
       ICLSPart clsTo = Instance.Vessel.Parts.Find(x => x.Part == crewTransferData.destPart);
 
@@ -886,16 +1004,16 @@ namespace ConnectedLivingSpace
 
     internal bool ActivateBlizzyToolBar()
     {
-      if (!enableBlizzyToolbar) return false;
+      if (!EnableBlizzyToolbar) return false;
       try
       {
         if (!ToolbarManager.ToolbarAvailable) return false;
         if (HighLogic.LoadedScene != GameScenes.EDITOR && HighLogic.LoadedScene != GameScenes.FLIGHT) return true;
-        blizzyToolbarButton = ToolbarManager.Instance.add("ConnectedLivingSpace", "ConnectedLivingSpace");
-        blizzyToolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_b_icon_on";
-        blizzyToolbarButton.ToolTip = _clsLocTitle; // "Connected Living Space";
-        blizzyToolbarButton.Visible = true;
-        blizzyToolbarButton.OnClick += (e) =>
+        BlizzyToolbarButton = ToolbarManager.Instance.add("ConnectedLivingSpace", "ConnectedLivingSpace");
+        BlizzyToolbarButton.TexturePath = "ConnectedLivingSpace/assets/cls_b_icon_on";
+        BlizzyToolbarButton.ToolTip = _clsLocTitle; // "Connected Living Space";
+        BlizzyToolbarButton.Visible = true;
+        BlizzyToolbarButton.OnClick += (e) =>
         {
           OnCLSButtonToggle();
         };
@@ -910,38 +1028,38 @@ namespace ConnectedLivingSpace
 
     private void ApplySettings()
     {
-      if (settings == null)
+      if (_settings == null)
         loadSettings();
-      ConfigNode toolbarNode = settings.HasNode("clsSettings") ? settings.GetNode("clsSettings") : settings.AddNode("clsSettings");
+      ConfigNode toolbarNode = _settings.HasNode("clsSettings") ? _settings.GetNode("clsSettings") : _settings.AddNode("clsSettings");
       if (toolbarNode.HasValue("enableBlizzyToolbar"))
-        enableBlizzyToolbar = bool.Parse(toolbarNode.GetValue("enableBlizzyToolbar"));
-      windowPosition = getRectangle(toolbarNode, "windowPosition", windowPosition);
-      windowOptionsPosition = getRectangle(toolbarNode, "windowOptionsPosition", windowOptionsPosition);
-      enableBlizzyToolbar = toolbarNode.HasValue("enableBlizzyToolbar") ? bool.Parse(toolbarNode.GetValue("enableBlizzyToolbar")) : enableBlizzyToolbar;
-      enablePassable = toolbarNode.HasValue("enablePassable") ? bool.Parse(toolbarNode.GetValue("enablePassable")) : enablePassable;
+        EnableBlizzyToolbar = bool.Parse(toolbarNode.GetValue("enableBlizzyToolbar"));
+      _windowPosition = getRectangle(toolbarNode, "windowPosition", _windowPosition);
+      _windowOptionsPosition = getRectangle(toolbarNode, "windowOptionsPosition", _windowOptionsPosition);
+      EnableBlizzyToolbar = toolbarNode.HasValue("enableBlizzyToolbar") ? bool.Parse(toolbarNode.GetValue("enableBlizzyToolbar")) : EnableBlizzyToolbar;
+      EnablePassable = toolbarNode.HasValue("enablePassable") ? bool.Parse(toolbarNode.GetValue("enablePassable")) : EnablePassable;
 
     }
 
     private ConfigNode loadSettings()
     {
-      return settings ?? (settings = ConfigNode.Load(SettingsFile) ?? new ConfigNode());
+      return _settings ?? (_settings = ConfigNode.Load(_settingsFile) ?? new ConfigNode());
     }
 
     private void saveSettings()
     {
-      if (settings == null)
-        settings = loadSettings();
-      ConfigNode toolbarNode = settings.HasNode("clsSettings") ? settings.GetNode("clsSettings") : settings.AddNode("clsSettings");
+      if (_settings == null)
+        _settings = loadSettings();
+      ConfigNode toolbarNode = _settings.HasNode("clsSettings") ? _settings.GetNode("clsSettings") : _settings.AddNode("clsSettings");
       if (toolbarNode.HasValue("enableBlizzyToolbar"))
         toolbarNode.RemoveValue("enableBlizzyToolbar");
-      toolbarNode.AddValue("enableBlizzyToolbar", enableBlizzyToolbar.ToString());
-      WriteRectangle(toolbarNode, "windowPosition", windowPosition);
-      WriteRectangle(toolbarNode, "windowOptionsPosition", windowOptionsPosition);
-      WriteValue(toolbarNode, "enableBlizzyToolbar", enableBlizzyToolbar);
-      WriteValue(toolbarNode, "enablePassable", enablePassable);
-      if (!Directory.Exists(SettingsPath))
-        Directory.CreateDirectory(SettingsPath);
-      settings.Save(SettingsFile);
+      toolbarNode.AddValue("enableBlizzyToolbar", EnableBlizzyToolbar.ToString());
+      WriteRectangle(toolbarNode, "windowPosition", _windowPosition);
+      WriteRectangle(toolbarNode, "windowOptionsPosition", _windowOptionsPosition);
+      WriteValue(toolbarNode, "enableBlizzyToolbar", EnableBlizzyToolbar);
+      WriteValue(toolbarNode, "enablePassable", EnablePassable);
+      if (!Directory.Exists(_settingsPath))
+        Directory.CreateDirectory(_settingsPath);
+      _settings.Save(_settingsFile);
     }
 
     private static Rect getRectangle(ConfigNode WindowsNode, string RectName, Rect defaultvalue)

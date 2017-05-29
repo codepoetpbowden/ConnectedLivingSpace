@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ConnectedLivingSpace
 {
@@ -53,7 +51,9 @@ namespace ConnectedLivingSpace
         ICLSVessel Vessel { get; }
 
         bool AllowUnrestrictedTransfers { get; set; }
-    }
-
-
+        bool RequestAddConnection(Part part1, Part part2);
+        List<bool> RequestAddConnections(List<Part> part1, List<Part> part2);
+        bool RequestRemoveConnection(Part part1, Part part2);
+        List<bool> RequestRemoveConnections(List<Part> part1, List<Part> part2);
+  }
 }

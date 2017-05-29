@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using KSP.Localization;
 using UnityEngine;
 
 namespace ConnectedLivingSpace
@@ -62,7 +59,7 @@ namespace ConnectedLivingSpace
     /// </summary>
     public override void OnStart(StartState state)
     {
-      //Debug.Log("[CLS]:  CLS::OnStart state=" + state.ToString());
+      //Debug.Log($"[CLS]:  CLS::OnStart state={state}");
 
       try
       {
@@ -118,9 +115,9 @@ namespace ConnectedLivingSpace
       Events["EnableSurfaceAttachable"].guiActiveEditor = 
       Events["DisableSurfaceAttachable"].guiActiveEditor = 
       Events["EnableAttachableSurface"].guiActiveEditor = 
-      Events["DisableAttachableSurface"].guiActiveEditor = CLSAddon.enablePassable;
+      Events["DisableAttachableSurface"].guiActiveEditor = CLSAddon.EnablePassable;
 
-      if (!CLSAddon.enablePassable) return;
+      if (!CLSAddon.EnablePassable) return;
 
       if (passable)
       {
