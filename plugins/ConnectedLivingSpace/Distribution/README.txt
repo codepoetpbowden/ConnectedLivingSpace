@@ -16,7 +16,7 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
-release v 1.2.5.1 release date: 28 May 2017
+release v 1.2.5.1 release date: 29 May 2017
 * New: Added support for Recoupler.  Modders can now request to merge spaces on reconnect of parts.
 -------Note to Modders:  This changes the CLSInterface.dll, so if you use this and want the new features please include the latest CLSInterface.dll with your mod.
 * Misc:  Cleaned up text rendering to consistently use C# string interpolation.
