@@ -1,4 +1,4 @@
-Connected Living Space v1.2.5.1
+Connected Living Space v1.2.5.2
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,9 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v 1.2.5.2 release date: xx Jun 2017
+
+
 release v 1.2.5.1 release date: 29 May 2017
 * New: Added support for Recoupler.  Modders can now request to merge spaces on reconnect of parts.
 -------Note to Modders:  This changes the CLSInterface.dll, so if you use this and want the new features please include the latest CLSInterface.dll with your mod.
@@ -30,6 +33,7 @@ release v 1.2.5.0 release date: 28 May 2017
 release v 1.2.4.2 release date: 16 Jan 2017
 * New: Added a custom event to notify mods that the CLS vessel data has been refreshed.
 * New: Added a some configs per GitHub issue and PR 79 Thanks Kerbas-ad-Astra!
+* New: Added some KIS configs per GitHub issue #64.  Thanks KellanHiggins!
 
 release v 1.2.4.1 release date: 31 Dec 2016
 * Fixed: Some parts were not merging spaces event when hatches were opened. Github Issue #75. Forum Post: http://forum.kerbalspaceprogram.com/index.php?/topic/109972-122-connected-living-space-v1240-30-dec-2016-customize-your-cls-parts/&do=findComment&comment=2906269
@@ -95,7 +99,7 @@ release v1.2.0.2 release date: 21 Mar 2016
 * Fixed:  Correct build deploy automation to project (missing icons for blizzy). 
 * Fixed:  CLS tweakables incorrectly visible when custom passability is disabled.
 
-release v1.2.0.1 release date: 28 May 2017
+release v1.2.0.1 release date: 02 Dec 2015
 * Add build deploy automation to project. 
 * Correct deploy error resulting in incorrect dll build being released.
 
