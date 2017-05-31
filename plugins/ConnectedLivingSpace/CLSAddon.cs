@@ -710,6 +710,14 @@ namespace ConnectedLivingSpace
     #endregion
 
     #region Support/action Methods
+    public ICLSVessel getCLSVessel(Vessel v)
+    {
+      if (v.rootPart == null) return null;
+      CLSVessel result = new CLSVessel();
+      result.Populate(v.rootPart);
+      return result;
+    }
+
     private void RebuildCLSVessel()
     {
       if (HighLogic.LoadedSceneIsFlight)
