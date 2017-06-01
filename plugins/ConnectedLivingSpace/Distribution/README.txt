@@ -16,7 +16,8 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
-release v 1.2.5.2 release date: xx Jun 2017
+release v 1.2.5.2 release date: 31 May 2017
+ - New:  Added compatibility with Airlock Plus. (thanks to cakepie!)
 
 
 release v 1.2.5.1 release date: 29 May 2017
