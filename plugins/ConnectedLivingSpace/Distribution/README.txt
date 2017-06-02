@@ -1,4 +1,4 @@
-Connected Living Space v1.2.5.2
+Connected Living Space v1.2.5.3
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,9 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v 1.2.5.3 release date: 1 Jun 2017
+ - New:  Added Spanish translation. (Thanks to Deltathiago98!)
+ 
 release v 1.2.5.2 release date: 31 May 2017
  - New:  Added compatibility with Airlock Plus. (thanks to cakepie!)
 
