@@ -3,6 +3,19 @@ using System.Collections.Generic;
 
 namespace ConnectedLivingSpace
 {
+    public interface ICLSAddon
+    {
+        bool AllowUnrestrictedTransfers { get; set; }
+
+        ICLSVessel Vessel { get; }
+        ICLSVessel getCLSVessel(Vessel v);
+
+        bool RequestAddConnection(Part part1, Part part2);
+        List<bool> RequestAddConnections(List<Part> part1, List<Part> part2);
+        bool RequestRemoveConnection(Part part1, Part part2);
+        List<bool> RequestRemoveConnections(List<Part> part1, List<Part> part2);
+    }
+
     public interface ICLSVessel
     {
         List<ICLSSpace> Spaces { get; }
@@ -44,17 +57,5 @@ namespace ConnectedLivingSpace
     {
         ICLSPart Part { get;}
         ProtoCrewMember Kerbal { get; }
-    }
-
-    public interface ICLSAddon
-    {
-        ICLSVessel Vessel { get; }
-        ICLSVessel getCLSVessel(Vessel v);
-
-        bool AllowUnrestrictedTransfers { get; set; }
-        bool RequestAddConnection(Part part1, Part part2);
-        List<bool> RequestAddConnections(List<Part> part1, List<Part> part2);
-        bool RequestRemoveConnection(Part part1, Part part2);
-        List<bool> RequestRemoveConnections(List<Part> part1, List<Part> part2);
     }
 }
