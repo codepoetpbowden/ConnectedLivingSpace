@@ -26,6 +26,7 @@ namespace ConnectedLivingSpace
     {
       MarkDirty();
     }
+
     internal void MarkDirty()
     {
       dirty = true;
@@ -34,24 +35,20 @@ namespace ConnectedLivingSpace
 
     private void RebuildCLSVessel()
     {
-      if (vessel.rootPart == null)
+      if (null != _clsVessel)
       {
-        ClearCLSVessel();
-        return;
+        _clsVessel.Clear();
+        _clsVessel = null;
       }
-      RebuildCLSVessel(vessel.rootPart);
-    }
 
-    private void RebuildCLSVessel(Part newRootPart)
-    {
+      if (vessel.rootPart == null)
+        return;
+      
       try
       {
-        //Debug.Log("RebuildCLSVessel");
-        ClearCLSVessel();
-
         // Build new vessel information
         _clsVessel = new CLSVessel();
-        _clsVessel.Populate(newRootPart);
+        _clsVessel.Populate(vessel.rootPart);
 
         // TODO recoupler support
       }
@@ -61,13 +58,5 @@ namespace ConnectedLivingSpace
       }
     }
 
-    private void ClearCLSVessel()
-    {
-      if (null != _clsVessel)
-      {
-        _clsVessel.Clear();
-        _clsVessel = null;
-      }
-    }
   }
 }

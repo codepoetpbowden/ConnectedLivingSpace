@@ -259,15 +259,19 @@ namespace ConnectedLivingSpace
       if (vesselConstruct.Parts.Count == _editorPartCount) return;
       //Debug.Log("Calling RebuildCLSVessel as the part count has changed in the editor");
 
-      if (null != _vessel) _vessel.Clear();
-      _vessel = null;
+      if (null != _vessel)
+      {
+        _vessel.Clear();
+        _vessel = null;
+      }
+
       if (null != EditorLogic.RootPart)
       {
         _vessel = new CLSVessel();
         _vessel.Populate(EditorLogic.RootPart);
-      }
 
-      // TODO recoupler support
+        // TODO recoupler support
+      }
 
       _editorPartCount = vesselConstruct.Parts.Count;
       // First unhighlight the space that was selected.
