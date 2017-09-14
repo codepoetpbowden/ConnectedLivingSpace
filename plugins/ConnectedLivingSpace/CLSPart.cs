@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace ConnectedLivingSpace
@@ -32,6 +30,7 @@ namespace ConnectedLivingSpace
         CLSKerbal kerbal = new CLSKerbal(crewmembers.Current, this);
         crew.Add(kerbal);
       }
+      crewmembers.Dispose();
 
       // Does the part have a CLSModule on it? If so then give the module a reference to ourselves to make its life a bit easier.
       {
@@ -48,11 +47,11 @@ namespace ConnectedLivingSpace
             // This part does not have a CLSModule. If it is habitable or navigable then it will not be possible to persist the name of the space in the savefile. Log a warning.
             if (habitable)
             {
-              Debug.LogWarning("Part " + part.partInfo.title + " is habitable but does not have ModuleConnectedLivingSpace defined in the config. It would be better if it did as some infomation used by CLS will not be saved in the savefile.");
+              Debug.LogWarning($"Part {part.partInfo.title} is habitable but does not have ModuleConnectedLivingSpace defined in the config. It would be better if it did as some infomation used by CLS will not be saved in the savefile.");
             }
             else if (navigable)
             {
-              Debug.LogWarning("Part " + part.partInfo.title + " is passable but does not have ModuleConnectedLivingSpace defined in the config. It would be better if it did as some infomation used by CLS will not be saved in the savefile.");
+              Debug.LogWarning($"Part {part.partInfo.title} is passable but does not have ModuleConnectedLivingSpace defined in the config. It would be better if it did as some infomation used by CLS will not be saved in the savefile.");
             }
           }
         }
@@ -98,6 +97,7 @@ namespace ConnectedLivingSpace
           if (epModules.Current == null) continue;
           return epModules.Current;
         }
+        epModules.Dispose();
         return null;
       }
     }
@@ -169,6 +169,7 @@ namespace ConnectedLivingSpace
             break;
           }
         }
+        epModules.Dispose();
         part.SetHighlightColor(docNodeColor);
       }
       else if (Navigable)
@@ -186,6 +187,7 @@ namespace ConnectedLivingSpace
             break;
           }
         }
+        epModules.Dispose();
         part.SetHighlightColor(docNodeColor);
       }
       else
@@ -248,6 +250,7 @@ namespace ConnectedLivingSpace
         if (eCrew.Current == null) continue;
         ((CLSKerbal)eCrew.Current).Clear();
       }
+      eCrew.Dispose();
       crew.Clear();
     }
   }

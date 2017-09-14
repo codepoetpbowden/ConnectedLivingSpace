@@ -5,3 +5,12 @@
 /plugins/CLSInterfaces/obj/Debug/CLSInterfaces.csprojResolveAssemblyReference.cache
 plugins/CLSInterfaces/obj/Debug/CLSInterfaces.csproj.FileListAbsolute.txt
 plugins/ConnectedLivingSpace/.vs/config/applicationhost.config
+*.cache
+plugins/ConnectedLivingSpace/obj/
+plugins/ConnectedLivingSpace/bin/
+plugins/CLSInterfaces/bin/
+plugins/ConnectedLivingSpace/.vs/ConnectedLivingSpace/v14/.suo
+*.suo
+*.user
+plugins/CLSInterfaces/obj/
+*.orig
