@@ -1,12 +1,22 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.8
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectedLivingSpace", "ConnectedLivingSpace.csproj", "{9A5AED98-DF4E-418E-969E-144B0B4E02AD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{83DC3693-B67F-4AA7-A553-642E9724BF29} = {83DC3693-B67F-4AA7-A553-642E9724BF29}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLSInterfaces", "..\CLSInterfaces\CLSInterfaces.csproj", "{83DC3693-B67F-4AA7-A553-642E9724BF29}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{3D78B281-74F4-43AA-8529-C13765216D2B}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\buildRelease.bat = ..\..\buildRelease.bat
+		..\..\ChangeLog.txt = ..\..\ChangeLog.txt
+		..\..\ConnectedLivingSpace.version = ..\..\ConnectedLivingSpace.version
+		..\..\deploy.bat = ..\..\deploy.bat
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,5 +51,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E2B7C2B1-B52B-4941-80EE-53D58EC5149B}
 	EndGlobalSection
 EndGlobal
