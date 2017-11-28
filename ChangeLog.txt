@@ -1,0 +1,12 @@
+1.2.5.4
+	Merged PR from @tyehle:
+		Make kibble storage passable. Fixes #87
+
+	Merged PR from @yalov:
+		Localizations
+
+	Merged PR from @cake-pie:
+		Refactor
+
+	Merged PR from @kerbas-ad-astra
+		Some new parts

@@ -1,0 +1,16 @@
+{
+  "NAME": "Connected Living Space",
+  "URL": "http://ksp-avc.cybutek.net/version.php?id=158",
+  "DOWNLOAD": "https://github.com/codepoetpbowden/ConnectedLivingSpace/releases",
+  "VERSION": {
+    "MAJOR": 1,
+    "MINOR": 2,
+    "PATCH": 5,
+    "BUILD": 4
+  },
+  "KSP_VERSION": {
+    "MAJOR": 1,
+    "MINOR": 3,
+    "PATCH": 1
+  }
+}
