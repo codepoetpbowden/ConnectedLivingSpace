@@ -12,8 +12,7 @@
     <AssemblyName>CLSInterfaces</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,7 +34,7 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>R:\KSP_1.3.1_dev\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Games\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,37 +44,22 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>R:\KSP_1.3.1_dev\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Games\SteamLibrary\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyVersion.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>AssemblyVersion.tt</DependentUpon>
-    </Compile>
     <Compile Include="Interfaces.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="AssemblyVersion.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>start /D D:\Users\jbb\github\ConnectedLivingSpace /WAIT deploy.bat  $(TargetDir) $(TargetFileName)
+    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\Games\KSP\Kerbal Space Program1.3.1\GameData\ConnectedLivingSpace\Plugins\"
+copy /Y "$(TargetPath)" "C:\Games\KSP\Kerbal Space Program1.3.1\GameData\ShipManifest\Plugins\"
+copy /Y "$(TargetPath)" "D:\KSP\Mods\PJS\Releases\ConnectedLivingSpace\Build\CLSDevPack\"
+copy /Y "$(TargetPath)" "D:\KSP\Mods\PJS\Git\Source\ShipManifest\ShipManifest\Distribution\GameData\ShipManifest\Plugins\"
+copy /Y "$(TargetPath)" "D:\KSP\Mods\PJS\Git\Source\ShipManifest\ShipManifest\bin\debug\"
+copy /Y "$(ProjectDir)CLSClient.cs" "D:\KSP\Mods\PJS\Releases\ConnectedLivingSpace\Build\CLSDevPack\"
 </PostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PreBuildEvent>
-set textTemplatingPath="%25ProgramFiles(x86)%25\Microsoft Visual Studio\2017\Community\Common7\IDE\texttransform.exe"
-
-%25textTemplatingPath%25 "$(ProjectDir)AssemblyVersion.tt</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
