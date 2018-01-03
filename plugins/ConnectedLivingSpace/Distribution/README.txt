@@ -16,6 +16,22 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.2.5.5 release date: 
+ - New: PR from linuxgurugamer for an Updated CLSB9.cfg: Thanks to @Mine_Turtle:
+		linuxgurugamer has added CDP docking port(supposed to be used with s2 parts) to the
+		list and made s2 crew parts passable, when surface attached. Reason: there
+		is no inline s2 docking adapter, nor it is possible to attach stock
+		docking ports to s2 modules and have crew transfers with CLS.
+
+release v1.2.5.4 release date: 28 Oct 2017 (beta by linuxgurugamer) 
+ - New: Merged PR from @tyehle:	Make kibble storage passable. Fixes #87
+
+ - New: Merged PR from @yalov: Localizations
+
+ - New: Merged PR from @cake-pie: Refactor
+
+ - New: Merged PR from @kerbas-ad-astra: Some new part configs
+
 release v 1.2.5.3 release date: 1 Jun 2017
  - New:  Added Spanish translation. (Thanks to Deltathiago98!)
  
