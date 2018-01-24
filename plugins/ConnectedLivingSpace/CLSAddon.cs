@@ -165,7 +165,7 @@ namespace ConnectedLivingSpace
         // TODO check events
         GameEvents.onFlightReady.Add(OnFlightReady);
         GameEvents.onVesselChange.Add(OnVesselChange);
-        GameEvents.onVesselWasModified.Add(onVesselWasModified);
+        GameEvents.onVesselWasModified.Add(OnVesselWasModified);
         onCLSVesselChange.Add(onCLSVesselChangeHandler);
         GameEvents.onEditorShipModified.Add(OnEditorShipModified);
         GameEvents.onGameSceneSwitchRequested.Add(OnGameSceneSwitchRequested);
@@ -202,7 +202,7 @@ namespace ConnectedLivingSpace
       // TODO check events
       GameEvents.onFlightReady.Remove(OnFlightReady);
       GameEvents.onVesselChange.Remove(OnVesselChange);
-      GameEvents.onVesselWasModified.Remove(onVesselWasModified);
+      GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
       onCLSVesselChange.Remove(onCLSVesselChangeHandler);
       GameEvents.onEditorShipModified.Remove(OnEditorShipModified);
       GameEvents.onGameSceneSwitchRequested.Remove(OnGameSceneSwitchRequested);
@@ -234,7 +234,7 @@ namespace ConnectedLivingSpace
       UpdateActiveVessel();
     }
 
-    private void onVesselWasModified(Vessel data)
+    private void OnVesselWasModified(Vessel data)
     {
       if (data == null || !data.loaded) return;
       data.GetComponent<CLSVesselModule>().MarkDirty();

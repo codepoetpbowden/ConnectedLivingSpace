@@ -27,6 +27,15 @@ namespace ConnectedLivingSpace
       MarkDirty();
     }
 
+    public override void OnUnloadVessel()
+    {
+      if (null != _clsVessel)
+      {
+        _clsVessel.Clear();
+        _clsVessel = null;
+      }
+    }
+
     internal void MarkDirty()
     {
       dirty = true;
@@ -35,6 +44,8 @@ namespace ConnectedLivingSpace
 
     private void RebuildCLSVessel()
     {
+      dirty = false;
+
       if (null != _clsVessel)
       {
         _clsVessel.Clear();
