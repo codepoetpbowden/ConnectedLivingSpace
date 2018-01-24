@@ -61,7 +61,15 @@ namespace ConnectedLivingSpace
         _clsVessel = new CLSVessel();
         _clsVessel.Populate(vessel.rootPart);
 
-        // TODO recoupler support
+        // Recoupler support
+        for (int i = CLSAddon.Instance.requestedConnections.Count - 1; i >= 0; i--)
+        {
+          CLSAddon.ConnectPair connectPair = CLSAddon.Instance.requestedConnections[i];
+          if (connectPair.part1.vessel != connectPair.part2.vessel)
+            CLSAddon.Instance.requestedConnections.Remove(connectPair);
+          _clsVessel.MergeSpaces(connectPair.part1, connectPair.part2);
+        }
+
       }
       catch (Exception ex)
       {

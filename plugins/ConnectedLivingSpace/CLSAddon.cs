@@ -112,6 +112,48 @@ namespace ConnectedLivingSpace
 
     #endregion Instanced Properties
 
+    #region Recoupler support
+    protected internal List<ConnectPair> requestedConnections = new List<ConnectPair>();
+
+    protected internal struct ConnectPair
+    {
+      public Part part1;
+      public Part part2;
+
+      public ConnectPair(Part part1, Part part2)
+      {
+        this.part1 = part1;
+        this.part2 = part2;
+      }
+      public bool Includes(Part part)
+      {
+        return (part1 == part || part2 == part);
+      }
+      public bool IsEquivalentTo(Part part1, Part part2)
+      {
+        return ((this.part1 == part1 && this.part2 == part2) || (this.part1 == part2 && this.part2 == part1));
+      }
+      public static ConnectPair Other(Part part1, Part part2)
+      {
+        return new ConnectPair(part2, part1);
+      }
+      public static ConnectPair Other(ConnectPair connectPair)
+      {
+        return new ConnectPair(connectPair.part2, connectPair.part1);
+      }
+      public ConnectPair Other()
+      {
+        return new ConnectPair(this.part2, this.part1);
+      }
+      public Part OtherPart(Part inPart)
+      {
+        if (!this.Includes(inPart))
+          return null;
+        return part1 == inPart ? part1 : part2;
+      }
+    }
+    #endregion Recoupler support
+
     #region Constructor
     public CLSAddon()
     {
@@ -259,25 +301,46 @@ namespace ConnectedLivingSpace
       if (vesselConstruct.Parts.Count == _editorPartCount) return;
       //Debug.Log("Calling RebuildCLSVessel as the part count has changed in the editor");
 
-      if (null != _vessel)
-      {
-        _vessel.Clear();
-        _vessel = null;
-      }
-
-      if (null != EditorLogic.RootPart)
-      {
-        _vessel = new CLSVessel();
-        _vessel.Populate(EditorLogic.RootPart);
-
-        // TODO recoupler support
-      }
+      UpdateShipConstruct();
 
       _editorPartCount = vesselConstruct.Parts.Count;
       // First unhighlight the space that was selected.
       if (-1 != WindowSelectedSpace && WindowSelectedSpace < _vessel.Spaces.Count)
       {
         _vessel.Spaces[WindowSelectedSpace].Highlight(true);
+      }
+    }
+
+    private void UpdateShipConstruct()
+    {
+      if (null != _vessel)
+      {
+        _vessel.Clear();
+        _vessel = null;
+      }
+
+      if (EditorLogic.RootPart == null)
+        return;
+      
+      try
+      {
+        // Build new vessel information
+        _vessel = new CLSVessel();
+        _vessel.Populate(EditorLogic.RootPart);
+
+        // Recoupler support
+        for (int i = requestedConnections.Count - 1; i >= 0; i--)
+        {
+          ConnectPair connectPair = requestedConnections[i];
+          if (connectPair.part1.vessel != connectPair.part2.vessel)
+            requestedConnections.Remove(connectPair);
+          _vessel.MergeSpaces(connectPair.part1, connectPair.part2);
+        }
+
+      }
+      catch (Exception ex)
+      {
+        Debug.Log($"CLS rebuild Vessel Error:  { ex}");
       }
     }
 
@@ -293,35 +356,87 @@ namespace ConnectedLivingSpace
       if (v == null || !v.loaded) return null;
       return v.GetComponent<CLSVesselModule>()?.CLSVessel;
     }
+
     protected internal bool RequestAddConnection(Part part1, Part part2, bool rebuildVessel = true)
     {
-      // TODO recoupler
-      return false;
+      ConnectPair connectPair = new ConnectPair(part1, part2);
+      if (requestedConnections.Contains(connectPair) || requestedConnections.Contains(connectPair.Other()))
+        return false;
+      requestedConnections.Add(connectPair);
+      if (rebuildVessel)
+        if (HighLogic.LoadedSceneIsEditor)
+          UpdateShipConstruct();
+        else
+          part1.vessel.GetComponent<CLSVesselModule>().MarkDirty();
+      return true;
     }
+
     public bool RequestAddConnection(Part part1, Part part2)
     {
-      // TODO recoupler
-      return false;
+      return RequestAddConnection(part1, part2, true);
     }
+
     public List<bool> RequestAddConnections(List<Part> part1, List<Part> part2)
     {
-      // TODO recoupler
-      return null;
+      List<bool> success = new List<bool>();
+      if (part1.Count != part2.Count)
+        return success;
+      for (int i = 0; i < part1.Count; i++)
+      {
+        success.Add(RequestAddConnection(part1[i], part2[i], false));
+      }
+      if (!success.Any((bool b) => b)) return success;
+      if (HighLogic.LoadedSceneIsEditor)
+        UpdateShipConstruct();
+      else
+        foreach (Vessel v in success.Select((x, i) => new { suc = x, idx = i }).Where(x => x.suc).Select(x => part1.ElementAt(x.idx)).Select(p => p.vessel).Distinct())
+          v.GetComponent<CLSVesselModule>().MarkDirty();
+      return success;
     }
+
     protected internal bool RequestRemoveConnection(Part part1, Part part2, bool rebuildVessel = true)
     {
-      // TODO recoupler
-      return false;
+      bool modified = false;
+      ConnectPair CPtoRemove = new ConnectPair(part1, part2);
+      if (requestedConnections.Contains(CPtoRemove))
+      {
+        requestedConnections.Remove(CPtoRemove);
+        modified = true;
+      }
+      else if (requestedConnections.Contains(CPtoRemove.Other()))
+      {
+        requestedConnections.Remove(CPtoRemove.Other());
+        modified = true;
+      }
+      if (modified && rebuildVessel)
+        if (HighLogic.LoadedSceneIsEditor)
+          UpdateShipConstruct();
+        else
+          part1.vessel.GetComponent<CLSVesselModule>().MarkDirty();
+      return modified;
     }
+
     public bool RequestRemoveConnection(Part part1, Part part2)
     {
-      // TODO recoupler
-      return false;
+      return RequestRemoveConnection(part1, part2, true);
     }
+
     public List<bool> RequestRemoveConnections(List<Part> part1, List<Part> part2)
     {
-      // TODO recoupler
-      return null;
+      List<bool> success = new List<bool>();
+      if (part1.Count != part2.Count)
+        return success;
+      for (int i = 0; i < part1.Count; i++)
+      {
+        success.Add(RequestRemoveConnection(part1[i], part2[i], false));
+      }
+      if (!success.Any((bool b) => b)) return success;
+      if (HighLogic.LoadedSceneIsEditor)
+        UpdateShipConstruct();
+      else
+        foreach (Vessel v in success.Select((x, i) => new { suc = x, idx = i }).Where(x => x.suc).Select(x => part1.ElementAt(x.idx)).Select(p => p.vessel).Distinct())
+          v.GetComponent<CLSVesselModule>().MarkDirty();
+      return success;
     }
     #endregion API Support
 
