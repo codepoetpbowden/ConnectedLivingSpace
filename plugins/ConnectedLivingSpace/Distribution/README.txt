@@ -1,4 +1,4 @@
-Connected Living Space v1.2.5.3
+Connected Living Space v1.2.5.5
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -25,11 +25,8 @@ release v1.2.5.5 release date:
 
 release v1.2.5.4 release date: 28 Oct 2017 (beta by linuxgurugamer) 
  - New: Merged PR from @tyehle:	Make kibble storage passable. Fixes #87
-
  - New: Merged PR from @yalov: Localizations
-
  - New: Merged PR from @cake-pie: Refactor
-
  - New: Merged PR from @kerbas-ad-astra: Some new part configs
 
 release v 1.2.5.3 release date: 1 Jun 2017
