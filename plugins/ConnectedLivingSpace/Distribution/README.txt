@@ -1,4 +1,4 @@
-Connected Living Space v1.2.5.6
+Connected Living Space v1.2.5.7
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,8 +16,12 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.2.5.7 release date:  30 Jan 2018
+ - Fixed: Passable strings reversed. Git Issue #92.
+ - Fixed: Hatch status reporting error in tweakable. Git Issue #93.
+
 release v1.2.5.6 release date:  29 Jan 2018
- - Correct errors in config files for Mod version, and KSP version supported.
+ - Fixed: Errors in config files for Mod version, and KSP version supported.
 
 release v1.2.5.5 release date:  03 Jan 2018 
  - New: PR from linuxgurugamer for an Updated CLSB9.cfg: Thanks to @Mine_Turtle:

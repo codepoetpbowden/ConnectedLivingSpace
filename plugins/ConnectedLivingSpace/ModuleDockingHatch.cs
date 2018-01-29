@@ -204,6 +204,7 @@ namespace ConnectedLivingSpace
           hatchOpen = true;
         }
       }
+      hatchStatus = hatchOpen ? _strOpen : _strClosed;
     }
 
     private void SetLocalization()
