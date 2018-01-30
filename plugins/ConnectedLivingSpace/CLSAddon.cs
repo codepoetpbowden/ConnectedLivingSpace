@@ -167,6 +167,8 @@ namespace ConnectedLivingSpace
         GameEvents.onVesselChange.Add(OnVesselChange);
         GameEvents.onVesselWasModified.Add(onVesselWasModified);
         onCLSVesselChange.Add(onCLSVesselChangeHandler);
+        //GameEvents.onEditorPodPicked.Add(OnEditorPodPicked);
+        GameEvents.onEditorPodDeleted.Add(OnEditorPodDeleted);
         GameEvents.onEditorShipModified.Add(OnEditorShipModified);
         GameEvents.onGameSceneSwitchRequested.Add(OnGameSceneSwitchRequested);
 
@@ -204,6 +206,8 @@ namespace ConnectedLivingSpace
       GameEvents.onVesselChange.Remove(OnVesselChange);
       GameEvents.onVesselWasModified.Remove(onVesselWasModified);
       onCLSVesselChange.Remove(onCLSVesselChangeHandler);
+      //GameEvents.onEditorPodPicked.Remove(OnEditorPodPicked);
+      GameEvents.onEditorPodDeleted.Remove(OnEditorPodDeleted);
       GameEvents.onEditorShipModified.Remove(OnEditorShipModified);
       GameEvents.onGameSceneSwitchRequested.Remove(OnGameSceneSwitchRequested);
 
@@ -252,6 +256,26 @@ namespace ConnectedLivingSpace
       if (!WindowVisable || WindowSelectedSpace <= -1) return;
       _vessel.Highlight(false);
       _vessel.Spaces[CLSAddon.WindowSelectedSpace].Highlight(true);
+    }
+
+    // Git Issue #85.  sometimes spaces are not updating on a vessel.  Deleting a pod does not clear the current vessel.
+    private void OnEditorPodPicked(Part part)
+    {
+      _vessel.Clear();
+      _vessel = null;
+      if (null != EditorLogic.RootPart)
+      {
+        _vessel = new CLSVessel();
+        _vessel.Populate(EditorLogic.RootPart);
+      }
+      _editorPartCount = 1;
+    }
+    // Git Issue #85.  sometimes spaces are not updating on a vessel.  Deleting a pod does not clear the current vessel.
+    private void OnEditorPodDeleted()
+    {
+      _vessel.Clear();
+      _vessel = null;
+      _editorPartCount = 0;
     }
 
     private void OnEditorShipModified(ShipConstruct vesselConstruct)

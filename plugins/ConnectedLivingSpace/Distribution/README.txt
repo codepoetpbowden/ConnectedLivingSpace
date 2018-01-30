@@ -17,7 +17,10 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 changelog:
 ----------
 release v1.2.5.7 release date:  30 Jan 2018
- - Fixed: Passable strings reversed. Git Issue #92.
+ - Changed:  Color for "No" response in information displays changed from Maroon to OrangeRed to improve readability (contrast)
+ - Fixed: Blizzy's Toolbar wrapper needs updating.  Git Issue #77
+ - Fixed: Vessel data is not updated when creating/modifying/deleting a vessel in the Vessel Editor.  Git Issue #85
+ - Fixed: Passable strings reversed. Git Issue #92. (thanks to @yalov!)
  - Fixed: Hatch status reporting error in tweakable. Git Issue #93.
 
 release v1.2.5.6 release date:  29 Jan 2018
@@ -33,7 +36,7 @@ release v1.2.5.5 release date:  03 Jan 2018
 release v1.2.5.4 release date: 28 Oct 2017 (beta by linuxgurugamer) 
  - New: Merged PR from @tyehle:	Make kibble storage passable. Fixes #87
  - New: Merged PR from @yalov: Localizations
- - New: Merged PR from @cake-pie: Refactor
+ - New: Merged PR from @cake-pie: Refactor. Git Issue #83
  - New: Merged PR from @kerbas-ad-astra: Some new part configs
 
 release v 1.2.5.3 release date: 1 Jun 2017

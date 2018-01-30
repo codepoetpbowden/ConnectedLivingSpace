@@ -31,7 +31,7 @@ namespace ConnectedLivingSpace
 
     // For localization.  These are the default (english) values...
     private static string _strYes = $"<color={XKCDColors.HexFormat.Lime}>Yes</color>";
-    private static string _strNo = $"<color={ XKCDColors.HexFormat.Maroon}>No</color>";
+    private static string _strNo = $"<color={ XKCDColors.HexFormat.OrangeRed}>No</color>";
     private static string _strAll = "All";
     private static string _strNone = "None";
     private static string _strPassable = "Passable";
@@ -154,7 +154,7 @@ namespace ConnectedLivingSpace
     private void SetLocalization()
     {
       _strYes = $"<color={XKCDColors.HexFormat.Lime}>{CLSAddon.Localize("#clsloc_017")}</color>";
-      _strNo = $"<color={ XKCDColors.HexFormat.Maroon}>{CLSAddon.Localize("#clsloc_018")}</color>";
+      _strNo = $"<color={ XKCDColors.HexFormat.OrangeRed}>{CLSAddon.Localize("#clsloc_018")}</color>";
       _strAll = CLSAddon.Localize("#clsloc_019");
       _strNone = CLSAddon.Localize("#clsloc_020");
       _strPassable = CLSAddon.Localize("#clsloc_021");

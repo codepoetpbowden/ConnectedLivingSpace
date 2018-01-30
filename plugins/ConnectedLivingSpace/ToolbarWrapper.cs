@@ -273,7 +273,7 @@ namespace ConnectedLivingSpace
     /// <code>
     /// IButton button = ...
     /// button.OnClick += (e) => {
-    ///     Debug.Log($"[CLS]:  button clicked, mouseButton: {e.MouseButton}");
+    ///     Debug.Log("button clicked, mouseButton: " + e.MouseButton);
     /// };
     /// </code>
     /// </example>
@@ -286,7 +286,7 @@ namespace ConnectedLivingSpace
     /// <code>
     /// IButton button = ...
     /// button.OnMouseEnter += (e) => {
-    ///     Debug.Log("[CLS]:  mouse entered button");
+    ///     Debug.Log("mouse entered button");
     /// };
     /// </code>
     /// </example>
@@ -299,7 +299,7 @@ namespace ConnectedLivingSpace
     /// <code>
     /// IButton button = ...
     /// button.OnMouseLeave += (e) => {
-    ///     Debug.Log("[CLS]:  mouse left button");
+    ///     Debug.Log("mouse left button");
     /// };
     /// </code>
     /// </example>
@@ -428,7 +428,7 @@ namespace ConnectedLivingSpace
   /// <example>
   /// <code>
   /// IButton button = ...
-  /// button.Visibility = new GameScenesVisibility(GameScenes.EDITOR, GameScenes.SPH);
+  /// button.Visibility = new GameScenesVisibility(GameScenes.EDITOR, GameScenes.FLIGHT);
   /// </code>
   /// </example>
   /// <seealso cref="IButton.Visibility"/>
@@ -541,7 +541,7 @@ namespace ConnectedLivingSpace
 
   public partial class ToolbarManager : IToolbarManager
   {
-    private static bool? toolbarAvailable;
+    private static bool? toolbarAvailable = null;
     private static IToolbarManager instance_;
 
     private object realToolbarManager;
@@ -710,9 +710,9 @@ namespace ConnectedLivingSpace
         if (value != null)
         {
           functionDrawable = Activator.CreateInstance(types.functionDrawableType, new object[] {
-						new Action(() => value.Update()),
-						new Func<Vector2, Vector2>((pos) => value.Draw(pos))
-					});
+            new Action(() => value.Update()),
+            new Func<Vector2, Vector2>((pos) => value.Draw(pos))
+          });
         }
         types.button.drawableProperty.SetValue(realButton, functionDrawable, null);
         drawable_ = value;
@@ -823,11 +823,12 @@ namespace ConnectedLivingSpace
     internal static Type getType(string name)
     {
       Type type = null;
-      AssemblyLoader.loadedAssemblies.TypeOperation(t =>
-      {
-        if (t.FullName == name) type = t;
+      AssemblyLoader.loadedAssemblies.TypeOperation(t => {
+        if (t.FullName == name)
+        {
+          type = t;
+        }
       });
-
       return type;
     }
 
