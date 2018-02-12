@@ -34,6 +34,14 @@ namespace ConnectedLivingSpace
         _clsVessel.Clear();
         _clsVessel = null;
       }
+
+      // Recoupler support
+      for (int i = CLSAddon.Instance.requestedConnections.Count - 1; i >= 0; i--)
+      {
+        CLSAddon.ConnectPair connectPair = CLSAddon.Instance.requestedConnections[i];
+        if (connectPair.part1.vessel == this.vessel)
+          CLSAddon.Instance.requestedConnections.Remove(connectPair);
+      }
     }
 
     internal void MarkDirty()
