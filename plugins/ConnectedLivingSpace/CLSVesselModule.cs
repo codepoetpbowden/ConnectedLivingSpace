@@ -27,6 +27,23 @@ namespace ConnectedLivingSpace
       MarkDirty();
     }
 
+    public override void OnUnloadVessel()
+    {
+      if (null != _clsVessel)
+      {
+        _clsVessel.Clear();
+        _clsVessel = null;
+      }
+
+      // Recoupler support
+      for (int i = CLSAddon.Instance.requestedConnections.Count - 1; i >= 0; i--)
+      {
+        CLSAddon.ConnectPair connectPair = CLSAddon.Instance.requestedConnections[i];
+        if (connectPair.part1.vessel == this.vessel)
+          CLSAddon.Instance.requestedConnections.Remove(connectPair);
+      }
+    }
+
     internal void MarkDirty()
     {
       dirty = true;
@@ -35,6 +52,8 @@ namespace ConnectedLivingSpace
 
     private void RebuildCLSVessel()
     {
+      dirty = false;
+
       if (null != _clsVessel)
       {
         _clsVessel.Clear();
@@ -50,7 +69,15 @@ namespace ConnectedLivingSpace
         _clsVessel = new CLSVessel();
         _clsVessel.Populate(vessel.rootPart);
 
-        // TODO recoupler support
+        // Recoupler support
+        for (int i = CLSAddon.Instance.requestedConnections.Count - 1; i >= 0; i--)
+        {
+          CLSAddon.ConnectPair connectPair = CLSAddon.Instance.requestedConnections[i];
+          if (connectPair.part1.vessel != connectPair.part2.vessel)
+            CLSAddon.Instance.requestedConnections.Remove(connectPair);
+          _clsVessel.MergeSpaces(connectPair.part1, connectPair.part2);
+        }
+
       }
       catch (Exception ex)
       {
