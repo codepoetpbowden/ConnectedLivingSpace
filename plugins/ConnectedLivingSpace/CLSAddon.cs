@@ -538,7 +538,7 @@ namespace ConnectedLivingSpace
           DummyVoid,
           DummyVoid,
           ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.FLIGHT,
-          GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off", false));
+          GameDatabase.Instance.GetTexture("ConnectedLivingSpace/assets/cls_icon_off_128", false));
     }
 
     void OnGUIAppLauncherDestroyed()
@@ -561,7 +561,7 @@ namespace ConnectedLivingSpace
       if (EnableBlizzyToolbar)
         BlizzyToolbarButton.TexturePath = WindowVisable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
       else
-        _stockToolbarButton.SetTexture(GameDatabase.Instance.GetTexture(WindowVisable ? "ConnectedLivingSpace/assets/cls_icon_on" : "ConnectedLivingSpace/assets/cls_icon_off", false));
+        _stockToolbarButton.SetTexture(GameDatabase.Instance.GetTexture(WindowVisable ? "ConnectedLivingSpace/assets/cls_icon_on_128" : "ConnectedLivingSpace/assets/cls_icon_off_128", false));
     }
 
     internal bool ActivateBlizzyToolBar()

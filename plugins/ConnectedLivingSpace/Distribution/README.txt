@@ -1,4 +1,4 @@
-Connected Living Space v1.2.5.7
+Connected Living Space v1.2.5.8
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,11 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.2.5.8 release date:  xx Mar 2018
+ - New: Recompiled for KSP 1.4.x
+ - Fixed: CLS ApplicationLauncher Button is blurry in KSP 1.4 update.  Updated textures to 128x128 px. Git issue #95.
+ - Added back in Recoupler support.  Previous PR#83 accidently removed it.  Merged PR#94.  Git issue #83.
+
 release v1.2.5.7 release date:  30 Jan 2018
  - Changed:  Color for "No" response in information displays changed from Maroon to OrangeRed to improve readability (contrast)
  - Fixed: Blizzy's Toolbar wrapper needs updating.  Git Issue #77
