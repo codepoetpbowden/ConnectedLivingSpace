@@ -16,8 +16,8 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
-release v1.2.5.8 release date:  xx Mar 2018
- - New: Recompiled for KSP 1.4.x
+release v1.2.5.8 release date:  17 Mar 2018
+ - New: Recompiled for KSP 1.4.1
  - Fixed: CLS ApplicationLauncher Button is blurry in KSP 1.4 update.  Updated textures to 128x128 px. Git issue #95.
  - Added back in Recoupler support.  Previous PR#83 accidently removed it.  Merged PR#94.  Git issue #83.
 
