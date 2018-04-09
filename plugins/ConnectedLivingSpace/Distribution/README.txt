@@ -16,9 +16,11 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
-release v1.2.6.0 release date:  10 Apr 2018
-- Added configs for new Mk1-3 pod
+release v1.2.6.0 release date:  09 Apr 2018
+- Added configs for new Mk1-3 pod to base CLSStock.cfg
 - Added configs for Making History Expansion
+- Added configs to CLSStockFreedomAddon.txt per PR97 by wookieegoldberg, Thanks wookie!  
+  this updates some renamed parts, and adds some Making history parts.
 
 release v1.2.5.8 release date:  17 Mar 2018
  - New: Recompiled for KSP 1.4.1
