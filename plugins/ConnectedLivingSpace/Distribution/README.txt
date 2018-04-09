@@ -1,4 +1,4 @@
-Connected Living Space v1.2.5.8
+Connected Living Space v1.2.6.0
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,10 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.2.6.0 release date:  10 Apr 2018
+- Added configs for new Mk1-3 pod
+- Added configs for Making History Expansion
+
 release v1.2.5.8 release date:  17 Mar 2018
  - New: Recompiled for KSP 1.4.1
  - Fixed: CLS ApplicationLauncher Button is blurry in KSP 1.4 update.  Updated textures to 128x128 px. Git issue #95.

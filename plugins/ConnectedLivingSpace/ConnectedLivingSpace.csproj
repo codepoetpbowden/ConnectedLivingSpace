@@ -98,6 +98,8 @@
     <Content Include="Distribution\README.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSModuleDockingHatch.cfg" />
+    <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSStockMH.cfg" />
     <None Include="Distribution\GameData\ConnectedLivingSpace\ConnectedLivingSpace.version" />
     <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\ASETStackableInlineLights.cfg" />
     <None Include="Distribution\GameData\ConnectedLivingSpace\Configs\CLSB9.cfg" />
