@@ -16,3 +16,4 @@ plugins/CLSInterfaces/obj/
 *.orig
 plugins/ConnectedLivingSpace/.vs/
 plugins/ConnectedLivingSpace/Distribution/GameData/ConnectedLivingSpace/Plugins/
+ConnectedLivingSpace/bin/Debug/ConnectedLivingSpace.dll.mdb
