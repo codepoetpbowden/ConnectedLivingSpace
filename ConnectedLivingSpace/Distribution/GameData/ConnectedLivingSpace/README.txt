@@ -1,4 +1,4 @@
-Connected Living Space v1.2.6.0
+Connected Living Space v1.2.6.1
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -16,6 +16,11 @@ ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommerc
 
 changelog:
 ----------
+release v1.2.6.1 release date:  09 Apr 2018
+- Made solution structural changes to ensure improved multi developer support and distribution.  Reorganized / cleaned up solution folders
+- Added missing configs configs to CLSStockFreedomAddon.txt per PR97 by wookieegoldberg, Thanks wookie!  
+  this updates some renamed parts, and adds some Making history parts.
+
 release v1.2.6.0 release date:  09 Apr 2018
 - Added configs for new Mk1-3 pod to base CLSStock.cfg
 - Added configs for Making History Expansion
