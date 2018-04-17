@@ -208,6 +208,7 @@ namespace ConnectedLivingSpace
         GameEvents.onFlightReady.Add(OnFlightReady);
         GameEvents.onVesselChange.Add(OnVesselChange);
         GameEvents.onVesselWasModified.Add(OnVesselWasModified);
+        GameEvents.onCrewTransferred.Add(OnCrewTransferred);
         onCLSVesselChange.Add(onCLSVesselChangeHandler);
         //GameEvents.onEditorPodPicked.Add(OnEditorPodPicked);
         GameEvents.onEditorPodDeleted.Add(OnEditorPodDeleted);
@@ -247,6 +248,7 @@ namespace ConnectedLivingSpace
       GameEvents.onFlightReady.Remove(OnFlightReady);
       GameEvents.onVesselChange.Remove(OnVesselChange);
       GameEvents.onVesselWasModified.Remove(OnVesselWasModified);
+      GameEvents.onCrewTransferred.Remove(OnCrewTransferred);
       onCLSVesselChange.Remove(onCLSVesselChangeHandler);
       //GameEvents.onEditorPodPicked.Remove(OnEditorPodPicked);
       GameEvents.onEditorPodDeleted.Remove(OnEditorPodDeleted);
@@ -284,6 +286,14 @@ namespace ConnectedLivingSpace
     {
       if (data == null || !data.loaded) return;
       data.GetComponent<CLSVesselModule>().MarkDirty();
+    }
+
+    // CLS state needs to be updated for crew movements (transfers between parts, to/from EVA)
+    private void OnCrewTransferred(GameEvents.HostedFromToAction<ProtoCrewMember, Part> data)
+    {
+      data.from.vessel.GetComponent<CLSVesselModule>().MarkDirty();
+      if (data.from.vessel != data.to.vessel)
+        data.to.vessel.GetComponent<CLSVesselModule>().MarkDirty();
     }
 
     private void onCLSVesselChangeHandler(Vessel data)
