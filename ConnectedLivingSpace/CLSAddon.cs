@@ -345,6 +345,15 @@ namespace ConnectedLivingSpace
       }
     }
 
+    internal void DelayedUpdateShipConstruct()
+    {
+      StartCoroutine(DelayUpdateShipConstruct());
+    }
+    private IEnumerator DelayUpdateShipConstruct() {
+      yield return new WaitForEndOfFrame();
+      UpdateShipConstruct();
+    }
+
     private void UpdateShipConstruct()
     {
       if (null != _vessel)

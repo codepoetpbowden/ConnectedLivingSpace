@@ -56,6 +56,9 @@ namespace ConnectedLivingSpace
           }
         }
       }
+
+      // Run check for dynamic crew capacity
+      CheckDCC();
     }
 
     public ICLSSpace Space
@@ -253,5 +256,29 @@ namespace ConnectedLivingSpace
       eCrew.Dispose();
       crew.Clear();
     }
+
+    #region Dynamic Crew Capacity
+    // Compatibility for parts with dynamic crew capacity defined in ModuleAnimateGeneric.CrewCapacity
+    private void CheckDCC()
+    {
+      IEnumerator<ModuleAnimateGeneric> eDCCMAG = part.FindModulesImplementing<ModuleAnimateGeneric>().Where(mag => mag.CrewCapacity > 0).GetEnumerator();
+      while (eDCCMAG.MoveNext())
+        eDCCMAG.Current.OnStop.Add(OnStopHandler);
+      eDCCMAG.Dispose();
+    }
+
+    private void OnStopHandler (float param) {
+      IEnumerator<ModuleAnimateGeneric> eDCCMAG = part.FindModulesImplementing<ModuleAnimateGeneric>().Where(mag => mag.CrewCapacity > 0).GetEnumerator();
+      while (eDCCMAG.MoveNext())
+        eDCCMAG.Current.OnStop.Remove(OnStopHandler);
+      eDCCMAG.Dispose();
+
+      if (HighLogic.LoadedSceneIsEditor)
+        CLSAddon.Instance.DelayedUpdateShipConstruct();
+      else
+        part.vessel.GetComponent<CLSVesselModule>().MarkDirty();
+    }
+    #endregion Dynamic Crew Capacity
+
   }
 }
