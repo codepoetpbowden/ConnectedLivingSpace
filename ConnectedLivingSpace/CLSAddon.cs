@@ -62,12 +62,9 @@ namespace ConnectedLivingSpace
     private static string _clsLocOptPassable = "Enable Optional Passable Parts\\n(Requires game restart)";
     private static string _clsLocBlizzy = "Use Blizzy's Toolbar instead of Stock";
     private static string _clsLocWarnFull = "CLS - This module is either full or internally unreachable (different spaces)";
-    private static string _clsLocWarnXfer = "CLS has prevented the transfer of";
-    private static string _clsLocAnd = "and ";
-    private static string _clsLocNotSameLs = "are not in the same living space";
+    private static string _clsLocWarnXfer = "CLS has prevented the transfer of: <<1>>.  <<2>> and <<3>> are not in the same living space.";
     private static string _clsLocNone = "None";
-
-
+    
     public static CLSAddon Instance
     {
       get;
@@ -541,8 +538,11 @@ namespace ConnectedLivingSpace
       
       // Okay, houston, we have a problem.   Prevent transfer.
       crewTransferData.canTransfer = false;
-      ScreenMessages.PostScreenMessage(
-        $"<color=orange>{_clsLocWarnXfer}: {crewTransferData.crewMember.name}.  {crewTransferData.sourcePart.partInfo.title} {_clsLocAnd} {crewTransferData.destPart.partInfo.title} {_clsLocNotSameLs}.</color>", 10f);
+      _clsLocWarnXfer.Replace("<<1>>", crewTransferData.crewMember.name);
+      _clsLocWarnXfer.Replace("<<2>>", crewTransferData.sourcePart.partInfo.title);
+      _clsLocWarnXfer.Replace("<<3>>", crewTransferData.destPart.partInfo.title);
+
+      ScreenMessages.PostScreenMessage($"<color=orange>{_clsLocWarnXfer}</color>", 10f);
     }
     #endregion Crew Transfer Restriction
 
@@ -1089,9 +1089,7 @@ namespace ConnectedLivingSpace
       _clsLocOptPassable = Localize("#clsloc_011"); // "Enable Optional Passable Parts\\n(Requires game restart)";
       _clsLocBlizzy = Localize("#clsloc_012"); // "Use Blizzy's Toolbar instead of Stock";
       _clsLocWarnFull = Localize("#clsloc_013"); // "CLS - This module is either full or internally unreachable (different spaces)";
-      _clsLocWarnXfer = Localize("#clsloc_014"); // "CLS has prevented the transfer of";
-      _clsLocAnd = Localize("#clsloc_015"); // "and";
-      _clsLocNotSameLs = Localize("#clsloc_016"); // "are not in the same living space";
+      _clsLocWarnXfer = Localize("#clsloc_014"); // "CLS has prevented the transfer of...";
       _clsLocPartCount = Localize("#clsloc_040"); // "Selected Space Parts Count"
       _clsLocParts = Localize("#clsloc_041"); // "Parts";
       _clsLocNone = Localize("#clsloc_020"); // "None"

@@ -1,4 +1,4 @@
-Connected Living Space v1.2.6.1
+Connected Living Space v1.2.6.2
 ---------------------------
 
 To install copy the GameData folder to your KSP folder. Module Manager is required to load the configuration.
@@ -13,9 +13,18 @@ License:
 --------
 
 ConnectedLivingSpace is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+Read the license here: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
 changelog:
 ----------
+release v1.2.6.2 release date:  xx Apr 2018
+- recompiled for 1.4.3
+- fixed Git issue #96 localization of certain languages due to string order.
+- incorporate PR #98 from cake-pie correct updating cls state on crew movements Thanks cake-pie!
+- fixed Git issue #99 inflatable airlock deploy/retract does not update clsvessel state.  Incorporate PR #100 from cake-pie.
+- Added surface attached is passable to structural tubes (Making History).
+- Recoupler issue hatch status not changing when opening/closing hatches after recouple
+
 release v1.2.6.1 release date:  09 Apr 2018
 - Made solution structural changes to ensure improved multi developer support and distribution.  Reorganized / cleaned up solution folders
 - Added missing configs configs to CLSStockFreedomAddon.txt per PR97 by wookieegoldberg, Thanks wookie!  

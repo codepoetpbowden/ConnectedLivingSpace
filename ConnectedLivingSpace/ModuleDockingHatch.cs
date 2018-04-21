@@ -269,15 +269,12 @@ namespace ConnectedLivingSpace
       }
       // If we are here, we have an orphaned hatch.  we may be able to recover if the part only has one docking module...
       // TODO, check for dups in the same part...
-      if (this.part.FindModulesImplementing<ModuleDockingNode>().Count == 1)
-      {
-        // we are good.  lets fix the hatch and continue
-        modDockNode = this.part.FindModulesImplementing<ModuleDockingNode>().First();
-        docNodeTransformName = modDockNode.nodeTransformName;
-        docNodeAttachmentNodeName = modDockNode.referenceAttachNode;
-        return true;
-      }
-      return false;
+      if (this.part.FindModulesImplementing<ModuleDockingNode>().Count != 1) return false;
+      // we are good.  lets fix the hatch and continue
+      modDockNode = this.part.FindModulesImplementing<ModuleDockingNode>().First();
+      docNodeTransformName = modDockNode.nodeTransformName;
+      docNodeAttachmentNodeName = modDockNode.referenceAttachNode;
+      return true;
     }
 
     // tries to work out if the docking port is docked based on the state
