@@ -73,6 +73,8 @@ namespace ConnectedLivingSpace
 
     public static EventData<Vessel> onCLSVesselChange = new EventData<Vessel>("onCLSVesselChange");
 
+    internal static bool dynamicCrewCapacity = true;
+
     #endregion static Properties
 
     #region Instanced Properties
@@ -195,6 +197,10 @@ namespace ConnectedLivingSpace
       _settingsFile = $"{_settingsPath}/cls_settings.dat";
 
       _windowStyle = new GUIStyle(HighLogic.Skin.window);
+
+      // Dynamic crew capacity doesn't exist before KSP 1.4+; insulate older KSP versions from DCC code
+      if (Versioning.version_major < 1 || (Versioning.version_major == 1 && Versioning.version_minor < 4))
+        dynamicCrewCapacity = false;
 
       // load toolbar selection setting
       ApplySettings();

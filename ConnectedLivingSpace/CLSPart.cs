@@ -58,7 +58,8 @@ namespace ConnectedLivingSpace
       }
 
       // Run check for dynamic crew capacity
-      CheckDCC();
+      if (CLSAddon.dynamicCrewCapacity)
+        CheckDCC();
     }
 
     public ICLSSpace Space
