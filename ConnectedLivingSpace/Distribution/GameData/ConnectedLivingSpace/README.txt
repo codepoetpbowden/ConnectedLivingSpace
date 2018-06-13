@@ -17,11 +17,14 @@ Read the license here: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
 changelog:
 ----------
-release v1.2.6.2 release date:  xx Apr 2018
+release v1.2.6.2 release date:  13 Jun 2018
 - recompiled for 1.4.3
-- fixed Git issue #96 localization of certain languages due to string order.
-- incorporate PR #98 from cake-pie correct updating cls state on crew movements Thanks cake-pie!
+- incorporate PR #102 Add Italian translation.  Thanks to CRL42!
+- incorporate PRs #101 from cake-pie make CLS 1.3.1 compatible. Thanks cake-pie!
+- Updated KSP-AVC version file to reflect backwards compatibility to KSP 1.3.1
 - fixed Git issue #99 inflatable airlock deploy/retract does not update clsvessel state.  Incorporate PR #100 from cake-pie.
+- incorporate PR #98 from cake-pie correct updating cls state on crew movements Thanks cake-pie!
+- fixed Git issue #96 localization of certain languages due to string order.
 - Added surface attached is passable to structural tubes (Making History).
 - Recoupler issue hatch status not changing when opening/closing hatches after recouple
 
