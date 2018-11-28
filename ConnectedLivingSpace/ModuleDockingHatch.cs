@@ -128,7 +128,8 @@ namespace ConnectedLivingSpace
       HatchOpen = hatchOpen;
 
       // Set the GUI state of the open/close hatch events as appropriate
-      if (isInDockedState() || isAttachedToDockingPort())
+      if (HighLogic.LoadedScene != GameScenes.LOADING
+          && (isInDockedState() || isAttachedToDockingPort()))
       {
         if (HatchOpen)
         {
