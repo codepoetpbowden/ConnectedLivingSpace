@@ -17,6 +17,9 @@ namespace ConnectedLivingSpace
     [KSPField]
     public string docNodeTransformName = "dockingNode";
 
+    [KSPField]
+    public string hatchName;
+
     internal ModuleDockingNode modDockNode;
 
     // For localization.  These are the default (english) values...
@@ -165,65 +168,37 @@ namespace ConnectedLivingSpace
 
     private void SetEventGuiNames()
     {
-      Fields["hatchStatus"].guiName = _strHatchStatus;
-      Events["OpenHatch"].guiName = _strOpenHatch;
-      Events["CloseHatch"].guiName = _strCloseHatch;
+      string space = !string.IsNullOrEmpty(hatchName) ? " " : "";
+      Fields["hatchStatus"].guiName = hatchName + space + _strHatchStatus;
+      Events["OpenHatch"].guiName = _strOpenHatch + space + hatchName;
+      Events["CloseHatch"].guiName = _strCloseHatch + space + hatchName;
     }
 
-    private bool CheckModuleDockingNode()
+    private void FindDockingPort()
     {
-      if (null == modDockNode)
+      modDockNode = null;
+      var ports = part.FindModulesImplementing<ModuleDockingNode> ();
+      // search for the specified docking port
+      for (int i = 0; i < ports.Count; i++)
       {
-        // We do not know which ModuleDockingNode we are attached to yet. Try to find one.
-        IEnumerator<ModuleDockingNode> eNodes = part.Modules.OfType<ModuleDockingNode>().GetEnumerator();
-        while (eNodes.MoveNext())
+        if (ports[i].nodeTransformName == docNodeTransformName)
         {
-          if (eNodes.Current == null) continue;
-          if (IsRelatedDockingNode(eNodes.Current))
-          {
-            modDockNode = eNodes.Current;
-            return true;
-          }
+          modDockNode = ports[i];
+          break;
         }
-        eNodes.Dispose();
       }
-      else
+      // if not found, then just grab the first
+      if (modDockNode == null && ports.Count > 0)
       {
-        return true;
+        modDockNode = ports[0];
       }
-      return false;
-    }
-
-    // This method allows us to check if a specified ModuleDockingNode is one that this hatch is attached to
-    internal bool IsRelatedDockingNode(ModuleDockingNode dockNode)
-    {
-      if (dockNode.nodeTransformName == docNodeTransformName)
-      {
-        if (string.IsNullOrEmpty(docNodeAttachmentNodeName)) docNodeAttachmentNodeName = dockNode.referenceNode.id;
-        modDockNode = dockNode;
-        return true;
-      }
-      if (dockNode.referenceNode.id == docNodeAttachmentNodeName)
-      {
-        if (string.IsNullOrEmpty(docNodeTransformName)) docNodeTransformName = dockNode.nodeTransformName;
-        modDockNode = dockNode;
-        return true;
-      }
-      // If we are here, we have an orphaned hatch.  we may be able to recover if the part only has one docking module...
-      // TODO, check for dups in the same part...
-      if (this.part.FindModulesImplementing<ModuleDockingNode>().Count != 1) return false;
-      // we are good.  lets fix the hatch and continue
-      modDockNode = this.part.FindModulesImplementing<ModuleDockingNode>().First();
-      docNodeTransformName = modDockNode.nodeTransformName;
-      docNodeAttachmentNodeName = modDockNode.referenceAttachNode;
-      return true;
     }
 
     // tries to work out if the docking port is docked based on the state
     private bool isInDockedState()
     {
       // First ensure that we know which ModuleDockingNode we are referring to.
-      if (CheckModuleDockingNode())
+      if (modDockNode != null)
       {
         if (modDockNode.state == "Docked (dockee)" || modDockNode.state == "Docked (docker)")
         {
@@ -276,6 +251,7 @@ namespace ConnectedLivingSpace
     #region Event Handlers
     public override void OnStart(PartModule.StartState state)
     {
+      FindDockingPort();
       SetLocalization();
       SetEventGuiNames();
       if (HighLogic.LoadedSceneIsFlight) SetEventStates();
