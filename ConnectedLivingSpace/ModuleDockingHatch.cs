@@ -106,8 +106,6 @@ namespace ConnectedLivingSpace
     [KSPEvent(active = true, guiActive = true, guiName = "Close Hatch")]
     private void CloseHatch()
     {
-      bool docked = isInDockedState();
-
       hatchOpen = false;
 
       Events["CloseHatch"].active = false;
