@@ -11,11 +11,11 @@ namespace ConnectedLivingSpace
     [KSPField(isPersistant = true)]
     private bool hatchOpen;
 
-    [KSPField(isPersistant = true)]
-    internal string docNodeAttachmentNodeName = "top"; // Note, on some ModuleDockingNodes this does not exist, so we set the value to "none"
+    [KSPField]
+    public string docNodeAttachmentNodeName = "top"; // Note, on some ModuleDockingNodes this does not exist, so we set the value to "none"
 
-    [KSPField(isPersistant = true)]
-    internal string docNodeTransformName = "dockingNode";
+    [KSPField]
+    public string docNodeTransformName = "dockingNode";
 
     internal ModuleDockingNode modDockNode;
 
