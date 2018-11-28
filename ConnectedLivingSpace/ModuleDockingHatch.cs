@@ -83,50 +83,9 @@ namespace ConnectedLivingSpace
     [KSPField(isPersistant = false, guiActive = true, guiName = "Hatch status")]
     private string hatchStatus = "";
 
-    [KSPEvent(active = true, guiActive = true, guiName = "Open Hatch")]
-    private void OpenHatch()
+    private void SetEventStates()
     {
-      Events["OpenHatch"].active = false;
       if (isInDockedState() || isAttachedToDockingPort())
-      {
-        hatchOpen = true;
-        Events["CloseHatch"].active = true;
-      }
-      else
-      {
-        hatchOpen = false;
-        Events["CloseHatch"].active = false;
-      }
-
-      if (vessel != null) GameEvents.onVesselWasModified.Fire(vessel);
-    }
-
-    [KSPEvent(active = true, guiActive = true, guiName = "Close Hatch")]
-    private void CloseHatch()
-    {
-      hatchOpen = false;
-
-      Events["CloseHatch"].active = false;
-      if (isInDockedState() || isAttachedToDockingPort())
-      {
-        Events["OpenHatch"].active = true;
-      }
-      else
-      {
-        Events["OpenHatch"].active = false;
-      }
-
-      if (vessel != null) GameEvents.onVesselWasModified.Fire(vessel);
-    }
-
-    public override void OnLoad(ConfigNode node)
-    {
-      // The Loader with have set hatchOpen, but not via the Property HatchOpen, so we need to re-do it to ensure that hatchStatus gets properly set.
-      HatchOpen = hatchOpen;
-
-      // Set the GUI state of the open/close hatch events as appropriate
-      if (HighLogic.LoadedScene != GameScenes.LOADING
-          && (isInDockedState() || isAttachedToDockingPort()))
       {
         if (HatchOpen)
         {
@@ -146,50 +105,37 @@ namespace ConnectedLivingSpace
       }
     }
 
+    [KSPEvent(active = true, guiActive = true, guiName = "Open Hatch")]
+    private void OpenHatch()
+    {
+      hatchOpen = true;
+      SetEventStates();
+
+      if (vessel != null) GameEvents.onVesselWasModified.Fire(vessel);
+    }
+
+    [KSPEvent(active = true, guiActive = true, guiName = "Close Hatch")]
+    private void CloseHatch()
+    {
+      hatchOpen = false;
+      SetEventStates();
+
+      if (vessel != null) GameEvents.onVesselWasModified.Fire(vessel);
+    }
+
     // Called every physics frame. Make sure that the menu options are valid for the state that we are in. 
     private void FixedUpdate()
     {
       if (HighLogic.LoadedSceneIsFlight)
       {
         if (!FlightGlobals.ready) return;
-        if (isInDockedState())
+        if (HatchOpen && !isInDockedState() && !isAttachedToDockingPort())
         {
-          if (!HatchOpen)
-          {
-            // We are docked, but the hatch is closed. Make sure that it is possible to open the hatch
-            Events["CloseHatch"].active = false;
-            Events["OpenHatch"].active = true;
-          }
-        }
-        else
-        {
-          if (isAttachedToDockingPort())
-          {
-            if (!HatchOpen)
-            {
-              // We are not docked, but attached to a docking port, and the hatch is closed. Make sure that it is possible to open the hatch
-              Events["CloseHatch"].active = false;
-              Events["OpenHatch"].active = true;
-            }
-            else
-            {
-              // We are not docked, but attached to a docking port, and the hatch is open. Make sure that it is possible to close the hatch
-              Events["CloseHatch"].active = true;
-              Events["OpenHatch"].active = false;
-            }
-          }
-          else
-          {
-            // We are not docked or attached to a docking port - close up the hatch if it is open!
-            if (HatchOpen)
-            {
-              Debug.Log($"Closing a hatch because its corresponding docking port is in state: {modDockNode.state}");
+          // We are not docked or attached to a docking port - close up the hatch if it is open!
+          Debug.Log($"Closing a hatch because its corresponding docking port is in state: {modDockNode.state}");
 
-              hatchOpen = false;
-              Events["CloseHatch"].active = false;
-              Events["OpenHatch"].active = false;
-            }
-          }
+          hatchOpen = false;
+          SetEventStates();
         }
       }
       else if (HighLogic.LoadedSceneIsEditor)
@@ -328,21 +274,11 @@ namespace ConnectedLivingSpace
 
 
     #region Event Handlers
-    public override void OnSave(ConfigNode node)
-    {
-      //node.SetValue("docNodeAttachmentNodeName", this.part.FindModuleImplementing<ModuleDockingNode>().referenceAttachNode, true);
-    }
-
-    public override void OnAwake()
-    {
-      docNodeAttachmentNodeName = part.FindModuleImplementing<ModuleDockingNode>().referenceAttachNode;
-      docNodeTransformName = part.FindModuleImplementing<ModuleDockingNode>().nodeTransformName;
-    }
-
     public override void OnStart(PartModule.StartState state)
     {
       SetLocalization();
       SetEventGuiNames();
+      if (HighLogic.LoadedSceneIsFlight) SetEventStates();
     }
     #endregion
   }
