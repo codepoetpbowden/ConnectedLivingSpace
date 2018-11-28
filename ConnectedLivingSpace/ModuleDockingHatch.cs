@@ -98,9 +98,7 @@ namespace ConnectedLivingSpace
         Events["CloseHatch"].active = false;
       }
 
-      // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVessel is only available in flight. 
-      // However, it should only be possible to open and close hatches in flight, so we should be OK.
-      if (HighLogic.LoadedSceneIsFlight) GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
+      if (vessel != null) GameEvents.onVesselWasModified.Fire(vessel);
     }
 
     [KSPEvent(active = true, guiActive = true, guiName = "Close Hatch")]
@@ -118,8 +116,7 @@ namespace ConnectedLivingSpace
         Events["OpenHatch"].active = false;
       }
 
-      // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVEssel is only available in flight, but then it should only be possible to open and close hatches in flight so we should be OK.
-      GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
+      if (vessel != null) GameEvents.onVesselWasModified.Fire(vessel);
     }
 
     public override void OnLoad(ConfigNode node)
