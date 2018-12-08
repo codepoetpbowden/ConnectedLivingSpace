@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 
@@ -126,32 +127,6 @@ namespace ConnectedLivingSpace
       if (vessel != null) GameEvents.onVesselWasModified.Fire(vessel);
     }
 
-    // Called every physics frame. Make sure that the menu options are valid for the state that we are in. 
-    private void FixedUpdate()
-    {
-      if (HighLogic.LoadedSceneIsFlight)
-      {
-        if (!FlightGlobals.ready) return;
-        if (HatchOpen && !isInDockedState() && !isAttachedToDockingPort())
-        {
-          // We are not docked or attached to a docking port - close up the hatch if it is open!
-          Debug.Log($"Closing a hatch because its corresponding docking port is in state: {modDockNode.state}");
-
-          hatchOpen = false;
-          SetEventStates();
-        }
-      }
-      else if (HighLogic.LoadedSceneIsEditor)
-      {
-        // In the editor force the hatches open for attached docking ports so it is possible to see the living spaces at design time.
-        if (isAttachedToDockingPort())
-        {
-          hatchOpen = true;
-        }
-      }
-      hatchStatus = hatchOpen ? _strOpen : _strClosed;
-    }
-
     private void SetLocalization()
     {
       //CacheClsLocalization();
@@ -249,12 +224,55 @@ namespace ConnectedLivingSpace
 
 
     #region Event Handlers
+    void onEditorShipModified (ShipConstruct ship)
+    {
+      // In the editor force the hatches open for attached docking ports so it is possible to see the living spaces at design time.
+      if (isAttachedToDockingPort())
+      {
+        hatchOpen = true;
+        hatchStatus = hatchOpen ? _strOpen : _strClosed;
+      }
+    }
+
+    IEnumerator WaitAndCheckState()
+    {
+      yield return null;
+      if (HatchOpen && !isInDockedState() && !isAttachedToDockingPort())
+      {
+        // We are not docked or attached to a docking port - close up the hatch if it is open!
+        Debug.Log($"Closing a hatch because its corresponding docking port is in state: {modDockNode.state}");
+        hatchOpen = false;
+      }
+      SetEventStates();
+      hatchStatus = hatchOpen ? _strOpen : _strClosed;
+    }
+
+    void onVesselWasModified (Vessel v)
+    {
+      if (v == vessel)
+      {
+        StartCoroutine (WaitAndCheckState());
+      }
+    }
+
+    public override void OnAwake()
+    {
+      GameEvents.onEditorShipModified.Add (onEditorShipModified);
+      GameEvents.onVesselWasModified.Add (onVesselWasModified);
+    }
+
     public override void OnStart(PartModule.StartState state)
     {
       FindDockingPort();
       SetLocalization();
       SetEventGuiNames();
       if (HighLogic.LoadedSceneIsFlight) SetEventStates();
+    }
+
+    void OnDestroy()
+    {
+      GameEvents.onEditorShipModified.Remove (onEditorShipModified);
+      GameEvents.onVesselWasModified.Remove (onVesselWasModified);
     }
     #endregion
   }
