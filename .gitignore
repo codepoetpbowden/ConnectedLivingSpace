@@ -2,18 +2,9 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/plugins/CLSInterfaces/obj/Debug/CLSInterfaces.csprojResolveAssemblyReference.cache
-plugins/CLSInterfaces/obj/Debug/CLSInterfaces.csproj.FileListAbsolute.txt
-plugins/ConnectedLivingSpace/.vs/config/applicationhost.config
 *.cache
-plugins/ConnectedLivingSpace/obj/
-plugins/ConnectedLivingSpace/bin/
-plugins/CLSInterfaces/bin/
-plugins/ConnectedLivingSpace/.vs/ConnectedLivingSpace/v14/.suo
 *.suo
 *.user
-plugins/CLSInterfaces/obj/
 *.orig
-plugins/ConnectedLivingSpace/.vs/
-plugins/ConnectedLivingSpace/Distribution/GameData/ConnectedLivingSpace/Plugins/
-ConnectedLivingSpace/bin/Debug/ConnectedLivingSpace.dll.mdb
+*.dll
+*.swp

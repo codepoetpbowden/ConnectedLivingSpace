@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 
@@ -11,11 +12,14 @@ namespace ConnectedLivingSpace
     [KSPField(isPersistant = true)]
     private bool hatchOpen;
 
-    [KSPField(isPersistant = true)]
-    internal string docNodeAttachmentNodeName = "top"; // Note, on some ModuleDockingNodes this does not exist, so we set the value to "none"
+    [KSPField]
+    public string docNodeAttachmentNodeName = "top"; // Note, on some ModuleDockingNodes this does not exist, so we set the value to "none"
 
-    [KSPField(isPersistant = true)]
-    internal string docNodeTransformName = "dockingNode";
+    [KSPField]
+    public string docNodeTransformName = "dockingNode";
+
+    [KSPField]
+    public string hatchName;
 
     internal ModuleDockingNode modDockNode;
 
@@ -83,53 +87,8 @@ namespace ConnectedLivingSpace
     [KSPField(isPersistant = false, guiActive = true, guiName = "Hatch status")]
     private string hatchStatus = "";
 
-    [KSPEvent(active = true, guiActive = true, guiName = "Open Hatch")]
-    private void OpenHatch()
+    private void SetEventStates()
     {
-      Events["OpenHatch"].active = false;
-      if (isInDockedState() || isAttachedToDockingPort())
-      {
-        hatchOpen = true;
-        Events["CloseHatch"].active = true;
-      }
-      else
-      {
-        hatchOpen = false;
-        Events["CloseHatch"].active = false;
-      }
-
-      // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVessel is only available in flight. 
-      // However, it should only be possible to open and close hatches in flight, so we should be OK.
-      if (HighLogic.LoadedSceneIsFlight) GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
-    }
-
-    [KSPEvent(active = true, guiActive = true, guiName = "Close Hatch")]
-    private void CloseHatch()
-    {
-      bool docked = isInDockedState();
-
-      hatchOpen = false;
-
-      Events["CloseHatch"].active = false;
-      if (isInDockedState() || isAttachedToDockingPort())
-      {
-        Events["OpenHatch"].active = true;
-      }
-      else
-      {
-        Events["OpenHatch"].active = false;
-      }
-
-      // Finally fire the VesselChange event to cause the CLSAddon to re-evaluate everything. ActiveVEssel is only available in flight, but then it should only be possible to open and close hatches in flight so we should be OK.
-      GameEvents.onVesselChange.Fire(FlightGlobals.ActiveVessel);
-    }
-
-    public override void OnLoad(ConfigNode node)
-    {
-      // The Loader with have set hatchOpen, but not via the Property HatchOpen, so we need to re-do it to ensure that hatchStatus gets properly set.
-      HatchOpen = hatchOpen;
-
-      // Set the GUI state of the open/close hatch events as appropriate
       if (isInDockedState() || isAttachedToDockingPort())
       {
         if (HatchOpen)
@@ -150,61 +109,22 @@ namespace ConnectedLivingSpace
       }
     }
 
-    // Called every physics frame. Make sure that the menu options are valid for the state that we are in. 
-    private void FixedUpdate()
+    [KSPEvent(active = true, guiActive = true, guiName = "Open Hatch")]
+    private void OpenHatch()
     {
-      if (HighLogic.LoadedSceneIsFlight)
-      {
-        if (!FlightGlobals.ready) return;
-        if (isInDockedState())
-        {
-          if (!HatchOpen)
-          {
-            // We are docked, but the hatch is closed. Make sure that it is possible to open the hatch
-            Events["CloseHatch"].active = false;
-            Events["OpenHatch"].active = true;
-          }
-        }
-        else
-        {
-          if (isAttachedToDockingPort())
-          {
-            if (!HatchOpen)
-            {
-              // We are not docked, but attached to a docking port, and the hatch is closed. Make sure that it is possible to open the hatch
-              Events["CloseHatch"].active = false;
-              Events["OpenHatch"].active = true;
-            }
-            else
-            {
-              // We are not docked, but attached to a docking port, and the hatch is open. Make sure that it is possible to close the hatch
-              Events["CloseHatch"].active = true;
-              Events["OpenHatch"].active = false;
-            }
-          }
-          else
-          {
-            // We are not docked or attached to a docking port - close up the hatch if it is open!
-            if (HatchOpen)
-            {
-              Debug.Log($"Closing a hatch because its corresponding docking port is in state: {modDockNode.state}");
+      hatchOpen = true;
+      SetEventStates();
 
-              hatchOpen = false;
-              Events["CloseHatch"].active = false;
-              Events["OpenHatch"].active = false;
-            }
-          }
-        }
-      }
-      else if (HighLogic.LoadedSceneIsEditor)
-      {
-        // In the editor force the hatches open for attached docking ports so it is possible to see the living spaces at design time.
-        if (isAttachedToDockingPort())
-        {
-          hatchOpen = true;
-        }
-      }
-      hatchStatus = hatchOpen ? _strOpen : _strClosed;
+      if (vessel != null) GameEvents.onVesselWasModified.Fire(vessel);
+    }
+
+    [KSPEvent(active = true, guiActive = true, guiName = "Close Hatch")]
+    private void CloseHatch()
+    {
+      hatchOpen = false;
+      SetEventStates();
+
+      if (vessel != null) GameEvents.onVesselWasModified.Fire(vessel);
     }
 
     private void SetLocalization()
@@ -223,65 +143,37 @@ namespace ConnectedLivingSpace
 
     private void SetEventGuiNames()
     {
-      Fields["hatchStatus"].guiName = _strHatchStatus;
-      Events["OpenHatch"].guiName = _strOpenHatch;
-      Events["CloseHatch"].guiName = _strCloseHatch;
+      string space = !string.IsNullOrEmpty(hatchName) ? " " : "";
+      Fields["hatchStatus"].guiName = hatchName + space + _strHatchStatus;
+      Events["OpenHatch"].guiName = _strOpenHatch + space + hatchName;
+      Events["CloseHatch"].guiName = _strCloseHatch + space + hatchName;
     }
 
-    private bool CheckModuleDockingNode()
+    private void FindDockingPort()
     {
-      if (null == modDockNode)
+      modDockNode = null;
+      var ports = part.FindModulesImplementing<ModuleDockingNode> ();
+      // search for the specified docking port
+      for (int i = 0; i < ports.Count; i++)
       {
-        // We do not know which ModuleDockingNode we are attached to yet. Try to find one.
-        IEnumerator<ModuleDockingNode> eNodes = part.Modules.OfType<ModuleDockingNode>().GetEnumerator();
-        while (eNodes.MoveNext())
+        if (ports[i].nodeTransformName == docNodeTransformName)
         {
-          if (eNodes.Current == null) continue;
-          if (IsRelatedDockingNode(eNodes.Current))
-          {
-            modDockNode = eNodes.Current;
-            return true;
-          }
+          modDockNode = ports[i];
+          break;
         }
-        eNodes.Dispose();
       }
-      else
+      // if not found, then just grab the first
+      if (modDockNode == null && ports.Count > 0)
       {
-        return true;
+        modDockNode = ports[0];
       }
-      return false;
-    }
-
-    // This method allows us to check if a specified ModuleDockingNode is one that this hatch is attached to
-    internal bool IsRelatedDockingNode(ModuleDockingNode dockNode)
-    {
-      if (dockNode.nodeTransformName == docNodeTransformName)
-      {
-        if (string.IsNullOrEmpty(docNodeAttachmentNodeName)) docNodeAttachmentNodeName = dockNode.referenceNode.id;
-        modDockNode = dockNode;
-        return true;
-      }
-      if (dockNode.referenceNode.id == docNodeAttachmentNodeName)
-      {
-        if (string.IsNullOrEmpty(docNodeTransformName)) docNodeTransformName = dockNode.nodeTransformName;
-        modDockNode = dockNode;
-        return true;
-      }
-      // If we are here, we have an orphaned hatch.  we may be able to recover if the part only has one docking module...
-      // TODO, check for dups in the same part...
-      if (this.part.FindModulesImplementing<ModuleDockingNode>().Count != 1) return false;
-      // we are good.  lets fix the hatch and continue
-      modDockNode = this.part.FindModulesImplementing<ModuleDockingNode>().First();
-      docNodeTransformName = modDockNode.nodeTransformName;
-      docNodeAttachmentNodeName = modDockNode.referenceAttachNode;
-      return true;
     }
 
     // tries to work out if the docking port is docked based on the state
     private bool isInDockedState()
     {
       // First ensure that we know which ModuleDockingNode we are referring to.
-      if (CheckModuleDockingNode())
+      if (modDockNode != null)
       {
         if (modDockNode.state == "Docked (dockee)" || modDockNode.state == "Docked (docker)")
         {
@@ -332,21 +224,55 @@ namespace ConnectedLivingSpace
 
 
     #region Event Handlers
-    public override void OnSave(ConfigNode node)
+    void onEditorShipModified (ShipConstruct ship)
     {
-      //node.SetValue("docNodeAttachmentNodeName", this.part.FindModuleImplementing<ModuleDockingNode>().referenceAttachNode, true);
+      // In the editor force the hatches open for attached docking ports so it is possible to see the living spaces at design time.
+      if (isAttachedToDockingPort())
+      {
+        hatchOpen = true;
+        hatchStatus = hatchOpen ? _strOpen : _strClosed;
+      }
+    }
+
+    IEnumerator WaitAndCheckState()
+    {
+      yield return null;
+      if (HatchOpen && !isInDockedState() && !isAttachedToDockingPort())
+      {
+        // We are not docked or attached to a docking port - close up the hatch if it is open!
+        Debug.Log($"Closing a hatch because its corresponding docking port is in state: {modDockNode.state}");
+        hatchOpen = false;
+      }
+      SetEventStates();
+      hatchStatus = hatchOpen ? _strOpen : _strClosed;
+    }
+
+    void onVesselWasModified (Vessel v)
+    {
+      if (v == vessel)
+      {
+        StartCoroutine (WaitAndCheckState());
+      }
     }
 
     public override void OnAwake()
     {
-      docNodeAttachmentNodeName = part.FindModuleImplementing<ModuleDockingNode>().referenceAttachNode;
-      docNodeTransformName = part.FindModuleImplementing<ModuleDockingNode>().nodeTransformName;
+      GameEvents.onEditorShipModified.Add (onEditorShipModified);
+      GameEvents.onVesselWasModified.Add (onVesselWasModified);
     }
 
     public override void OnStart(PartModule.StartState state)
     {
+      FindDockingPort();
       SetLocalization();
       SetEventGuiNames();
+      if (HighLogic.LoadedSceneIsFlight) SetEventStates();
+    }
+
+    void OnDestroy()
+    {
+      GameEvents.onEditorShipModified.Remove (onEditorShipModified);
+      GameEvents.onVesselWasModified.Remove (onVesselWasModified);
     }
     #endregion
   }
