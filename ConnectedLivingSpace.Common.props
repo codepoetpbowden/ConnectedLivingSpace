@@ -1,0 +1,24 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <!--
+    <KSPDIR>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\</KSPDIR>
+    -->
+    <KSPDIR>S:\KSP\KSP_Dev\</KSPDIR>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup />
+  <ItemGroup>
+      <Reference Include="$(KSPDIR)\KSP_x64_Data\Managed\Assembly*.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(KSPDIR)\KSP_x64_Data\Managed\UnityEngine*.dll">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <BuildMacro Include="KSPDIR">
+      <Value>$(KSPDIR)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
