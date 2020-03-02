@@ -1,0 +1,37 @@
+; EditorConfig file - set up tab sizes and similar configuration options
+; http://editorconfig.org/
+; For VisualStudio, install the "EditorConfig" extension
+
+; Top-most EditorConfig file
+root = true
+
+;
+; Options for all files
+;
+[*]
+; End-of-line style: lf cr lfcr
+;end_of_line = lf
+
+; Enforce a blank line at the end of every file
+insert_final_newline = true
+
+; Strip trailing whitespace
+trim_trailing_whitespace = true
+
+; Specify characterset to use
+charset = utf-8
+
+; 2-column space indentation for CLS
+[*.cs]
+indent_style = space
+indent_size = 2
+
+; 2-column space indentation for VS project files
+[*.{sln,proj,csproj,props}]
+indent_style = space
+indent_size = 2
+
+; 2-column tab indentation
+;[*.{c,cpp,js}]
+;indent_style = tab
+;indent_size = 2
