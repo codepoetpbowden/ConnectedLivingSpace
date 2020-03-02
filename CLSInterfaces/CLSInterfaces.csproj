@@ -46,13 +46,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\Games\KSP\Kerbal Space Program\GameData\ConnectedLivingSpace\Plugins\"
-copy /Y "$(TargetPath)" "C:\Games\KSP\Kerbal Space Program\GameData\ShipManifest\Plugins\"
-copy /Y "$(TargetPath)" "D:\KSP\Mods\PJS\Releases\ConnectedLivingSpace\Build\CLSDevPack\"
-copy /Y "$(TargetPath)" "D:\KSP\Mods\PJS\Git\Source\ShipManifest\ShipManifest\Distribution\GameData\ShipManifest\Plugins\"
-copy /Y "$(TargetPath)" "D:\KSP\Mods\PJS\Git\Source\ShipManifest\ShipManifest\bin\debug\"
-copy /Y "$(ProjectDir)CLSClient.cs" "D:\KSP\Mods\PJS\Releases\ConnectedLivingSpace\Build\CLSDevPack\"
-</PostBuildEvent>
+    <PostBuildEvent>if "$(ConfigurationName)"=="Release" (
+  echo Copying $(ProjectName) files to distribution folder...
+  copy /Y "$(TargetPath)" "$(SolutionDir)$(SolutionName)\Distribution\GameData\$(SolutionName)\Plugins\"
+)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

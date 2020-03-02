@@ -122,51 +122,10 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>echo -----------------------------
-echo $(Targetname) Post Build start
-echo ...
-echo set local build path vars...
-set /p KSP_DIR=&lt;"$(ProjectDir)LocalDev\ksp_dir.txt"
-set /p ZA_DIR=&lt;"$(ProjectDir)LocalDev\7za_dir.txt"
-set /p DIST_DIR=&lt;"$(ProjectDir)LocalDev\dist_dir.txt"
-
-echo distributing $(Targetname) files...
-copy /Y "$(TargetPath)" "$(ProjectDir)Distribution\GameData\$(Targetname)\Plugins\"
-copy /Y "$(TargetDir)CLSInterfaces.dll" "$(ProjectDir)Distribution\GameData\$(Targetname)\Plugins\"
-
-echo Copying $(Targetname) files to test env:  %25KSP_DIR%25\GameData\$(Targetname)\...
-copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\Localization\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\Localization\"
-copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\assets\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\assets\"
-copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\configs\*.*" "%25KSP_DIR%25\GameData\$(Targetname)\Configs\"
-copy /Y "$(TargetPath)" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
-copy /Y "$(TargetDir)$(Targetname).pdb" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
-copy /Y "$(TargetDir)CLSInterfaces.dll" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
-
-echo distributing $(Targetname) files...
-del /Q "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Configs\*.*"
-del /Q "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\assets\*.*"
-del /Q "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Localization\*.*"
-
-copy /Y "$(TargetPath)" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
-copy /Y "$(TargetDir)\CLSInterfaces.dll" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Plugins\"
-copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\Localization\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Localization\"
-copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\assets\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\assets\"
-copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\configs\*.*" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\Configs\"
-copy /Y "$(ProjectDir)\Distribution\README.txt" "%25DIST_DIR%25\Distribution\"
-copy /Y "$(ProjectDir)\Distribution\GameData\$(Targetname)\$(Targetname).version" "%25DIST_DIR%25\Distribution\GameData\$(Targetname)\"
-
-copy /Y "$(TargetDir)$(Targetname).dll.mdb" "%25KSP_DIR%25\GameData\$(Targetname)\Plugins\"
-
-echo packaging files...
-if exist "%25DIST_DIR%25\Distribution\dev\CLSDevPack*.zip" del "%25DIST_DIR%25\Distribution\dev\CLSDevPack*.zip"
-call "%25ZA_DIR%25\7za.exe" a -tzip -r  "%25DIST_DIR%25\Distribution\dev\CLSDevPack.@(VersionNumber).zip" "%25DIST_DIR%25\CLSDevPack\*.*"
-
-
-if exist "%25KSP_DIR%25\$(Targetname)*.zip" del "%25KSP_DIR%25\$(Targetname)*.zip"
-call "%25ZA_DIR%25\7za.exe" a -tzip -r  "%25DIST_DIR%25\$(Targetname).@(VersionNumber)_%25DATE:~4,2%25%25DATE:~7,2%25%25DATE:~10,4%25.zip" "%25DIST_DIR%25\Distribution\*.*"
-
-echo ...
-echo Post Build complete!
+    <PostBuildEvent>if "$(ConfigurationName)"=="Release" (
+  echo Copying $(SolutionName) files to distribution folder...
+  copy /Y "$(TargetPath)" "$(ProjectDir)Distribution\GameData\$(SolutionName)\Plugins\"
+)
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
