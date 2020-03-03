@@ -1,18 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Deploy" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.8">
   <ImportGroup Label="PropertySheets">
-    <Import Project="..\ConnectedLivingSpace.Common.props" Condition="Exists('..\ConnectedLivingSpace.Common.props')" />
+    <Import Project="..\Source\ConnectedLivingSpace.Common.props" />
   </ImportGroup>
 
   <!-- Variables (override in ConnectedLivingSpace.User.props) -->
   <PropertyGroup>
     <!-- Release Folder -->
     <!-- To change the output folder, use the following parameter: /p:ReleaseDir=C:\KSP\Mods\Releases\ConnectedLivingSpace -->
-    <ReleaseDir Condition="'$(ReleaseDir)' == ''">$(CLSDIR)\..\ModReleases</ReleaseDir>
+    <ReleaseDir Condition="'$(ReleaseDir)' == ''">$(CLSDIR)\Release</ReleaseDir>
 
     <!-- BuildDir Folder -->
     <!-- This is the folder where the distribution will be built -->
-    <BuildDir>$(CLSDIR)\Build</BuildDir>
+    <BuildDir>$(CLSDIR)\Release\Build</BuildDir>
+
+    <!-- SourceDir Folder -->
+    <!-- This is the folder which contains the solution and source files -->
+    <SourceDir>$(CLSDIR)\Source</SourceDir>
 
     <!-- DistDir Folder -->
     <!-- This is the folder where the static distribution files are kept -->
@@ -20,11 +24,11 @@
 
     <!-- CLS_Build Folder -->
     <!-- This is the folder where the ConnectedLivingSpace project outputs its build artefacts -->
-    <CLS_BuildDir>$(CLSDIR)\ConnectedLivingSpace\bin\Release</CLS_BuildDir>
+    <CLS_BuildDir>$(SourceDir)\ConnectedLivingSpace\bin\Release</CLS_BuildDir>
 
     <!-- CLSI_Build Folder -->
     <!-- This is the folder where the CLSInterfaces project outputs its build artefacts -->
-    <CLSI_BuildDir>$(CLSDIR)\CLSInterfaces\bin\Release</CLSI_BuildDir>
+    <CLSI_BuildDir>$(SourceDir)\CLSInterfaces\bin\Release</CLSI_BuildDir>
   </PropertyGroup>
 
   <!-- All top-level projects -->
@@ -32,12 +36,13 @@
           DependsOnTargets="Deploy;Release">
   </Target>
 
-  <!-- "Autostart" -->
+  <!-- "Autostart" This target deploys the build artefacts to the KSP Directory. -->
   <Target Name="Deploy">
     <CallTarget Targets="Compile"/>
     <CallTarget Targets="DoDeploy"/>
   </Target>
 
+  <!-- This target builds the release archive. -->
   <Target Name="Release">
     <CallTarget Targets="Compile"/>
     <CallTarget Targets="MakeRelease"/>
@@ -46,7 +51,7 @@
 
   <!-- compile solution as release -->
   <Target Name="Compile">
-    <MSBuild Projects="$(CLSDIR)\ConnectedLivingSpace.sln" Properties="Configuration=Release"/>
+    <MSBuild Projects="$(SourceDir)\ConnectedLivingSpace.sln" Properties="Configuration=Release"/>
   </Target>
 
   <Target Name="BuildDir">
@@ -55,7 +60,7 @@
 
   <!-- This target deploys the build artefacts to the KSP directory -->
   <Target Name="DoDeploy"
-          DependsOnTargets="Compile;GenerateVersionFile">
+          DependsOnTargets="GenerateVersionFile">
     <PropertyGroup>
       <SourceFolder>$(DistDir)\GameData\ConnectedLivingSpace</SourceFolder>
       <DestFolder>$(KSPDIR)\GameData\ConnectedLivingSpace</DestFolder>
@@ -64,8 +69,7 @@
     <MakeDir Directories="$(DestFolder)" Condition="!Exists('$(DestFolder)')" />
     <ItemGroup>
       <ReleaseFiles
-        Include="$(SourceFolder)\**\*.*;
-            $(CLSDIR)\ConnectedLivingSpace.version;"
+        Include="$(SourceFolder)\**\*.*"
         Exclude="">
       </ReleaseFiles>
     </ItemGroup>
@@ -84,7 +88,6 @@
   <!-- This target builds the release package -->
   <Target Name="MakeRelease"
           DependsOnTargets="BuildDir;GenerateChangelog;GenerateVersionFile">
-    <!--<Copy SourceFiles="$(SourceDir)\GameData\$(SolutionName)\*.*" DestinationFolder="$(TargetDir)" />-->
     <ItemGroup>
       <DistFiles
         Include="$(DistDir)\GameData\**\*.*"
@@ -101,9 +104,6 @@
       <OutdatedFiles Include="$(BuildDir)\GameData\**" Exclude="@(Copied)" />
     </ItemGroup>
     <Delete Files="@(OutdatedFiles)"/>
-    <Copy
-      SourceFiles="$(CLSDIR)\ConnectedLivingSpace.version"
-      DestinationFolder="$(BuildDir)\GameData\ConnectedLivingSpace\" />
     <Copy
       SourceFiles="$(CLSDIR)\License.txt;$(CLSDIR)\CONTRIBUTORS.md;$(DistDir)\README.txt"
       DestinationFolder="$(BuildDir)\" />
@@ -213,11 +213,6 @@
           Inputs="ConnectedLivingSpace.version.template"
           Outputs="$(CLSDIR)\ConnectedLivingSpace.version"
           DependsOnTargets="Compile;getversion;getkspversion">
-    <PropertyGroup>
-      <DV>$(DLLVersion)</DV>
-      <KV>$(KSPVersion)</KV>
-    </PropertyGroup>
-    <Message Text="Generating version file; DLLVersion=$(DV), KSPVersion=$(KV)" Importance="high" />
     <ItemGroup>
       <Tokens Include="{MAJOR}"><Value>$([System.Version]::Parse($(DLLVersion)).Major.ToString())</Value></Tokens>
       <Tokens Include="{MINOR}"><Value>$([System.Version]::Parse($(DLLVersion)).Minor.ToString())</Value></Tokens>
@@ -229,7 +224,7 @@
     </ItemGroup>
     <ReplaceTagsInFile
         TemplateFile="ConnectedLivingSpace.version.template"
-        TargetFile="$(CLSDIR)\ConnectedLivingSpace.version"
+        TargetFile="$(DistDir)\GameData\ConnectedLivingSpace\ConnectedLivingSpace.version"
         Tokens="@(Tokens)" />
   </Target>
 </Project>

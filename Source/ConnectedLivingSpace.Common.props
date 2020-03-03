@@ -5,8 +5,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
     <KSPDIR Condition="'$(KSPDIR)' == ''">S:\KSP\KSP_Dev\</KSPDIR>
-    <CLSDIR>$(MSBuildThisFileDirectory)</CLSDIR>
-    <DISTDIR>$(MSBuildThisFileDirectory)\ConnectedLivingSpace\Distribution</DISTDIR>
+    <CLSDIR>$(MSBuildThisFileDirectory)\..</CLSDIR>
+    <DISTDIR>$(CLSDIR)\Distribution</DISTDIR>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
