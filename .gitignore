@@ -7,5 +7,6 @@
 *.swp
 
 Build/
+*.User.props
 **/obj/
 **/bin/
