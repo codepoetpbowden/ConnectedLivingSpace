@@ -88,6 +88,7 @@
   <!-- This target builds the release package -->
   <Target Name="MakeRelease"
           DependsOnTargets="BuildDir;GenerateChangelog;GenerateVersionFile">
+    <!-- Copy main mod files -->
     <ItemGroup>
       <DistFiles
         Include="$(DistDir)\GameData\**\*.*"
@@ -107,6 +108,12 @@
     <Copy
       SourceFiles="$(CLSDIR)\License.txt;$(CLSDIR)\CONTRIBUTORS.md;$(DistDir)\README.txt"
       DestinationFolder="$(BuildDir)\" />
+
+    <!-- Copy dev files -->
+    <MakeDir Directories="$(BuildDir)\Dev" Condition="!Exists('$(BuildDir)\Dev')" />
+    <Copy
+      SourceFiles="$(SourceDir)\CLSInterfaces\CLSClient.cs;$(CLSI_BuildDir)\CLSInterfaces.dll"
+      DestinationFolder="$(BuildDir)\Dev" />
   </Target>
 
   <!-- create zip file with content of release\bin folder -->
