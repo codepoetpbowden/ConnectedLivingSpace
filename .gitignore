@@ -6,5 +6,6 @@
 *.dll
 *.swp
 
+Build/
 **/obj/
 **/bin/

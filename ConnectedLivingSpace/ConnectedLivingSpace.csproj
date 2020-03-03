@@ -1,10 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(SolutionDir)\ConnectedLivingSpace.Common.props" Condition="Exists('$(SolutionDir)\ConnectedLivingSpace.Common.props')" />
-  <PropertyGroup>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
-  </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <Import Project="$(SolutionDir)\ConnectedLivingSpace.Common.props" Condition="Exists('$(SolutionDir)\ConnectedLivingSpace.Common.props')" />
+  </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -20,7 +19,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -28,13 +27,19 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CLSInterfaces\CLSInterfaces.csproj">
+      <Project>{83DC3693-B67F-4AA7-A553-642E9724BF29}</Project>
+      <Name>CLSInterfaces</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -55,12 +60,6 @@
     <Compile Include="ModuleDockingHatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ToolbarWrapper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CLSInterfaces\CLSInterfaces.csproj">
-      <Project>{83DC3693-B67F-4AA7-A553-642E9724BF29}</Project>
-      <Name>CLSInterfaces</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Distribution\GameData\ConnectedLivingSpace\assets\cls_b_icon_off.png" />
@@ -122,9 +121,10 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
     <PostBuildEvent>if "$(ConfigurationName)"=="Release" (
   echo Copying $(SolutionName) files to distribution folder...
-  copy /Y "$(TargetPath)" "$(ProjectDir)Distribution\GameData\$(SolutionName)\Plugins\"
+  copy /Y "$(TargetPath)" "$(DISTDIR)\GameData\$(SolutionName)\Plugins\"
 )
 </PostBuildEvent>
   </PropertyGroup>
@@ -135,18 +135,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Target Name="PostBuildMacros">
-    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
-      <Output TaskParameter="Assemblies" ItemName="Targets" />
-    </GetAssemblyIdentity>
-    <ItemGroup>
-      <VersionNumber Include="@(Targets->'%(Version)')" />
-    </ItemGroup>
-  </Target>
-  <PropertyGroup>
-    <PostBuildEventDependsOn>
-      $(PostBuildEventDependsOn);
-      PostBuildMacros;
-    </PostBuildEventDependsOn>
-  </PropertyGroup>
 </Project>
