@@ -5,6 +5,10 @@ Overview
 --------
 KSP addon to identify and make use of living spaces that are connected to each other on a vessel.
 
+Originally by [**codepoetbowden**](https://github.com/codepoetpbowden/ConnectedLivingSpace), later maintained by **PapaJoesSoup**.
+
+Currently maintained by [**Micha**](https://github.com/mwerle/ConnectedLivingSpace).
+
 Changes
 -------
 
@@ -13,7 +17,7 @@ Please see the [Changelog](CHANGELOG.md) for a version history and overview of c
 Contributing
 ------------
 
-Please see the [Contribution Guidelines for this project](Contributing.md) which provide an overview of how this project is laid out and how to support it.
+Please see the [Contribution Guidelines for this project](Source/Contributing.md) which provide an overview of how this project is laid out and how to support it.
 
 Also make sure you agree with the [Project License](License.txt) before starting any work.
 
@@ -22,9 +26,9 @@ A list of contributors can be [found here](CONTRIBUTORS.md).
 Resources
 ---------
 
- - [Micha's Release forum thread](http://forum.kerbalspaceprogram.com/index.php?showtopic=149298) covers my maintenance build releases and a brief usage summary of the mod, with links to downloads and other resources.
+ - [Micha's Release forum thread](http://forum.kerbalspaceprogram.com/index.php?showtopic=TODO) is the main discussion and announcements location for this mod.
    - **PapaJoe**'s [Forum Thread](http://forum.kerbalspaceprogram.com/index.php?showtopic=109972)
- - [Wiki](https://github.com/codepoetpbowden/ConnectedLivingSpace/wiki) containing information for developers.
+ - The official [Wiki](https://github.com/codepoetpbowden/ConnectedLivingSpace/wiki) contains lots more information, especially for developers wishing to integrate their mod with CLS.
 
 Requirements
 ------------
