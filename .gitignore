@@ -1,3 +1,4 @@
+# Ignore Visual Studio files
 .vs
 *.cache
 *.suo
@@ -6,7 +7,12 @@
 *.dll
 *.swp
 
+# Ignore build artefacts in our repository
 Build/
+Release/
 *.User.props
 **/obj/
 **/bin/
+
+# Specifically allow build artefacts in the Distribution folder
+!Distribution/**
