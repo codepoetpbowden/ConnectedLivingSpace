@@ -5,6 +5,9 @@ Major features are **bolded**, contributors are *emphasized*.
 
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
+
+Version 2.0.0.3 - Release 04 Mar 2020 - KSP 1.9.1
+-------------------------------------------------
  - New: recompiled for KSP 1.9.1 and DotNet4.5
    - **NOTE:** This version is incompatible with versions of KSP before 1.8.
  - Changed: new maintainer, *Micha*.
