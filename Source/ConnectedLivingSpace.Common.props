@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets">
+    <Import Project="ConnectedLivingSpace.User.props" Condition="Exists('ConnectedLivingSpace.User.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros">
+    <KSPDIR Condition="'$(KSPDIR)' == ''">S:\KSP\KSP_Dev\</KSPDIR>
+    <CLSDIR>$(MSBuildThisFileDirectory)\..</CLSDIR>
+    <DISTDIR>$(CLSDIR)\Distribution</DISTDIR>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup />
+  <ItemGroup>
+      <Reference Include="$(KSPDIR)\KSP_x64_Data\Managed\Assembly*.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="$(KSPDIR)\KSP_x64_Data\Managed\UnityEngine*.dll">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <BuildMacro Include="KSPDIR">
+      <Value>$(KSPDIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="CLSDIR">
+      <Value>$(CLSDIR)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

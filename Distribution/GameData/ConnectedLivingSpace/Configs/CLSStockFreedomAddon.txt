@@ -1,0 +1,208 @@
+@PART[probeStackLarge]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[asasmodule1-2]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[decoupler1-2]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[stackDecoupler]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[stackSeparatorBig]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[stackSeparator]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[adapterLargeSmallTri]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[adapterLargeSmallBi]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[adapterLargeSmallQuad]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+// new configs for 1.4 (Squad/ and SquadExpansion/MakingHistory/ parts)
+
+@PART[Decoupler_0]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Decoupler_1]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Decoupler_2]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Decoupler_3]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Separator_0]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Separator_1]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Separator_2]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Separator_3]:HAS[!MODULE[ModuleConnectedLivingSpace]] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Decoupler_1p5]:HAS[!MODULE[ModuleConnectedLivingSpace]]:NEEDS[SquadExpansion] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Decoupler_4]:HAS[!MODULE[ModuleConnectedLivingSpace]]:NEEDS[SquadExpansion] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[InflatableAirlock]:HAS[!MODULE[ModuleConnectedLivingSpace]]:NEEDS[SquadExpansion] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Separator_1p5]:HAS[!MODULE[ModuleConnectedLivingSpace]]:NEEDS[SquadExpansion] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Separator_4]:HAS[!MODULE[ModuleConnectedLivingSpace]]:NEEDS[SquadExpansion] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = true
+	}
+}
+
+@PART[Size1p5_Strut_Decoupler]:HAS[!MODULE[ModuleConnectedLivingSpace]]:NEEDS[SquadExpansion] 
+{
+    MODULE
+	{
+		name = ModuleConnectedLivingSpace
+		passable = false // this is not an air-tight part by any stretch of the imagination, so including it here for completeness but setting its passability false
+	}
+}

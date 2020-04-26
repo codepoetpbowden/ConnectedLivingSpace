@@ -1,0 +1,237 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Deploy" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.8">
+  <ImportGroup Label="PropertySheets">
+    <Import Project="..\Source\ConnectedLivingSpace.Common.props" />
+  </ImportGroup>
+
+  <!-- Variables (override in ConnectedLivingSpace.User.props) -->
+  <PropertyGroup>
+    <!-- Release Folder -->
+    <!-- To change the output folder, use the following parameter: /p:ReleaseDir=C:\KSP\Mods\Releases\ConnectedLivingSpace -->
+    <ReleaseDir Condition="'$(ReleaseDir)' == ''">$(CLSDIR)\Release</ReleaseDir>
+
+    <!-- BuildDir Folder -->
+    <!-- This is the folder where the distribution will be built -->
+    <BuildDir>$(CLSDIR)\Release\Build</BuildDir>
+
+    <!-- SourceDir Folder -->
+    <!-- This is the folder which contains the solution and source files -->
+    <SourceDir>$(CLSDIR)\Source</SourceDir>
+
+    <!-- DistDir Folder -->
+    <!-- This is the folder where the static distribution files are kept -->
+    <DistDir Condition="'$(DistDir)'==''">$(CLSDIR)\Distribution</DistDir>
+
+    <!-- CLS_Build Folder -->
+    <!-- This is the folder where the ConnectedLivingSpace project outputs its build artefacts -->
+    <CLS_BuildDir>$(SourceDir)\ConnectedLivingSpace\bin\Release</CLS_BuildDir>
+
+    <!-- CLSI_Build Folder -->
+    <!-- This is the folder where the CLSInterfaces project outputs its build artefacts -->
+    <CLSI_BuildDir>$(SourceDir)\CLSInterfaces\bin\Release</CLSI_BuildDir>
+  </PropertyGroup>
+
+  <!-- All top-level projects -->
+  <Target Name="ALL"
+          DependsOnTargets="Deploy;Release">
+  </Target>
+
+  <!-- "Autostart" This target deploys the build artefacts to the KSP Directory. -->
+  <Target Name="Deploy">
+    <CallTarget Targets="Compile"/>
+    <CallTarget Targets="DoDeploy"/>
+  </Target>
+
+  <!-- This target builds the release archive. -->
+  <Target Name="Release">
+    <CallTarget Targets="Compile"/>
+    <CallTarget Targets="MakeRelease"/>
+    <CallTarget Targets="ZipRelease"/>
+  </Target>
+
+  <!-- compile solution as release -->
+  <Target Name="Compile">
+    <MSBuild Projects="$(SourceDir)\ConnectedLivingSpace.sln" Properties="Configuration=Release"/>
+  </Target>
+
+  <Target Name="BuildDir">
+    <MakeDir Directories="$(BuildDir)" Condition="!Exists('$(BuildDir)')" />
+  </Target>
+
+  <!-- This target deploys the build artefacts to the KSP directory -->
+  <Target Name="DoDeploy"
+          DependsOnTargets="GenerateVersionFile">
+    <PropertyGroup>
+      <SourceFolder>$(DistDir)\GameData\ConnectedLivingSpace</SourceFolder>
+      <DestFolder>$(KSPDIR)\GameData\ConnectedLivingSpace</DestFolder>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(DestFolder)" Condition="!Exists('$(DestFolder)')" />
+    <ItemGroup>
+      <ReleaseFiles
+        Include="$(SourceFolder)\**\*.*"
+        Exclude="">
+      </ReleaseFiles>
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(ReleaseFiles)"
+      DestinationFolder="$(DestFolder)\%(RecursiveDir)"
+      SkipUnchangedFiles="true" >
+      <Output TaskParameter="CopiedFiles" ItemName="Copied" />
+    </Copy>
+    <ItemGroup>
+      <OutdatedFiles Include="$(DestFolder)\**" Exclude="@(Copied)" />
+    </ItemGroup>
+    <Delete Files="@(OutdatedFiles)"/>
+  </Target>
+
+  <!-- This target builds the release package -->
+  <Target Name="MakeRelease"
+          DependsOnTargets="BuildDir;GenerateChangelog;GenerateVersionFile">
+    <!-- Copy main mod files -->
+    <ItemGroup>
+      <DistFiles
+        Include="$(DistDir)\GameData\**\*.*"
+        Exclude="*.pdb">
+      </DistFiles>
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(DistFiles)"
+      DestinationFolder="$(BuildDir)\GameData\%(RecursiveDir)"
+      SkipUnchangedFiles="true" >
+      <Output TaskParameter="CopiedFiles" ItemName="Copied" />
+    </Copy>
+    <ItemGroup>
+      <OutdatedFiles Include="$(BuildDir)\GameData\**" Exclude="@(Copied)" />
+    </ItemGroup>
+    <Delete Files="@(OutdatedFiles)"/>
+    <Copy
+      SourceFiles="$(CLSDIR)\License.txt;$(CLSDIR)\CONTRIBUTORS.md;$(DistDir)\README.txt"
+      DestinationFolder="$(BuildDir)\" />
+
+    <!-- Copy dev files -->
+    <MakeDir Directories="$(BuildDir)\Dev" Condition="!Exists('$(BuildDir)\Dev')" />
+    <Copy
+      SourceFiles="$(SourceDir)\CLSInterfaces\CLSClient.cs;$(CLSI_BuildDir)\CLSInterfaces.dll"
+      DestinationFolder="$(BuildDir)\Dev" />
+  </Target>
+
+  <!-- create zip file with content of release\bin folder -->
+  <Target Name="ZipRelease"
+          DependsOnTargets="getversion;gettime">
+    <MakeDir Directories="$(ReleaseDir)" Condition="!Exists('$(ReleaseDir)')" />
+    <Delete Files="$(ReleaseDir)\ConnectedLivingSpace-$(DLLVersion)*.zip" />
+    <ZipDirectory Condition="Exists('$(BuildDir)')"
+                  SourceDirectory="$(BuildDir)"
+                  DestinationFile="$(ReleaseDir)\ConnectedLivingSpace-$(DLLVersion)_$(CurrentDate).zip" />
+  </Target>
+
+  <Target Name="gettime">
+    <PropertyGroup>
+      <CurrentDate>$([System.DateTime]::Now.ToString(yyyyMMddHHmmss))</CurrentDate>
+    </PropertyGroup>
+    <Message Text="CurrentDate = $(CurrentDate)" Importance="high" />
+  </Target>
+
+  <Target Name="getversion"
+          DependsOnTargets="Compile">
+      <GetAssemblyIdentity AssemblyFiles="$(CLS_BuildDir)\ConnectedLivingSpace.dll">
+          <Output TaskParameter="Assemblies" ItemName="myAssemblyInfo"/>
+      </GetAssemblyIdentity>
+      <PropertyGroup>
+          <DLLVersion>%(myAssemblyInfo.Version)</DLLVersion>
+      </PropertyGroup>
+  </Target>
+
+  <UsingTask TaskName="GrepInFile"  TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Path ParameterType="System.String" Required="true" />
+      <Expression ParameterType="System.String" Required="true" />
+      <Value ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+      //Console.WriteLine("Searching in file " + Path);
+      //Console.WriteLine("Search expression is " + Expression);
+      var re = new Regex(Expression);
+      foreach(var line in File.ReadLines(Path))
+      {
+        var match = re.Match(line);
+        if(match.Success)
+        {
+          Value = match.Groups[1].Value;
+          //Console.WriteLine("KSP Version found - {0}!", Value);
+          break;
+        }
+      }
+]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="getkspversion">
+    <GrepInFile Path="$(KSPDIR)\readme.txt" Expression="Version\s+(\d+\.\d+(\.\d+)?)\s*">
+      <Output PropertyName="KSPVersion" TaskParameter="Value" />
+    </GrepInFile>
+    <Message Text="KSP Version is $(KSPVersion)" Importance="High" />
+  </Target>
+
+  <UsingTask  TaskName="ReplaceTagsInFile"
+              TaskFactory="CodeTaskFactory"
+              AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <TemplateFile ParameterType="System.String" Required="true" />
+      <TargetFile ParameterType="System.String" Required="true" />
+      <Tokens ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+      var tokens = new Dictionary<string,string>();
+      foreach(var item in Tokens) {
+        tokens.Add(item.ItemSpec, item.GetMetadata("Value"));
+      }
+      string template = File.ReadAllText(TemplateFile);
+      string content = Regex.Replace(template, @"\{[A-Z0-9_]+\}", match => tokens[match.Value]);
+      File.WriteAllText(TargetFile, content);
+]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="GenerateChangelog"
+          Inputs="$(CLSDIR)\CHANGELOG.md"
+          Outputs="$(BuildDir)\CHANGELOG.md"
+          DependsOnTargets="getversion;getkspversion;BuildDir">
+    <PropertyGroup>
+      <uc_Date>$([System.DateTime]::Now.ToString(dd MMM yyyy))</uc_Date>
+    </PropertyGroup>
+    <ItemGroup>
+      <Tokens Include="{VERSION}"><Value>$(DLLVersion)</Value></Tokens>
+      <Tokens Include="{KSPVERSION}"><Value>$(KSPVersion)</Value></Tokens>
+      <Tokens Include="{DATE}"><Value>$(uc_Date)</Value></Tokens>
+    </ItemGroup>
+    <ReplaceTagsInFile
+        TemplateFile="$(CLSDIR)\CHANGELOG.md"
+        TargetFile="$(BuildDir)\CHANGELOG.md"
+        Tokens="@(Tokens)" />
+  </Target>
+
+  <Target Name="GenerateVersionFile"
+          Inputs="ConnectedLivingSpace.version.template"
+          Outputs="$(CLSDIR)\ConnectedLivingSpace.version"
+          DependsOnTargets="Compile;getversion;getkspversion">
+    <ItemGroup>
+      <Tokens Include="{MAJOR}"><Value>$([System.Version]::Parse($(DLLVersion)).Major.ToString())</Value></Tokens>
+      <Tokens Include="{MINOR}"><Value>$([System.Version]::Parse($(DLLVersion)).Minor.ToString())</Value></Tokens>
+      <Tokens Include="{PATCH}"><Value>$([System.Version]::Parse($(DLLVersion)).Build.ToString())</Value></Tokens>
+      <Tokens Include="{BUILD}"><Value>$([System.Version]::Parse($(DLLVersion)).Revision.ToString())</Value></Tokens>
+      <Tokens Include="{KSP_MAJOR}"><Value>$([System.Version]::Parse($(KSPVersion)).Major.ToString())</Value></Tokens>
+      <Tokens Include="{KSP_MINOR}"><Value>$([System.Version]::Parse($(KSPVersion)).Minor.ToString())</Value></Tokens>
+      <Tokens Include="{KSP_PATCH}"><Value>$([System.Version]::Parse($(KSPVersion)).Build.ToString())</Value></Tokens>
+    </ItemGroup>
+    <ReplaceTagsInFile
+        TemplateFile="ConnectedLivingSpace.version.template"
+        TargetFile="$(DistDir)\GameData\ConnectedLivingSpace\ConnectedLivingSpace.version"
+        Tokens="@(Tokens)" />
+  </Target>
+</Project>
