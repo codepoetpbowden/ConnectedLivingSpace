@@ -5,6 +5,9 @@ Major features are **bolded**, contributors are *emphasized*.
 
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
+
+Version 2.0.0.4 - Release 05 May 2020 - KSP 1.9.1
+-------------------------------------------------
  - Added Chinese localization (thanks to *Li-Zongyao*)
  - Added support for some modified Squad parts (thanks to *Kerbas-ad-astra*)
 
