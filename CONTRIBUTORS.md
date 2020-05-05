@@ -11,6 +11,7 @@ If you have contributed and are missing from this list, please contact the curre
  - CRL42
  - JPLRepo
  - Kerbas_ad_astra
+ - Li-Zongyao
  - linuxgurugamer
  - *Micha* (current maintainer)
  - Mine_Turtle
