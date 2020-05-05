@@ -26,7 +26,7 @@ A list of contributors can be [found here](CONTRIBUTORS.md).
 Resources
 ---------
 
- - [Micha's Release forum thread](http://forum.kerbalspaceprogram.com/index.php?showtopic=TODO) is the main discussion and announcements location for this mod.
+ - [Micha's Release forum thread](http://forum.kerbalspaceprogram.com/index.php?showtopic=192130) is the main discussion and announcements location for this mod.
    - **PapaJoe**'s [Forum Thread](http://forum.kerbalspaceprogram.com/index.php?showtopic=109972)
  - The official [Wiki](https://github.com/codepoetpbowden/ConnectedLivingSpace/wiki) contains lots more information, especially for developers wishing to integrate their mod with CLS.
 
