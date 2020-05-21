@@ -1,6 +1,6 @@
 {
   "NAME": "Connected Living Space",
-  "URL": "https://raw.githubusercontent.com/mwerle/ConnectedLivingSpace/Distribution/GameData/ConnectedLivingSpace/ConnectedLivingSpace.version",
+  "URL": "https://github.com/codepoetpbowden/ConnectedLivingSpace/raw/master/Distribution/GameData/ConnectedLivingSpace/ConnectedLivingSpace.version",
   "CHANGE_LOG_URL":"https://raw.githubusercontent.com/mwerle/ConnectedLivingSpace/CHANGELOG.md",
   "GITHUB":
   {
