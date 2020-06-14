@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -248,6 +248,7 @@ namespace ConnectedLivingSpace
     internal void Clear()
     {
       space = null;
+      Highlight(false);
       IEnumerator<ICLSKerbal> eCrew = crew.GetEnumerator();
       while (eCrew.MoveNext())
       {
