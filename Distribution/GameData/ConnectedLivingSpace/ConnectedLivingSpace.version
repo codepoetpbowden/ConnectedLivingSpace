@@ -1,6 +1,6 @@
 {
   "NAME": "Connected Living Space",
-  "URL": "https://github.com/codepoetpbowden/ConnectedLivingSpace/raw/master/Distribution/GameData/ConnectedLivingSpace/ConnectedLivingSpace.version",
+  "URL": "https://raw.githubusercontent.com/mwerle/ConnectedLivingSpace/Distribution/GameData/ConnectedLivingSpace/ConnectedLivingSpace.version",
   "CHANGE_LOG_URL":"https://raw.githubusercontent.com/mwerle/ConnectedLivingSpace/CHANGELOG.md",
   "GITHUB":
   {
@@ -12,7 +12,7 @@
     "MAJOR": 2,
     "MINOR": 0,
     "PATCH": 0,
-    "BUILD": 4,
+    "BUILD": 5,
   },
   "KSP_VERSION": {
     "MAJOR": 1,

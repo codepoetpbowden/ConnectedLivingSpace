@@ -5,6 +5,9 @@ Major features are **bolded**, contributors are *emphasized*.
 
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
+
+Version 2.0.0.5 - Release 15 Jun 2020 - KSP 1.9.1
+-------------------------------------------------
  - Changed: Mk2 pod top hatch now passable (*evanrinehart*).
  - Changed: 1.25m to 0.625m adapters now passable.
  - Changed: StationScience Cyclotron and Spectrometer modules no longer passable (by mod author request).
