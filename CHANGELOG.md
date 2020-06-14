@@ -5,6 +5,8 @@ Major features are **bolded**, contributors are *emphasized*.
 
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
+ - Changed: Mk2 pod top hatch now passable (*evanrinehart*).
+ - Changed: 1.25m to 0.625m adapters now passable.
  - Changed: StationScience Cyclotron and Spectrometer modules no longer passable (by mod author request).
  - Fixed: Highlighting when hatches are opened or closed.
 

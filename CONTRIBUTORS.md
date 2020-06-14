@@ -9,6 +9,7 @@ If you have contributed and are missing from this list, please contact the curre
  - cake-pie
  - **Codepoet** (original developer)
  - CRL42
+ - Evan Rinehart
  - JPLRepo
  - Kerbas_ad_astra
  - Li-Zongyao
