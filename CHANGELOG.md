@@ -5,11 +5,13 @@ Major features are **bolded**, contributors are *emphasized*.
 
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
+ - Changed: StationScience Cyclotron and Spectrometer modules no longer passable (by mod author request).
+ - Fixed: Highlighting when hatches are opened or closed.
 
 Version 2.0.0.4 - Release 05 May 2020 - KSP 1.9.1
 -------------------------------------------------
- - Added Chinese localization (thanks to *Li-Zongyao*)
- - Added support for some modified Squad parts (thanks to *Kerbas-ad-astra*)
+ - New: Added Chinese localization (thanks to *Li-Zongyao*)
+ - New: Added support for some modified Squad parts (thanks to *Kerbas-ad-astra*)
 
 Version 2.0.0.3 - Release 04 Mar 2020 - KSP 1.9.1
 -------------------------------------------------
