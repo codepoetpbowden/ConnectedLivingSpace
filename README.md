@@ -39,6 +39,6 @@ Download Links
 --------------
 
  - [GitHub](https://github.com/mwerle/ConnectedLivingSpace/releases) - primary download location.
- - [SpaceDock](https://spacedock.info/mod/TODO)
- - [CurseForge](https://mods.curse.com/ksp-mods/kerbal/TODO)
+ - [SpaceDock](https://spacedock.info/mod/190)
+ - [CurseForge](https://www.curseforge.com/kerbal/ksp-mods/connectedlivingspace)
  - And via the [CKAN](http://forum.kerbalspaceprogram.com/index.php?90246) tool.
