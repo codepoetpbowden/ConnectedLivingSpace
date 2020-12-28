@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -191,6 +191,11 @@ namespace ConnectedLivingSpace
     // Method to provide extra infomation about the part on response to the RMBof the part gallery
     public override string GetInfo()
     {
+      if (!string.IsNullOrEmpty(returnValue))
+      {
+        return returnValue;
+      }
+
       if (passable)
       {
         //returnValue += "Passable:  <color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
