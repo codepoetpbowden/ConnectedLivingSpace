@@ -1,34 +1,40 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Deploy" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.8">
   <ImportGroup Label="PropertySheets">
-    <Import Project="..\Source\ConnectedLivingSpace.Common.props" />
+    <Import Project="..\Source\common_settings.props" />
   </ImportGroup>
 
   <!-- Variables (override in ConnectedLivingSpace.User.props) -->
   <PropertyGroup>
+     <!-- Default build type - release -->
+     <BuildConfiguration Condition="'$(BuildConfiguration)' == ''">Release</BuildConfiguration>
+
+    <!-- Project root folder -->
+    <ProjectRoot Condition="'$(ProjectRoot)' == ''">$([System.IO.Path]::GetFullPath($(CLSDIR)))</ProjectRoot>
+
     <!-- Release Folder -->
     <!-- To change the output folder, use the following parameter: /p:ReleaseDir=C:\KSP\Mods\Releases\ConnectedLivingSpace -->
-    <ReleaseDir Condition="'$(ReleaseDir)' == ''">$(CLSDIR)\Release</ReleaseDir>
+    <ReleaseDir Condition="'$(ReleaseDir)' == ''">$(ProjectRoot)\Release</ReleaseDir>
 
     <!-- BuildDir Folder -->
     <!-- This is the folder where the distribution will be built -->
-    <BuildDir>$(CLSDIR)\Release\Build</BuildDir>
+    <BuildDir>$(ReleaseDir)\Build</BuildDir>
 
     <!-- SourceDir Folder -->
     <!-- This is the folder which contains the solution and source files -->
-    <SourceDir>$(CLSDIR)\Source</SourceDir>
+    <SourceDir>$(ProjectRoot)\Source</SourceDir>
 
     <!-- DistDir Folder -->
     <!-- This is the folder where the static distribution files are kept -->
-    <DistDir Condition="'$(DistDir)'==''">$(CLSDIR)\Distribution</DistDir>
+    <DistDir Condition="'$(DistDir)'==''">$(ProjectRoot)\Distribution</DistDir>
 
     <!-- CLS_Build Folder -->
     <!-- This is the folder where the ConnectedLivingSpace project outputs its build artefacts -->
-    <CLS_BuildDir>$(SourceDir)\ConnectedLivingSpace\bin\Release</CLS_BuildDir>
+    <CLS_BuildDir>$(SourceDir)\ConnectedLivingSpace\bin</CLS_BuildDir>
 
     <!-- CLSI_Build Folder -->
     <!-- This is the folder where the CLSInterfaces project outputs its build artefacts -->
-    <CLSI_BuildDir>$(SourceDir)\CLSInterfaces\bin\Release</CLSI_BuildDir>
+    <CLSI_BuildDir>$(SourceDir)\CLSInterfaces\bin</CLSI_BuildDir>
   </PropertyGroup>
 
   <!-- All top-level projects -->
@@ -51,7 +57,9 @@
 
   <!-- compile solution as release -->
   <Target Name="Compile">
-    <MSBuild Projects="$(SourceDir)\ConnectedLivingSpace.sln" Properties="Configuration=Release"/>
+    <MSBuild Projects="$(SourceDir)\ConnectedLivingSpace.sln"
+      Targets="Clean;Build"
+      Properties="Configuration=$(BuildConfiguration)"/>
   </Target>
 
   <Target Name="BuildDir">
@@ -83,11 +91,27 @@
       <OutdatedFiles Include="$(DestFolder)\**" Exclude="@(Copied)" />
     </ItemGroup>
     <Delete Files="@(OutdatedFiles)"/>
+    <ItemGroup>
+      <ReleaseFiles Remove="@(ReleaseFiles)" />
+      <OutdatedFiles Remove="@(OutdatedFiles)" />
+    </ItemGroup>
   </Target>
 
   <!-- This target builds the release package -->
   <Target Name="MakeRelease"
-          DependsOnTargets="BuildDir;GenerateChangelog;GenerateVersionFile">
+          DependsOnTargets="GenerateVersionFile">
+    <!-- Clean build-directory -->
+    <RemoveDir Directories="$(BuildDir)"/>
+    <CallTarget Targets="BuildDir"/>
+
+    <!-- Copy static text files -->
+    <Copy
+      SourceFiles="$(ProjectRoot)\License.txt;$(ProjectRoot)\CONTRIBUTORS.md;$(DistDir)\README.txt"
+      DestinationFolder="$(BuildDir)\" />
+
+    <!-- Generate templated text files -->
+    <CallTarget Targets="GenerateChangelog"/>
+
     <!-- Copy main mod files -->
     <ItemGroup>
       <DistFiles
@@ -105,14 +129,11 @@
       <OutdatedFiles Include="$(BuildDir)\GameData\**" Exclude="@(Copied)" />
     </ItemGroup>
     <Delete Files="@(OutdatedFiles)"/>
-    <Copy
-      SourceFiles="$(CLSDIR)\License.txt;$(CLSDIR)\CONTRIBUTORS.md;$(DistDir)\README.txt"
-      DestinationFolder="$(BuildDir)\" />
 
     <!-- Copy dev files -->
     <MakeDir Directories="$(BuildDir)\Dev" Condition="!Exists('$(BuildDir)\Dev')" />
     <Copy
-      SourceFiles="$(SourceDir)\CLSInterfaces\CLSClient.cs;$(CLSI_BuildDir)\CLSInterfaces.dll"
+      SourceFiles="$(SourceDir)\CLSInterfaces\CLSClient.cs;$(CLSI_BuildDir)\$(BuildConfiguration)\CLSInterfaces.dll"
       DestinationFolder="$(BuildDir)\Dev" />
   </Target>
 
@@ -135,12 +156,14 @@
 
   <Target Name="getversion"
           DependsOnTargets="Compile">
-      <GetAssemblyIdentity AssemblyFiles="$(CLS_BuildDir)\ConnectedLivingSpace.dll">
-          <Output TaskParameter="Assemblies" ItemName="myAssemblyInfo"/>
-      </GetAssemblyIdentity>
-      <PropertyGroup>
-          <DLLVersion>%(myAssemblyInfo.Version)</DLLVersion>
-      </PropertyGroup>
+    <Error Text="Can not find ConnectedLivingSpace.dll in '$(CLS_BuildDir)\$(BuildConfiguration)'"
+           Condition="!Exists('$(CLS_BuildDir)\$(BuildConfiguration)\ConnectedLivingSpace.dll')" />
+    <GetAssemblyIdentity AssemblyFiles="$(CLS_BuildDir)\$(BuildConfiguration)\ConnectedLivingSpace.dll">
+        <Output TaskParameter="Assemblies" ItemName="myAssemblyInfo"/>
+    </GetAssemblyIdentity>
+    <PropertyGroup>
+        <DLLVersion>%(myAssemblyInfo.Version)</DLLVersion>
+    </PropertyGroup>
   </Target>
 
   <UsingTask TaskName="GrepInFile"  TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -170,6 +193,8 @@
   </UsingTask>
 
   <Target Name="getkspversion">
+    <Error Text="Can not find KSP readme.txt in '$(KSPDIR)'"
+           Condition="!Exists('$(KSPDIR)\readme.txt')" />
     <GrepInFile Path="$(KSPDIR)\readme.txt" Expression="Version\s+(\d+\.\d+(\.\d+)?)\s*">
       <Output PropertyName="KSPVersion" TaskParameter="Value" />
     </GrepInFile>
@@ -199,7 +224,7 @@
   </UsingTask>
 
   <Target Name="GenerateChangelog"
-          Inputs="$(CLSDIR)\CHANGELOG.md"
+          Inputs="$(ProjectRoot)\CHANGELOG.md"
           Outputs="$(BuildDir)\CHANGELOG.md"
           DependsOnTargets="getversion;getkspversion;BuildDir">
     <PropertyGroup>
@@ -211,14 +236,17 @@
       <Tokens Include="{DATE}"><Value>$(uc_Date)</Value></Tokens>
     </ItemGroup>
     <ReplaceTagsInFile
-        TemplateFile="$(CLSDIR)\CHANGELOG.md"
+        TemplateFile="$(ProjectRoot)\CHANGELOG.md"
         TargetFile="$(BuildDir)\CHANGELOG.md"
         Tokens="@(Tokens)" />
+    <ItemGroup>
+      <Tokens Remove="@(Tokens)" />
+    </ItemGroup>
   </Target>
 
   <Target Name="GenerateVersionFile"
-          Inputs="ConnectedLivingSpace.version.template"
-          Outputs="$(CLSDIR)\ConnectedLivingSpace.version"
+          Inputs="Version.template;$(CLS_BuildDir)\$(BuildConfiguration)\ConnectedLivingSpace.dll"
+          Outputs="$(DistDir)\GameData\ConnectedLivingSpace\ConnectedLivingSpace.version"
           DependsOnTargets="Compile;getversion;getkspversion">
     <ItemGroup>
       <Tokens Include="{MAJOR}"><Value>$([System.Version]::Parse($(DLLVersion)).Major.ToString())</Value></Tokens>
@@ -230,8 +258,50 @@
       <Tokens Include="{KSP_PATCH}"><Value>$([System.Version]::Parse($(KSPVersion)).Build.ToString())</Value></Tokens>
     </ItemGroup>
     <ReplaceTagsInFile
-        TemplateFile="ConnectedLivingSpace.version.template"
+        TemplateFile="Version.template"
         TargetFile="$(DistDir)\GameData\ConnectedLivingSpace\ConnectedLivingSpace.version"
         Tokens="@(Tokens)" />
+    <ItemGroup>
+      <Tokens Remove="@(Tokens)" />
+    </ItemGroup>
   </Target>
+
+  <!-- Sets up debug configuration; can't be inside "Deploy-DEBUG" due to a limitation of MSBuild -->
+  <Target Name="SetDebugConfiguration">
+    <CreateProperty Value="Debug">
+      <Output TaskParameter="Value" PropertyName="BuildConfiguration"/>
+    </CreateProperty>
+  </Target>
+
+  <!-- Builds and deploys the debug version of DPAI -->
+  <Target Name="Deploy-DEBUG">
+    <CallTarget Targets="SetDebugConfiguration"/>
+    <CallTarget Targets="Compile"/>
+    <CallTarget Targets="DoDeploy"/>
+    <CallTarget Targets="DoDeploy-DEBUG"/>
+  </Target>
+
+  <!-- This target deploys the debug-build artefacts over the top of the standard artifacts in the KSP directory -->
+  <Target Name="DoDeploy-DEBUG">
+    <PropertyGroup>
+      <SourceFolder>$(CLS_BuildDir)\$(BuildConfiguration)</SourceFolder>
+      <DestFolder>$(KSPDIR)\GameData\ConnectedLivingSpace\Plugins</DestFolder>
+    </PropertyGroup>
+    <MakeDir Directories="$(DestFolder)" Condition="!Exists('$(DestFolder)')" />
+    <ItemGroup>
+      <ReleaseFiles
+        Include="$(SourceFolder)\*.*"
+        Exclude="">
+      </ReleaseFiles>
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(ReleaseFiles)"
+      DestinationFolder="$(DestFolder)\"
+      SkipUnchangedFiles="true" >
+    </Copy>
+    <ItemGroup>
+      <ReleaseFiles Remove="@(ReleaseFiles)" />
+    </ItemGroup>
+  </Target>
+
 </Project>

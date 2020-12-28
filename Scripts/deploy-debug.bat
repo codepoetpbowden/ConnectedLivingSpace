@@ -19,5 +19,5 @@ if exist "!InstallDir!\Common7\Tools\VsMSBuildCmd.bat" (
 rem go to current folder
 cd %~dp0
 
-msbuild Deploy.proj /target:Release
+msbuild Deploy.proj /target:Deploy-DEBUG
 pause
