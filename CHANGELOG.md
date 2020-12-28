@@ -10,8 +10,10 @@ Version 2.0.0.6 - Release 28 Dec 2020 - KSP 1.11.0
 -------------------------------------------------
  - New: recompiled for KSP 1.11.0.
  - New: additional part configurations.
+ - New: Restock Plus configuration (by Poodmund)
  - Changed: Enabled the StockFreedomAddon configurations by default.
  - Fixed: removed default window position - off-screen for smaller displays.
+ - Fixed: stop string being appended in GetInfo() (thanks to todi)
 
 Version 2.0.0.5 - Release 15 Jun 2020 - KSP 1.9.1
 -------------------------------------------------
