@@ -5,7 +5,7 @@ To install copy the GameData folder to your KSP folder. Module Manager is requir
 
 If you are integrating a mod with CLS then the contents of the dev directory has all you will need - an assembly that defines the interfaces, and a suggested snippet of code for testing for and accessing CLS.
 
-Thread for discussion: http://forum.kerbalspaceprogram.com/threads/122126
+Thread for discussion: https://forum.kerbalspaceprogram.com/index.php?showtopic=192130
 Please log bugs in github if possible: https://github.com/mwerle/ConnectedLivingSpace
 If you can not use github then report in the forum.
 
