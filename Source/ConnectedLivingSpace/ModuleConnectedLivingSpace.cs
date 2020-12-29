@@ -53,6 +53,11 @@ namespace ConnectedLivingSpace
       }
     }
 
+    public void onSettingsChanged()
+    {
+      SetEventState();
+    }
+
     /// <summary>
     /// Called during the Part startup.
     /// StartState gives flag values of initial state
@@ -76,6 +81,7 @@ namespace ConnectedLivingSpace
           spaceName = part.partInfo.title;
         }
         SetEventState();
+        CLSAddon.Instance.onSettingsChanged += onSettingsChanged;
       }
       catch (Exception ex)
       {
