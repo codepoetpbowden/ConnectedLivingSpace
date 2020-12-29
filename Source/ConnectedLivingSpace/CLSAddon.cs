@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -28,11 +28,11 @@ namespace ConnectedLivingSpace
     internal static bool IsStyleSet = false;
 
     // settings
-    private static bool _allowUnrestrictedTransfers;
-    private static bool _backupAllowUnrestrictedTransfers; // this value is used to "remember" the actual setting in CLS in the event it was changed by another mod
-    public static bool EnablePassable;
-    public static bool EnableBlizzyToolbar;
-    private static bool _prevEnableBlizzyToolbar;
+    private static bool _allowUnrestrictedTransfers = false;
+    private static bool _backupAllowUnrestrictedTransfers = false; // this value is used to "remember" the actual setting in CLS in the event it was changed by another mod
+    public static bool EnablePassable = false;
+    public static bool EnableBlizzyToolbar = false;
+    private static bool _prevEnableBlizzyToolbar = false;
     private static string _settingsPath;
     private static string _settingsFile;
 
@@ -651,6 +651,10 @@ namespace ConnectedLivingSpace
     #endregion Toolbar Functionality
 
     #region Settings
+
+    public delegate void SettingsChangedCallback();
+    public SettingsChangedCallback onSettingsChanged;
+
     private void ApplySettings()
     {
       if (_settings == null)
@@ -1004,7 +1008,11 @@ namespace ConnectedLivingSpace
         _backupAllowUnrestrictedTransfers = _allowUnrestrictedTransfers;
       }
       // Optional Passable Parts
-      EnablePassable = GUILayout.Toggle(EnablePassable, _clsLocOptPassable); // "Enable Optional Passable Parts\r\n(Requires game restart)"
+      bool newEnablePassable = GUILayout.Toggle(EnablePassable, _clsLocOptPassable); // "Enable Optional Passable Parts\r\n(Requires game restart)"
+      if (newEnablePassable != EnablePassable) {
+        EnablePassable = newEnablePassable;
+        onSettingsChanged();
+      }
 
       // Blizzy Toolbar?
       if (ToolbarManager.ToolbarAvailable)
