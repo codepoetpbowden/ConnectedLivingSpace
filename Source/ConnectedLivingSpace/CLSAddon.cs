@@ -28,11 +28,11 @@ namespace ConnectedLivingSpace
     internal static bool IsStyleSet = false;
 
     // settings
-    private static bool _allowUnrestrictedTransfers;
-    private static bool _backupAllowUnrestrictedTransfers; // this value is used to "remember" the actual setting in CLS in the event it was changed by another mod
-    public static bool EnablePassable;
-    public static bool EnableBlizzyToolbar;
-    private static bool _prevEnableBlizzyToolbar;
+    private static bool _allowUnrestrictedTransfers = false;
+    private static bool _backupAllowUnrestrictedTransfers = false; // this value is used to "remember" the actual setting in CLS in the event it was changed by another mod
+    public static bool EnablePassable = false;
+    public static bool EnableBlizzyToolbar = false;
+    private static bool _prevEnableBlizzyToolbar = false;
     private static string _settingsPath;
     private static string _settingsFile;
 
