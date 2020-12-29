@@ -6,14 +6,17 @@ Major features are **bolded**, contributors are *emphasized*.
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
 
-Version 2.0.0.6 - Release 28 Dec 2020 - KSP 1.11.0
--------------------------------------------------
- - New: recompiled for KSP 1.11.0.
- - New: additional part configurations.
+Version 2.0.0.6 - Release 29 Dec 2020 - KSP 1.11.0
+------------------------------------------------- - New: recompiled for KSP 1.11.0.
+ - New: additional part configurations:
+        - bi-tri-quad stack couplers are now passable.
+        - Inline cargo containers are passable.
  - New: Restock Plus configuration (by Poodmund)
+ - Changed: Retargeted to DotNet 4.6.1.
  - Changed: Enabled the StockFreedomAddon configurations by default.
+ - Changed: Enable Optional Passable Parts no longer requires restart.
  - Fixed: removed default window position - off-screen for smaller displays.
- - Fixed: stop string being appended in GetInfo() (thanks to todi)
+ - Fixed: GetInfo() no longer appends strings ad infinitum (thanks to todi)
 
 Version 2.0.0.5 - Release 15 Jun 2020 - KSP 1.9.1
 -------------------------------------------------
