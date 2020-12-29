@@ -12,12 +12,12 @@
     "MAJOR": {MAJOR},
     "MINOR": {MINOR},
     "PATCH": {PATCH},
-    "BUILD": {BUILD},
+    "BUILD": {BUILD}
   },
   "KSP_VERSION": {
     "MAJOR": {KSP_MAJOR},
     "MINOR": {KSP_MINOR},
-    "PATCH": {KSP_PATCH},
+    "PATCH": {KSP_PATCH}
   },
   "KSP_VERSION_MIN": {
     "MAJOR": 1,
