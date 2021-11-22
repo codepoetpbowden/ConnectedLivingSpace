@@ -5,6 +5,32 @@ Major features are **bolded**, contributors are *emphasized*.
 
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
+ - New: recompiled for KSP 1.12.x and DotNet 4.8
+   - **NOTE:** This version is incompatible with versions of KSP before 1.8.
+ - Changed: back to previous maintainer, *Papa_Joe*.  Thanks *Micha*, for your support!.
+
+
+Version 2.0.0.6 - Release 29 Dec 2020 - KSP 1.11.0
+-------------------------------------------------
+ - New: recompiled for KSP 1.11.0.
+ - New: additional part configurations:
+        - bi-tri-quad stack couplers are now passable.
+        - Inline cargo containers are passable.
+ - New: Restock Plus configuration (by Poodmund)
+ - Changed: Retargeted to DotNet 4.6.1.
+ - Changed: Enabled the StockFreedomAddon configurations by default.
+ - Changed: Enable Optional Passable Parts no longer requires restart.
+ - Fixed: removed default window position - off-screen for smaller displays.
+ - Fixed: GetInfo() no longer appends strings ad infinitum (thanks to todi)release v1.2.6.2 release date:  13 Jun 2018
+- recompiled for 1.4.3
+- incorporate PR #102 Add Italian translation.  Thanks to CRL42!
+- incorporate PRs #101 from cake-pie make CLS 1.3.1 compatible. Thanks cakepie!
+- Updated KSP-AVC version file to reflect backwards compatibility to KSP 1.3.1
+- fixed Git issue #99 inflatable airlock deploy/retract does not update clsvessel state.  Incorporate PR #100 from cake-pie.
+- incorporate PR #98 from cake-pie correct updating cls state on crew movements Thanks cake-pie!
+- fixed Git issue #96 localization of certain languages due to string order.
+- Added surface attached is passable to structural tubes (Making History).
+- Recoupler issue hatch status not changing when opening/closing hatches after recouple
 
 Version 2.0.0.4 - Release 05 May 2020 - KSP 1.9.1
 -------------------------------------------------

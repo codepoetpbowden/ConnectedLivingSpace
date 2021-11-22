@@ -4,7 +4,7 @@
     <Import Project="ConnectedLivingSpace.User.props" Condition="Exists('ConnectedLivingSpace.User.props')" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <KSPDIR Condition="'$(KSPDIR)' == ''">S:\KSP\KSP_Dev\</KSPDIR>
+    <KSPDIR Condition="'$(KSPDIR)' == ''">D:\Games\KSP\Kerbal Space Program\</KSPDIR>
     <CLSDIR>$(MSBuildThisFileDirectory)\..</CLSDIR>
     <DISTDIR>$(CLSDIR)\Distribution</DISTDIR>
   </PropertyGroup>
