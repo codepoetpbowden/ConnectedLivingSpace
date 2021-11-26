@@ -1,0 +1,30 @@
+CLS Dev Notes
+
+Accessing the API
+
+As a mod developer, in order to access CLS, you have 3 choices to establish connectivity with CLS.
+
+Create a "hard" dependency to CLS. This is accomplished by adding a reference to CLSInterfaces.dll
+contained in the Gamedata\ConnectedLivingSpace\Plugins folder in your build, and then directly calling
+the namespace "ConnectedLivingSpace" in your code. If the .dll does not exist at run time, then a
+namespace error will occur. This is not the recommended approach, but is doable.
+
+Including CLSInterfaces.dll in your distribution. This is the recommended approach, both for its
+fault tolerance, and its ease of use. This file is also located in the Gamedata\ConnectedLivingSpace\Plugins folder.
+In the CLS download, there is also a Dev folder containing the dll and a snippet of code (shown below in sample 1)
+that can be used to integrate into your plugin. Including this dll in your distribution allows you to establish a
+reference and create a namespace reference in your classes for easy reference and less verbose class and method references.
+You also need not worry about namespace resolution when CLS is not installed.
+
+NOTE: As of KSP 1.12, there can be a DLL loading conflict error if duplicate copies of CLSInterfaces.dll are loaded.
+Therefore, please be sure to rename this file to be unique. Ex: "MyMod_CLSInterface.dll"
+
+Bind directly to the CLSInterfaces.dll through Reflection. This method negates the need for the existence of the dll in
+your distribution, as you are detecting the presence of the CLS installation at load. however, you will need to ensure
+any code accessing the library is segregated, and includes full namespace resolution, making your code more verbose.
+If CLS is NOT installed, any calls to the CLS namespace will fail, and cause errors in your plugin. An example of this
+method is when accessing RemoteTech's API, as no stand alone interface library is available for RemoteTech.
+
+For detailed instructions for adding support for CLS, please refer to the CLS Wiki at:
+https://github.com/codepoetpbowden/ConnectedLivingSpace/wiki
+
