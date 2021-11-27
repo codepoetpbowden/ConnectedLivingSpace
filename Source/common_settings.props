@@ -4,7 +4,7 @@
     <Import Project="user_settings.props" Condition="Exists('user_settings.props')" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <KSPDIR Condition="'$(KSPDIR)' == ''">S:\KSP\KSP_Dev\</KSPDIR>
+    <KSPDIR Condition="'$(KSPDIR)' == ''">D:\Games\KSP\Kerbal Space Program\</KSPDIR>
     <CLSDIR>$(MSBuildThisFileDirectory)\..</CLSDIR>
     <DISTDIR>$(CLSDIR)\Distribution</DISTDIR>
   </PropertyGroup>

@@ -7,7 +7,9 @@ KSP addon to identify and make use of living spaces that are connected to each o
 
 Originally by [**codepoetbowden**](https://github.com/codepoetpbowden/ConnectedLivingSpace), later maintained by **PapaJoesSoup**.
 
-Currently maintained by [**Micha**](https://github.com/mwerle/ConnectedLivingSpace).
+Currently maintained by [**Papa_Joe**](https://github.com/mwerle/ConnectedLivingSpace).
+
+Interim maintainance by [Micha](https://github.com/mwerle/ConnectedLivingSpace). Covers releases during Papa_Joe's absence
 
 Changes
 -------
@@ -26,8 +28,8 @@ A list of contributors can be [found here](CONTRIBUTORS.md).
 Resources
 ---------
 
- - [Micha's Release forum thread](http://forum.kerbalspaceprogram.com/index.php?showtopic=192130) is the main discussion and announcements location for this mod.
-   - **PapaJoe**'s [Forum Thread](http://forum.kerbalspaceprogram.com/index.php?showtopic=109972)
+ - [PapaJoe's Release Forum Thread](http://forum.kerbalspaceprogram.com/index.php?showtopic=109972) is the main discussion and announcements location for this mod.
+   - [Micha's forum thread](http://forum.kerbalspaceprogram.com/index.php?showtopic=192130) contains support info during Papa_Joe's absence.
  - The official [Wiki](https://github.com/codepoetpbowden/ConnectedLivingSpace/wiki) contains lots more information, especially for developers wishing to integrate their mod with CLS.
 
 Requirements
@@ -38,7 +40,7 @@ This mod relies on [ModuleManager](https://github.com/sarbian/ModuleManager) for
 Download Links
 --------------
 
- - [GitHub](https://github.com/mwerle/ConnectedLivingSpace/releases) - primary download location.
+ - [GitHub](https://github.com/codepoetpbowden/ConnectedLivingSpace/releases) - primary download location.
  - [SpaceDock](https://spacedock.info/mod/190)
  - [CurseForge](https://www.curseforge.com/kerbal/ksp-mods/connectedlivingspace)
  - And via the [CKAN](http://forum.kerbalspaceprogram.com/index.php?90246) tool.

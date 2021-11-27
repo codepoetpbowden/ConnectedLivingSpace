@@ -5,6 +5,39 @@ Major features are **bolded**, contributors are *emphasized*.
 
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
+ - Changed: Back to previous maintainer, *Papa_Joe*.  Thanks *Micha*, for your support!.
+ - New: recompiled for KSP 1.12.x and DotNet 4.8
+        **NOTE:** This version is incompatible with versions of KSP before 1.8.
+ - New: CLSInterfaces.dll is also updated to DotNet 4.8 so version has been updated.
+        I expect no issues with older versions, but for maximum compatability, devs update your dependencies.
+		To avoid the KSP dll bug, rename your CLSInterfaces.dll to some unique name such as: "myMod_CLSInterface.dll"
+ - New: Added a Dev folder with instructions for integrating CLS into a mod.  Added a code sample to folder for embedding in a mod.
+        Added notes for renaming the dll due to the KSP 1.12 duplicated DLL bug.
+ - New: Added maximum scroll height to scroll display for crew and parts list.  Can be set in the Options Window.  Default is 600 px.
+ - Fixed: Corrected scrolling of crew or parts lists when viewing a selected space details. Window no longer grows too large for screen.
+
+
+Version 2.0.0.6 - Release 29 Dec 2020 - KSP 1.11.0
+-------------------------------------------------
+ - New: recompiled for KSP 1.11.0.
+ - New: additional part configurations:
+        - bi-tri-quad stack couplers are now passable.
+        - Inline cargo containers are passable.
+ - New: Restock Plus configuration (by Poodmund)
+ - Changed: Retargeted to DotNet 4.6.1.
+ - Changed: Enabled the StockFreedomAddon configurations by default.
+ - Changed: Enable Optional Passable Parts no longer requires restart.
+ - Fixed: removed default window position - off-screen for smaller displays.
+ - Fixed: GetInfo() no longer appends strings ad infinitum (thanks to todi)release v1.2.6.2 release date:  13 Jun 2018
+- recompiled for 1.4.3
+- incorporate PR #102 Add Italian translation.  Thanks to CRL42!
+- incorporate PRs #101 from cake-pie make CLS 1.3.1 compatible. Thanks cakepie!
+- Updated KSP-AVC version file to reflect backwards compatibility to KSP 1.3.1
+- fixed Git issue #99 inflatable airlock deploy/retract does not update clsvessel state.  Incorporate PR #100 from cake-pie.
+- incorporate PR #98 from cake-pie correct updating cls state on crew movements Thanks cake-pie!
+- fixed Git issue #96 localization of certain languages due to string order.
+- Added surface attached is passable to structural tubes (Making History).
+- Recoupler issue hatch status not changing when opening/closing hatches after recouple
 
 Version 2.0.0.6 - Release 29 Dec 2020 - KSP 1.11.0
 ------------------------------------------------- - New: recompiled for KSP 1.11.0.
