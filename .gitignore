@@ -10,6 +10,7 @@
 # Ignore build artefacts in our repository
 Build/
 Release/
+user_settings.props
 *.User.props
 **/obj/
 **/bin/

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -27,7 +27,7 @@ namespace ConnectedLivingSpace
     [KSPField(isPersistant = true)]
     public string spaceName;
 
-    private string returnValue = string.Empty;
+    private string strInfo = string.Empty;
 
     // For localization.  These are the default (english) values...
     private static string _strYes = $"<color={XKCDColors.HexFormat.Lime}>Yes</color>";
@@ -53,6 +53,11 @@ namespace ConnectedLivingSpace
       }
     }
 
+    public void onSettingsChanged()
+    {
+      SetEventState();
+    }
+
     /// <summary>
     /// Called during the Part startup.
     /// StartState gives flag values of initial state
@@ -76,6 +81,7 @@ namespace ConnectedLivingSpace
           spaceName = part.partInfo.title;
         }
         SetEventState();
+        CLSAddon.Instance.onSettingsChanged += onSettingsChanged;
       }
       catch (Exception ex)
       {
@@ -191,6 +197,11 @@ namespace ConnectedLivingSpace
     // Method to provide extra infomation about the part on response to the RMBof the part gallery
     public override string GetInfo()
     {
+      if (!string.IsNullOrEmpty(strInfo))
+      {
+        return strInfo;
+      }
+
       if (passable)
       {
         //returnValue += "Passable:  <color=" + XKCDColors.HexFormat.Lime + ">Yes</color>";
@@ -199,19 +210,19 @@ namespace ConnectedLivingSpace
         //returnValue += "\r\nPassable Nodes:  " + (passablenodes != "" ? passablenodes : (passable ? "All" : "None"));
         //returnValue += "\r\nPass when Surface Attached:  " + (passableWhenSurfaceAttached ? yes : no);
         //returnValue += "\r\nSurface Attached Parts Pass:  " + (surfaceAttachmentsPassable ? yes : no);
-        returnValue += $"{_strPassable}:  {_strYes}";
-        returnValue += $"\n{_strCapacity}:  {(part.CrewCapacity > 0 ? _strYes : _strNo)}";
-        returnValue += $"\n{_strImpassableNodes}:  {(impassablenodes != "" ? impassablenodes : passable ? _strNone : _strAll)}";
-        returnValue += $"\n{_strPassableNodes}:  {(passablenodes != "" ? passablenodes : passable ? _strAll : _strNone)}";
-        returnValue += $"\n{_strPassableSA}:  {(passableWhenSurfaceAttached ? _strYes : _strNo)}";
-        returnValue += $"\n{_strSAPassable}:  {(surfaceAttachmentsPassable ? _strYes : _strNo)}";
+        strInfo += $"{_strPassable}:  {_strYes}";
+        strInfo += $"\n{_strCapacity}:  {(part.CrewCapacity > 0 ? _strYes : _strNo)}";
+        strInfo += $"\n{_strImpassableNodes}:  {(impassablenodes != "" ? impassablenodes : passable ? _strNone : _strAll)}";
+        strInfo += $"\n{_strPassableNodes}:  {(passablenodes != "" ? passablenodes : passable ? _strAll : _strNone)}";
+        strInfo += $"\n{_strPassableSA}:  {(passableWhenSurfaceAttached ? _strYes : _strNo)}";
+        strInfo += $"\n{_strSAPassable}:  {(surfaceAttachmentsPassable ? _strYes : _strNo)}";
       }
       else
       {
-        returnValue += $"{_strPassable}:  {_strNo}";
-        if (passablenodes != "") returnValue += $"\n{_strPassableNodes}:  {passablenodes}";
+        strInfo += $"{_strPassable}:  {_strNo}";
+        if (passablenodes != "") strInfo += $"\n{_strPassableNodes}:  {passablenodes}";
       }
-      return returnValue;
+      return strInfo;
     }
 
 
@@ -219,6 +230,7 @@ namespace ConnectedLivingSpace
     public void DisablePassable()
     {
       passable = false;
+      strInfo = String.Empty;
       Events["EnablePassable"].active = true;
       Events["DisablePassable"].active = false;
     }
@@ -227,6 +239,7 @@ namespace ConnectedLivingSpace
     public void EnablePassable()
     {
       passable = true;
+      strInfo = String.Empty;
       Events["EnablePassable"].active = false;
       Events["DisablePassable"].active = true;
     }
@@ -235,6 +248,7 @@ namespace ConnectedLivingSpace
     public void DisableSurfaceAttachable()
     {
       passableWhenSurfaceAttached = false;
+      strInfo = String.Empty;
       Events["EnableSurfaceAttachable"].active = true;
       Events["DisableSurfaceAttachable"].active = false;
     }
@@ -242,6 +256,7 @@ namespace ConnectedLivingSpace
     public void EnableSurfaceAttachable()
     {
       passableWhenSurfaceAttached = true;
+      strInfo = String.Empty;
       Events["EnableSurfaceAttachable"].active = false;
       Events["DisableSurfaceAttachable"].active = true;
     }
@@ -250,6 +265,7 @@ namespace ConnectedLivingSpace
     public void DisableAttachableSurface()
     {
       surfaceAttachmentsPassable = false;
+      strInfo = String.Empty;
       Events["EnableAttachableSurface"].active = true;
       Events["DisableAttachableSurface"].active = false;
     }
@@ -257,6 +273,7 @@ namespace ConnectedLivingSpace
     public void EnableAttachableSurface()
     {
       surfaceAttachmentsPassable = true;
+      strInfo = String.Empty;
       Events["EnableAttachableSurface"].active = false;
       Events["DisableAttachableSurface"].active = true;
     }

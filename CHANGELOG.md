@@ -39,10 +39,29 @@ Version 2.0.0.6 - Release 29 Dec 2020 - KSP 1.11.0
 - Added surface attached is passable to structural tubes (Making History).
 - Recoupler issue hatch status not changing when opening/closing hatches after recouple
 
+Version 2.0.0.6 - Release 29 Dec 2020 - KSP 1.11.0
+------------------------------------------------- - New: recompiled for KSP 1.11.0.
+ - New: additional part configurations:
+        - bi-tri-quad stack couplers are now passable.
+        - Inline cargo containers are passable.
+ - New: Restock Plus configuration (by Poodmund)
+ - Changed: Retargeted to DotNet 4.6.1.
+ - Changed: Enabled the StockFreedomAddon configurations by default.
+ - Changed: Enable Optional Passable Parts no longer requires restart.
+ - Fixed: removed default window position - off-screen for smaller displays.
+ - Fixed: GetInfo() no longer appends strings ad infinitum (thanks to todi)
+
+Version 2.0.0.5 - Release 15 Jun 2020 - KSP 1.9.1
+-------------------------------------------------
+ - Changed: Mk2 pod top hatch now passable (*evanrinehart*).
+ - Changed: 1.25m to 0.625m adapters now passable.
+ - Changed: StationScience Cyclotron and Spectrometer modules no longer passable (by mod author request).
+ - Fixed: Highlighting when hatches are opened or closed.
+
 Version 2.0.0.4 - Release 05 May 2020 - KSP 1.9.1
 -------------------------------------------------
- - Added Chinese localization (thanks to *Li-Zongyao*)
- - Added support for some modified Squad parts (thanks to *Kerbas-ad-astra*)
+ - New: Added Chinese localization (thanks to *Li-Zongyao*)
+ - New: Added support for some modified Squad parts (thanks to *Kerbas-ad-astra*)
 
 Version 2.0.0.3 - Release 04 Mar 2020 - KSP 1.9.1
 -------------------------------------------------

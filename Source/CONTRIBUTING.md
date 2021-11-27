@@ -49,8 +49,8 @@ environment is Visual Studio, and a Visual Studio solution file is in the
 top-level folder of the source tree.
 
 To adjust to your local development environment, copy the
-`ConnectedLivingSpace.User.props.template` to
-`ConnectedLivingSpace.User.props` and edit accordingly.
+`user_settings.props.template` to
+`user_settings.props` and edit accordingly.
 
 Helper scripts to deploy and release CLS are in the `Scripts` folder and
 require `msbuild` v15.8 or later.

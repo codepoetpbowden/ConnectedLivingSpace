@@ -2,18 +2,4 @@ clsSettings
 {
 	enableBlizzyToolbar = False
 	enablePassable = False
-	windowPosition
-	{
-		x = 1270
-		y = 499
-		width = 360
-		height = 480
-	}
-	windowOptionsPosition
-	{
-		x = 580
-		y = 57
-		width = 260
-		height = 115
-	}
 }
