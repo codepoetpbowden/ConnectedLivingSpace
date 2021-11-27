@@ -665,7 +665,7 @@ namespace ConnectedLivingSpace
       _windowOptionsPosition = getRectangle(toolbarNode, "windowOptionsPosition", _windowOptionsPosition);
       EnableBlizzyToolbar = toolbarNode.HasValue("enableBlizzyToolbar") ? bool.Parse(toolbarNode.GetValue("enableBlizzyToolbar")) : EnableBlizzyToolbar;
       EnablePassable = toolbarNode.HasValue("enablePassable") ? bool.Parse(toolbarNode.GetValue("enablePassable")) : EnablePassable;
-      MaxScrollHeight = toolbarNode.HasValue("MaxScrollHeight") ? float.Parse(toolbarNode.GetValue("MaxScrollHeight")) : MaxScrollHeight;
+      MaxScrollHeight = toolbarNode.HasValue("maxScrollHeight") ? float.Parse(toolbarNode.GetValue("maxScrollHeight")) : MaxScrollHeight;
       // Set string value for settings display
       _maxScrollHeightEditField = MaxScrollHeight.ToString();
     }
@@ -685,7 +685,7 @@ namespace ConnectedLivingSpace
       toolbarNode.AddValue("enableBlizzyToolbar", EnableBlizzyToolbar.ToString());
       WriteRectangle(toolbarNode, "windowPosition", _windowPosition);
       WriteRectangle(toolbarNode, "windowOptionsPosition", _windowOptionsPosition);
-      WriteValue(toolbarNode, "MaxScrollHeight", MaxScrollHeight);
+      WriteValue(toolbarNode, "maxScrollHeight", MaxScrollHeight);
       WriteValue(toolbarNode, "enableBlizzyToolbar", EnableBlizzyToolbar);
       WriteValue(toolbarNode, "enablePassable", EnablePassable);
       if (!Directory.Exists(_settingsPath))
