@@ -133,7 +133,7 @@
     <!-- Copy dev files -->
     <MakeDir Directories="$(BuildDir)\Dev" Condition="!Exists('$(BuildDir)\Dev')" />
     <Copy
-      SourceFiles="$(SourceDir)\CLSInterfaces\CLSClient.cs;$(CLSI_BuildDir)\$(BuildConfiguration)\CLSInterfaces.dll"
+      SourceFiles="$(CLSI_BuildDir)\$(BuildConfiguration)\CLSInterfaces.dll"
       DestinationFolder="$(BuildDir)\Dev" />
   </Target>
 
