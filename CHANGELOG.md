@@ -5,7 +5,7 @@ Major features are **bolded**, contributors are *emphasized*.
 
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
- - Changed: back to previous maintainer, *Papa_Joe*.  Thanks *Micha*, for your support!.
+ - Changed: Back to previous maintainer, *Papa_Joe*.  Thanks *Micha*, for your support!.
  - New: recompiled for KSP 1.12.x and DotNet 4.8
         **NOTE:** This version is incompatible with versions of KSP before 1.8.
  - New: CLSInterfaces.dll is also updated to DotNet 4.8 so version has been updated.
@@ -13,7 +13,8 @@ Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 		To avoid the KSP dll bug, rename your CLSInterfaces.dll to some unique name such as: "myMod_CLSInterface.dll"
  - New: Added a Dev folder with instructions for integrating CLS into a mod.  Added a code sample to folder for embedding in a mod.
         Added notes for renaming the dll due to the KSP 1.12 duplicated DLL bug.
- - New: Added scrolling support for long parts lists when viewing spaces in VAB.
+ - New: Added maximum scroll height to scroll display for crew and parts list.  Can be set in the Options Window.  Default is 600 px.
+ - Fixed: Corrected scrolling of crew or parts lists when viewing a selected space details. Window no longer grows too large for screen.
 
 
 Version 2.0.0.6 - Release 29 Dec 2020 - KSP 1.11.0

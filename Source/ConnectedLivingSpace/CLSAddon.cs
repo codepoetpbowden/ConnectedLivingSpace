@@ -35,6 +35,7 @@ namespace ConnectedLivingSpace
     private static bool _prevEnableBlizzyToolbar;
     private static string _settingsPath;
     private static string _settingsFile;
+    private static float MaxScrollHeight = 600;
 
     // this var is now restricted to use by the CLS window.  Highlighting will be handled by part.
     internal static int WindowSelectedSpace = -1;
@@ -64,6 +65,7 @@ namespace ConnectedLivingSpace
     private static string _clsLocWarnFull = "CLS - This module is either full or internally unreachable (different spaces)";
     private static string _clsLocWarnXfer = "CLS has prevented the transfer of: <<1>>.  <<2>> and <<3>> are not in the same living space.";
     private static string _clsLocNone = "None";
+    private static string _clsLocMaxHeight = "Max Scroll Height";
     
     public static CLSAddon Instance
     {
@@ -91,6 +93,7 @@ namespace ConnectedLivingSpace
     private int _editorPartCount;
 
     private string _spaceNameEditField;
+    private string _maxScrollHeightEditField;
 
     public ICLSVessel Vessel
     {
@@ -662,7 +665,9 @@ namespace ConnectedLivingSpace
       _windowOptionsPosition = getRectangle(toolbarNode, "windowOptionsPosition", _windowOptionsPosition);
       EnableBlizzyToolbar = toolbarNode.HasValue("enableBlizzyToolbar") ? bool.Parse(toolbarNode.GetValue("enableBlizzyToolbar")) : EnableBlizzyToolbar;
       EnablePassable = toolbarNode.HasValue("enablePassable") ? bool.Parse(toolbarNode.GetValue("enablePassable")) : EnablePassable;
-
+      MaxScrollHeight = toolbarNode.HasValue("MaxScrollHeight") ? float.Parse(toolbarNode.GetValue("MaxScrollHeight")) : MaxScrollHeight;
+      // Set string value for settings display
+      _maxScrollHeightEditField = MaxScrollHeight.ToString();
     }
 
     private ConfigNode loadSettings()
@@ -680,6 +685,7 @@ namespace ConnectedLivingSpace
       toolbarNode.AddValue("enableBlizzyToolbar", EnableBlizzyToolbar.ToString());
       WriteRectangle(toolbarNode, "windowPosition", _windowPosition);
       WriteRectangle(toolbarNode, "windowOptionsPosition", _windowOptionsPosition);
+      WriteValue(toolbarNode, "MaxScrollHeight", MaxScrollHeight);
       WriteValue(toolbarNode, "enableBlizzyToolbar", EnableBlizzyToolbar);
       WriteValue(toolbarNode, "enablePassable", EnablePassable);
       if (!Directory.Exists(_settingsPath))
@@ -813,6 +819,9 @@ namespace ConnectedLivingSpace
       }
       try
       {
+        // Main window...
+        //------------------------------------------------------------------------------------------------
+
         Rect rect = new Rect(_windowPosition.width - 20, 4, 16, 16);
         if (GUI.Button(rect, ""))
         {
@@ -827,6 +836,8 @@ namespace ConnectedLivingSpace
         GUI.enabled = true;
 
         // Build strings describing the contents of each of the spaces.
+        // Display Selected Space Attributes
+
         if (null != _vessel)
         {
           string[] spaceNames = new string[_vessel.Spaces.Count];
@@ -861,6 +872,9 @@ namespace ConnectedLivingSpace
 
           // Update the space that has been selected.
           WindowSelectedSpace = newSelectedSpace;
+
+          // Display Space Details
+          //------------------------------------------------------------------------------------------------
 
           // If one of the spaces has been selected then display lists of the crew and parts that make it up
           if (WindowSelectedSpace != -1)
@@ -903,11 +917,11 @@ namespace ConnectedLivingSpace
             // Lets use 2 scrollers for Crew and parts to save space...
             GUILayout.BeginHorizontal();
 
-            // Crew Scroller
-            _scrollViewerCrew = GUILayout.BeginScrollView(_scrollViewerCrew, GUILayout.Width(_scrollXCrew), GUILayout.Height(20 > _scrollY ? 20 : _scrollY + 20));
-            GUILayout.BeginVertical();
+            // Display Crew section
 
-            // Display the crew capacity of the space.
+            // Display Headers
+            GUILayout.BeginVertical();
+           // Display the crew capacity of the space.
             GUILayout.Label($"{_clsLocCapacity}:  {_vessel.Spaces[WindowSelectedSpace].MaxCrew}");
             _rect = GUILayoutUtility.GetLastRect();
             if (Event.current.type == EventType.Repaint)
@@ -915,8 +929,10 @@ namespace ConnectedLivingSpace
               _scrollCrew.height = _rect.height;
               _scrollCrew.width = _rect.width;
             }
+            // Display Crew Scroller
+             _scrollViewerCrew = GUILayout.BeginScrollView(_scrollViewerCrew, GUILayout.Width(_scrollXCrew), GUILayout.Height(20 > _scrollY ? 20 : (_scrollY + 20) > MaxScrollHeight ? MaxScrollHeight : _scrollY + 20));
+            GUILayout.BeginVertical();
 
-            // Crew Capacity
             GUILayout.Label(crewList);
             _rect = GUILayoutUtility.GetLastRect();
             if (Event.current.type == EventType.Repaint)
@@ -927,12 +943,12 @@ namespace ConnectedLivingSpace
 
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
+            GUILayout.EndVertical();
 
-            // Part Scroller
-            _scrollViewerParts = GUILayout.BeginScrollView(_scrollViewerParts, GUILayout.Width(_scrollXParts), GUILayout.Height(20 > _scrollY ? 20 : _scrollY + 20));
-            GUILayout.BeginVertical();
+            //Display Parts section
 
             // Display the Part count of the space.
+            GUILayout.BeginVertical();
             GUILayout.Label($"{_clsLocPartCount}:  {_vessel.Spaces[WindowSelectedSpace].Parts.Count}"); // Selected Space Parts Count
             _rect = GUILayoutUtility.GetLastRect();
             if (Event.current.type == EventType.Repaint)
@@ -940,6 +956,10 @@ namespace ConnectedLivingSpace
               _scrollParts.height = _rect.height;
               _scrollParts.width = _rect.width;
             }
+
+            // Display Part Scroller
+            _scrollViewerParts = GUILayout.BeginScrollView(_scrollViewerParts, GUILayout.Width(_scrollXParts), GUILayout.Height(20 > _scrollY ? 20 : (_scrollY + 20) > MaxScrollHeight ? MaxScrollHeight : _scrollY + 20));
+            GUILayout.BeginVertical();
 
             // Display the list of component parts.
             GUILayout.Label(partsList);
@@ -952,6 +972,7 @@ namespace ConnectedLivingSpace
 
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
+            GUILayout.EndVertical();
             GUILayout.EndHorizontal();
           }
         }
@@ -1005,6 +1026,25 @@ namespace ConnectedLivingSpace
       }
       // Optional Passable Parts
       EnablePassable = GUILayout.Toggle(EnablePassable, _clsLocOptPassable); // "Enable Optional Passable Parts\r\n(Requires game restart)"
+
+      string oldHeight = MaxScrollHeight.ToString();
+      GUILayout.BeginHorizontal();
+      GUILayout.Label($"{_clsLocMaxHeight}:"); // "Max Scroll Height:"
+      _maxScrollHeightEditField = GUILayout.TextField(_maxScrollHeightEditField, GUILayout.Width(40));
+      if (GUILayout.Button(_clsLocUpdate)) // "Update"
+      {
+        if (oldHeight != _maxScrollHeightEditField)
+        {
+          float result;
+          var success = float.TryParse(_maxScrollHeightEditField, out result);
+          if (success)
+          {
+            MaxScrollHeight = result;
+          }
+
+        }
+      }
+      GUILayout.EndHorizontal();
 
       // Blizzy Toolbar?
       if (ToolbarManager.ToolbarAvailable)
@@ -1099,6 +1139,7 @@ namespace ConnectedLivingSpace
       _clsLocPartCount = Localize("#clsloc_040"); // "Selected Space Parts Count"
       _clsLocParts = Localize("#clsloc_041"); // "Parts";
       _clsLocNone = Localize("#clsloc_020"); // "None"
+      _clsLocMaxHeight = Localize("#clsloc_042"); // "Max Scroll Height"
     }
     #endregion Localization
   }
