@@ -1,7 +1,7 @@
 {
   "NAME": "Connected Living Space",
-  "URL": "https://raw.githubusercontent.com/mwerle/ConnectedLivingSpace/Distribution/GameData/ConnectedLivingSpace/ConnectedLivingSpace.version",
-  "CHANGE_LOG_URL":"https://raw.githubusercontent.com/mwerle/ConnectedLivingSpace/CHANGELOG.md",
+  "URL": "https://raw.githubusercontent.com/papajoessoup/ConnectedLivingSpace/Distribution/GameData/ConnectedLivingSpace/ConnectedLivingSpace.version",
+  "CHANGE_LOG_URL":"https://raw.githubusercontent.com/papajoessoup/ConnectedLivingSpace/CHANGELOG.md",
   "GITHUB":
   {
     "USERNAME":"mwerle",
@@ -26,7 +26,7 @@
   },
   "KSP_VERSION_MAX": {
     "MAJOR": 1,
-    "MINOR": 11,
+    "MINOR": 12,
     "PATCH": 99
   }
 }

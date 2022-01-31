@@ -5,6 +5,12 @@ Major features are **bolded**, contributors are *emphasized*.
 
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
+- Fixed: Revert CLSClient.cs location to match build process
+- Fixed: Correct version template to reflect correct version data for build process
+
+
+Version 2.0.1.0 - Release 27 Nov 2021 - KSP 1.12.2
+-------------------------------------------------
  - Changed: Back to previous maintainer, *Papa_Joe*.  Thanks *Micha*, for your support!.
  - New: recompiled for KSP 1.12.x and DotNet 4.8
         **NOTE:** This version is incompatible with versions of KSP before 1.8.

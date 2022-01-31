@@ -14,9 +14,9 @@ If you have contributed and are missing from this list, please contact the curre
  - Kerbas_ad_astra
  - Li-Zongyao
  - linuxgurugamer
- - *Micha* (current maintainer)
+ - *Micha* (maintainer during Papa_Joe's absence)
  - Mine_Turtle
- - **Papa_Joe** (long-term maintainer)
+ - **Papa_Joe** (long-term/current maintainer)
  - taniwha
  - tyehle
  - wookieegoldberg
