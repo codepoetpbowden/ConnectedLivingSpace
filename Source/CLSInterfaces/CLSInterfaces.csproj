@@ -48,13 +48,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
-    <PostBuildEvent>if "$(ConfigurationName)"=="Release" (
-  echo Copying $(ProjectName) files to distribution folder...
-  copy /Y "$(TargetPath)" "$(DistDir)\GameData\$(SolutionName)\Plugins\"
-)</PostBuildEvent>
-  </PropertyGroup>
+  <PropertyGroup/>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -62,4 +56,20 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <FilesToCopy Include="$(TargetPath)" />
+    <FilesToCopy Include="$(TargetDir)/$(TargetName).pdb" Condition=" '$(Configuration)' == 'Debug'" />
+  </ItemGroup>
+  <Target Name="CopyToDistDir" AfterTargets="Build" Condition=" '$(Configuration)' == 'Release'">
+    <Copy
+      SourceFiles="@(FilesToCopy)"
+      DestinationFolder="$(DISTDIR)/GameData/$(SolutionName)/Plugins/"
+    />
+  </Target>
+  <Target Name="CopyToKSPDir" AfterTargets="Build">
+    <Copy
+      SourceFiles="@(FilesToCopy)"
+      DestinationFolder="$(KSPDIR)/GameData/$(SolutionName)/Plugins/"
+    />
+  </Target>
 </Project>
