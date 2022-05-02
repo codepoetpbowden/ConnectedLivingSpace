@@ -234,9 +234,17 @@ namespace ConnectedLivingSpace
         }
         else
         {
-          // it is not possible to get into the child part from this part - it will need to be in a new space.
-          //Debug.Log("[CLS]:  The connection between 'this' part and the child part is NOT passable in both directions, so the child part will be added to a new space.");
-          spaceForChild = null;
+          // Bug #112 - check if the child-part is surface-attached AND that the child-part allows surface-attached parts to pass.
+          if (childNode?.nodeType == AttachNode.NodeType.Surface && PartHasPassableSurfaceAttachments(eChildren.Current))
+          {
+            spaceForChild = thisSpace;
+          }
+          else
+          {
+            // it is not possible to get into the child part from this part - it will need to be in a new space.
+            //Debug.Log("[CLS]:  The connection between 'this' part and the child part is NOT passable in both directions, so the child part will be added to a new space.");
+            spaceForChild = null;
+          }
         }
 
         // Having work out all the variables, make the recursive call
