@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -118,7 +118,7 @@ namespace ConnectedLivingSpace
       eSpacesR.Dispose();
 
       // Now let's clean up any space display issues...
-      if (!CLSAddon.WindowVisable || CLSAddon.WindowSelectedSpace < listSpaces.Count) return;
+      if (!CLSAddon.WindowVisible || CLSAddon.WindowSelectedSpace < listSpaces.Count) return;
       CLSAddon.WindowSelectedSpace = listSpaces.Count - 1;
     }
 
