@@ -8,13 +8,18 @@
     <CLSDIR>$(MSBuildThisFileDirectory)\..</CLSDIR>
     <DISTDIR>$(CLSDIR)\Distribution</DISTDIR>
   </PropertyGroup>
-  <PropertyGroup />
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT'">
+    <KSPDllDir>$(KSPDIR)/KSP_x64_Data/Managed/</KSPDllDir>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT'">
+    <KSPDllDir>$(KSPDIR)/KSP_Data/Managed/</KSPDllDir>
+  </PropertyGroup>
   <ItemDefinitionGroup />
   <ItemGroup>
-      <Reference Include="$(KSPDIR)\KSP_x64_Data\Managed\Assembly*.dll">
+    <Reference Include="$(KSPDllDir)/Assembly*.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="$(KSPDIR)\KSP_x64_Data\Managed\UnityEngine*.dll">
+    <Reference Include="$(KSPDllDir)/UnityEngine*.dll">
       <Private>False</Private>
     </Reference>
   </ItemGroup>

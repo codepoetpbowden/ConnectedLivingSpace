@@ -16,7 +16,22 @@ namespace ConnectedLivingSpace
     #region static Properties
 
     // GUI
-    internal static bool WindowVisable;
+    private static bool _windowVisible;
+    internal static bool _windowLocked;
+    internal static bool WindowVisible
+    {
+      get => _windowVisible;
+      set
+      {
+        if (!value)
+        {
+          InputLockManager.RemoveControlLock(CONTROL_LOCK_ID);
+          _windowLocked = false;
+        }
+        _windowVisible = value;
+      }
+    }
+
     private static Rect _windowPosition = new Rect(0, 0, 400, 100);
     private static Rect _windowOptionsPosition = new Rect(0, 0, 200, 120);
     private static Rect _scrollCrew = new Rect(0, 0, 0, 0);
@@ -81,7 +96,21 @@ namespace ConnectedLivingSpace
 
     #region Instanced Properties
 
-    private bool _optionsVisible;
+    private bool _windowOptionsVisible;
+    private bool _windowOptionsLocked;
+    internal bool WindowOptionsVisible
+    {
+      get => _windowOptionsVisible;
+      set
+      {
+        if (!value)
+        {
+          InputLockManager.RemoveControlLock(CONTROL_LOCK_ID);
+          _windowOptionsLocked = false;
+        }
+        _windowOptionsVisible = value;
+      }
+    }
 
     private ConfigNode _settings;
     private Vector2 _scrollViewerCrew = Vector2.zero;
@@ -311,7 +340,7 @@ namespace ConnectedLivingSpace
     private void UpdateActiveVessel()
     {
       _vessel = FlightGlobals.ActiveVessel.GetComponent<CLSVesselModule>().CLSVessel;
-      if (!WindowVisable || WindowSelectedSpace <= -1) return;
+      if (!WindowVisible || WindowSelectedSpace <= -1) return;
       _vessel.Highlight(false);
       _vessel.Spaces[CLSAddon.WindowSelectedSpace].Highlight(true);
     }
@@ -395,7 +424,7 @@ namespace ConnectedLivingSpace
 
     private void OnGameSceneSwitchRequested(GameEvents.FromToAction<GameScenes, GameScenes> sceneData)
     {
-      if (WindowVisable) OnCLSButtonToggle();
+      if (WindowVisible) OnCLSButtonToggle();
     }
     #endregion Game Events
 
@@ -581,15 +610,15 @@ namespace ConnectedLivingSpace
     internal void OnCLSButtonToggle()
     {
       //Debug.Log("CLSAddon::OnCLSButtonToggle");
-      WindowVisable = !WindowVisable;
+      WindowVisible = !WindowVisible;
 
-      if (!WindowVisable && null != _vessel)
+      if (!WindowVisible && null != _vessel)
         _vessel.Highlight(false);
 
       if (EnableBlizzyToolbar)
-        BlizzyToolbarButton.TexturePath = WindowVisable ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
+        BlizzyToolbarButton.TexturePath = WindowVisible ? "ConnectedLivingSpace/assets/cls_b_icon_on" : "ConnectedLivingSpace/assets/cls_b_icon_off";
       else
-        _stockToolbarButton.SetTexture(GameDatabase.Instance.GetTexture(WindowVisable ? "ConnectedLivingSpace/assets/cls_icon_on_128" : "ConnectedLivingSpace/assets/cls_icon_off_128", false));
+        _stockToolbarButton.SetTexture(GameDatabase.Instance.GetTexture(WindowVisible ? "ConnectedLivingSpace/assets/cls_icon_on_128" : "ConnectedLivingSpace/assets/cls_icon_off_128", false));
     }
 
     internal bool ActivateBlizzyToolBar()
@@ -784,14 +813,14 @@ namespace ConnectedLivingSpace
     #region Display
     private void OnGUI()
     {
-      if (WindowVisable)
+      if (WindowVisible)
       {
         //Set the GUI Skin
         //GUI.skin = HighLogic.Skin;
         CLSStyles.SetupGuiStyles();
 
-        _windowPosition = GUILayout.Window(947695, _windowPosition, OnWindow, _clsLocTitle, _windowStyle, GUILayout.MinHeight(80), GUILayout.MinWidth(400), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true), GUILayout.Width(400), GUILayout.Height(80));
-        if (!_optionsVisible) return;
+        _windowPosition = GUILayout.Window(947695, _windowPosition, DisplayCLSWindow, _clsLocTitle, _windowStyle, GUILayout.MinHeight(80), GUILayout.MinWidth(400), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true), GUILayout.Width(400), GUILayout.Height(80));
+        if (!WindowOptionsVisible) return;
         if (_windowOptionsPosition == new Rect(0, 0, 0, 0))
           _windowOptionsPosition = new Rect(_windowPosition.x + _windowPosition.width + 10, _windowPosition.y, 260, 120);
         _windowOptionsPosition = GUILayout.Window(947696, _windowOptionsPosition, DisplayOptionWindow, _clsLocOptions, _windowStyle, GUILayout.MinHeight(120), GUILayout.ExpandWidth(true));
@@ -804,12 +833,7 @@ namespace ConnectedLivingSpace
       }
     }
 
-    private void OnWindow(int windowID)
-    {
-      DisplayCLSWindow();
-    }
-
-    private void DisplayCLSWindow()
+    private void DisplayCLSWindow(int windowId)
     {
       // set scrollviewer sizes...
       if (Event.current.type == EventType.Repaint)
@@ -826,6 +850,8 @@ namespace ConnectedLivingSpace
         // Main window...
         //------------------------------------------------------------------------------------------------
 
+        _windowLocked = PreventClickthrough(WindowVisible, _windowPosition, _windowLocked);
+
         Rect rect = new Rect(_windowPosition.width - 20, 4, 16, 16);
         if (GUI.Button(rect, ""))
         {
@@ -834,8 +860,9 @@ namespace ConnectedLivingSpace
         rect = new Rect(_windowPosition.width - 90, 4, 65, 16);
         if (GUI.Button(rect, new GUIContent(_clsLocOptions, _clsLocOptionTt))) // "Options","Click to view/edit options"
         {
-          _optionsVisible = !_optionsVisible;
+          WindowOptionsVisible = !WindowOptionsVisible;
         }
+
         GUILayout.BeginVertical();
         GUI.enabled = true;
 
@@ -1015,11 +1042,14 @@ namespace ConnectedLivingSpace
 
     private void DisplayOptionWindow(int windowID)
     {
+      _windowOptionsLocked = PreventClickthrough(WindowOptionsVisible, _windowOptionsPosition, _windowOptionsLocked);
+
       Rect rect = new Rect(_windowOptionsPosition.width - 20, 4, 16, 16);
       if (GUI.Button(rect, ""))
       {
-        _optionsVisible = false;
+        WindowOptionsVisible = false;
       }
+
       GUILayout.BeginVertical();
       // Unrestricted Xfers
       bool oldAllow = _allowUnrestrictedTransfers;
@@ -1109,6 +1139,43 @@ namespace ConnectedLivingSpace
         windowPosition.y = Screen.currentResolution.height - windowPosition.height;
     }
     #endregion Display
+
+    #region GUIUtils
+    // This must be unique for each mod. Complex mods could use multiple control locks.
+    private static string CONTROL_LOCK_ID = "CLS_Window";
+    /// <summary>
+    /// Locks mouse inputs for a given rectangle, preventing mouse clicks from being passed to underlying UI elements.
+    /// </summary>
+    /// <param name="visible"></param>
+    /// <param name="position"></param>
+    /// <returns>true if the rectangle region is locked, otherwise false.</returns>
+    internal static bool PreventClickthrough(bool visible, Rect position, bool inputLocked)
+    {
+      // Still in work.  Not behaving correctly in Flight.  Works fine in Editor and Space Center...
+      // Based on testing, it appears that Kerbals can still be accessed
+      bool mouseOverWindow = MouseIsOverWindow(visible, position);
+      if (!inputLocked && mouseOverWindow)
+      {
+        InputLockManager.SetControlLock(ControlTypes.UI | ControlTypes.All, CONTROL_LOCK_ID);
+        inputLocked = true;
+      }
+      if (!inputLocked || mouseOverWindow) return inputLocked;
+      InputLockManager.RemoveControlLock(CONTROL_LOCK_ID);
+      return false;
+    }
+
+    /// <summary>
+    /// Checks whether the mouse is inside a given visible rectangle.
+    /// </summary>
+    /// <param name="visible"></param>
+    /// <param name="position"></param>
+    /// <returns>true if the rectangle is visible and the mouse position is currently inside it</returns>
+    private static bool MouseIsOverWindow(bool visible, Rect position)
+    {
+      return visible
+             && position.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y));
+    }
+    #endregion GUIUtils
 
     #region Localization
     internal static void CacheClsLocalization()
