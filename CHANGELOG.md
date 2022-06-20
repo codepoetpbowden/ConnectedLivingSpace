@@ -5,6 +5,12 @@ Major features are **bolded**, contributors are *emphasized*.
 
 Version {VERSION} - Release {DATE} - KSP {KSPVERSION}
 -------------------------------------------------
+- Added: Issue #123: Freedom Configs for LanderCan.  Make bottom passable at a cost in weight of approx 10%
+- Fixed: Issue #121: (Mwherle) Highlighting breaks when building Ship.
+- Fixed: Issue #120: (Mwherle) Changing a part's CLS config using Tewakables doesn't recalcuate the ship.
+
+Version 2.0.2.0 - Release 12 Feb 2022 - KSP 1.12.3
+-------------------------------------------------
 - Fixed: Revert CLSClient.cs location to match build process
 - Fixed: Correct version template to reflect correct version data for build process
 
